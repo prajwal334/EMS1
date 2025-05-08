@@ -56,6 +56,26 @@ export const fetchDepartments = async () => {
   return departments;
 };
 
+//employees for salary
+export const getEmployees = async (id) => {
+  let employees;
+  try {
+    const response = await axios.get(`http://localhost:3000/api/employee/department/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    if (response.data.success) {
+      employees = response.data.employees;
+    }
+  } catch (error) {
+    if (error.response && !error.response.data.success) {
+      alert(error.response.data.error);
+    }
+  }
+  return employees;
+};
+
 export const EmployeeButtons = ({Id}) => {
   const navigate = useNavigate();
   return (
@@ -71,7 +91,8 @@ export const EmployeeButtons = ({Id}) => {
       >
         Edit
       </button>
-      <button className="bg-green-500 text-white px-2 py-1 rounded">
+      <button className="bg-green-500 text-white px-2 py-1 rounded"
+      onClick={() => navigate(`/admin-dashboard/employees/salary/${Id}`)}>
         Salary
       </button>
       <button className="bg-red-500 text-white px-2 py-1 rounded">

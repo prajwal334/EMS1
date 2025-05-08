@@ -84,7 +84,9 @@ const getEmployees = async (req, res) => {
 const getEmployee = async (req, res) => {
   const {id} = req.params;
   try {
-      const employee = await Employee.findById({_id: id}).populate("userId", {password: 0}).populate("department"); // Exclude password field from the user data
+      const employee = await Employee.findById({_id: id})
+      .populate("userId", {password: 0})
+      .populate("department"); // Exclude password field from the user data
       return res.status(200).json({ success: true, employee });
   } catch (error) {
       return res.status(500).json({ success: false, error: "Getting Employees Server Error" });
@@ -125,8 +127,18 @@ const updateEmployee = async (req, res) =>{
     return res.status(500).json({ success: false, error: "update employees server error" });
 
   }
+};
+
+const fetchEmployeesByDepId = async (req, res) => {
+  const {id} = req.params;
+  try {
+      const employees = await Employee.find({ department: id })
+      return res.status(200).json({ success: true, employees });
+  } catch (error) {
+      return res.status(500).json({ success: false, error: "get employeesbyDepId server error" });
+  }
 }
 
   
-  export { addEmployee, upload, getEmployees, getEmployee, updateEmployee };
+  export { addEmployee, upload, getEmployees, getEmployee, updateEmployee, fetchEmployeesByDepId };
   
