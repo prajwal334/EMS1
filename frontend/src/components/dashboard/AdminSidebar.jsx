@@ -53,7 +53,7 @@ const AdminSidebar = () => {
           <span>Department</span>
         </NavLink>
         <NavLink
-          to="/admin-dashboard"
+          to="/admin-dashboard/teams"
           className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700"
         >
           <FaBuilding />
