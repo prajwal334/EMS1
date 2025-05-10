@@ -55,15 +55,11 @@ const PfView = ({ employeeId }) => {
               <td className="px-4 py-2">₹{pfData.currentUpdatedPf}</td>
             </tr>
             <tr className="border-t">
-              <td className="px-4 py-2 font-semibold">
-                Interest by Company (3.25%)
-              </td>
+              <td className="px-4 py-2 font-semibold">Amount by Company</td>
               <td className="px-4 py-2">₹{pfData.interestCompany}</td>
             </tr>
             <tr className="border-t">
-              <td className="px-4 py-2 font-semibold">
-                Interest by Government (7.2%)
-              </td>
+              <td className="px-4 py-2 font-semibold">Amount by Government</td>
               <td className="px-4 py-2">₹{pfData.interestGovernment}</td>
             </tr>
             <tr className="border-t bg-gray-400">
