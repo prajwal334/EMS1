@@ -9,7 +9,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 
-const AdminSidebar = () => {
+const HrSidebar = () => {
   return (
     <div className="bg-white text-black h-screen fixed left-0 top-0 bottom-0 space-y-4 w-64">
       <div className="bg-blue-700 h-12 flex items-center justify-center">
@@ -19,7 +19,7 @@ const AdminSidebar = () => {
       </div>
       <div className="px-6 py-4 space-y-2">
         <NavLink
-          to="/admin-dashboard"
+          to="/hr-dashboard"
           className={({ isActive }) =>
             `${
               isActive ? "bg-teal-500" : ""
@@ -31,7 +31,7 @@ const AdminSidebar = () => {
           <span>Dashboard</span>
         </NavLink>
         <NavLink
-          to="/admin-dashboard/employees"
+          to="/hr-dashboard/employees"
           className={({ isActive }) =>
             `${
               isActive ? "bg-teal-500" : ""
@@ -42,7 +42,7 @@ const AdminSidebar = () => {
           <span>Employee</span>
         </NavLink>
         <NavLink
-          to="/admin-dashboard/departments"
+          to="/hr-dashboard/departments"
           className={({ isActive }) =>
             `${
               isActive ? "bg-teal-500" : ""
@@ -53,29 +53,33 @@ const AdminSidebar = () => {
           <span>Department</span>
         </NavLink>
         <NavLink
-          to="/admin-dashboard"
+          to="/hr-dashboard"
           className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700"
         >
           <FaCalendarAlt />
           <span>Leave</span>
         </NavLink>
         <NavLink
-          to="/admin-dashboard/salary/add"
+          to="/hr-dashboard/"
           className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700"
         >
-          <FaMoneyBillWave />
-          <span>Salary</span>
+          <FaCalendarAlt />
+          <span>Attendance</span>
         </NavLink>
         <NavLink
-          to="/admin-dashboard"
-          className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700"
+          to="/hr-dashboard/pf"
+          className={({ isActive }) =>
+            `${
+              isActive ? "bg-teal-500" : ""
+            } flex items-center space-x-2 py-2 px-4 rounded`
+          }
         >
-          <FaCogs />
-          <span>Settings</span>
+          <FaUser />
+          <span>PF A/C</span>
         </NavLink>
       </div>
     </div>
   );
 };
 
-export default AdminSidebar;
+export default HrSidebar;
