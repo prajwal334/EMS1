@@ -13,10 +13,10 @@ const Add = () => {
   });
 
   const [inputCounts, setInputCounts] = useState({
-    overtimeHours: 0,
-    lopDays: 0,
-    lateLogins: 0,
-    halfDays: 0,
+    overtimeHours: '',
+    lopDays: '',
+    lateLogins: '',
+    halfDays: '',
   });
 
   const [allowanceFields, setAllowanceFields] = useState({
