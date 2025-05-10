@@ -38,7 +38,7 @@ const AdminSidebar = () => {
                     <FaCalendarAlt />
                     <span>Leave</span>
                 </NavLink>
-                <NavLink to="/admin-dashboard"
+                <NavLink to="/admin-dashboard/salary/add"
                 className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700">
                     <FaMoneyBillWave />
                     <span>Salary</span>

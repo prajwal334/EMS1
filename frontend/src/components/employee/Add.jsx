@@ -208,13 +208,13 @@ const Add = () => {
           {/* Salary Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Salary
+              CTC
             </label>
             <input
               type="number"
               name="salary"
               onChange={handleChange}
-              placeholder="Enter Salary"
+              placeholder="Enter CTC"
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
