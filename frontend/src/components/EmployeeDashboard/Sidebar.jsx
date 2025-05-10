@@ -43,12 +43,6 @@ const Sidebar = () => {
                     <FaCalendarAlt />
                     <span>Salary</span>
                 </NavLink>
-               
-                <NavLink to="/admin-dashboard"
-                className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700">
-                    <FaCogs />
-                    <span>Settings</span>
-                </NavLink>
             </div>
         </div>
     )
