@@ -30,6 +30,7 @@ const AdminSidebar = () => {
           <FaTachometerAlt />
           <span>Dashboard</span>
         </NavLink>
+
         <NavLink
           to="/admin-dashboard/employees"
           className={({ isActive }) =>
@@ -41,6 +42,7 @@ const AdminSidebar = () => {
           <FaUser />
           <span>Employee</span>
         </NavLink>
+
         <NavLink
           to="/admin-dashboard/departments"
           className={({ isActive }) =>
@@ -52,6 +54,7 @@ const AdminSidebar = () => {
           <FaBuilding />
           <span>Department</span>
         </NavLink>
+
         <NavLink
           to="/admin-dashboard"
           className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700"
@@ -59,6 +62,7 @@ const AdminSidebar = () => {
           <FaCalendarAlt />
           <span>Leave</span>
         </NavLink>
+
         <NavLink
           to="/admin-dashboard/salary/add"
           className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700"
@@ -66,6 +70,7 @@ const AdminSidebar = () => {
           <FaMoneyBillWave />
           <span>Salary</span>
         </NavLink>
+
         <NavLink
           to="/admin-dashboard"
           className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700"
