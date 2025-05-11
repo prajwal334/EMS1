@@ -67,20 +67,20 @@ const Add = () => {
   useEffect(() => {
     const gross = salary.grossPay;
     const basic = salary.basicSalary;
-    const perDay = basic / 30;
+    const perDay = gross / 30;
 
     const allowances = {
-      houseRent: basic * 0.09,
-      medical: basic * 0.042,
-      travel: basic * 0.068,
-      food: basic * 0.1,
+      houseRent: gross * 0.09,
+      medical: gross * 0.042,
+      travel: gross * 0.068,
+      food: gross * 0.1,
       overTime: salary.overtimeHours * 200,
       bonus: salary.bonus,
       target: salary.targetAllowance,
     };
 
     const deductions = {
-      pf: basic * 0.1,
+      pf: gross * 0.1,
       leaveOfAbsence: perDay * salary.lopDays,
       lateLogin: salary.lateLogins * 300,
       halfDay: (perDay / 2) * salary.halfDays,

@@ -4,6 +4,7 @@ const addSalary = async (req, res) => {
   try {
     const {
       employeeId,
+      grossPay,
       basicSalary,
       overtimeHours,
       lopDays,
@@ -17,7 +18,8 @@ const addSalary = async (req, res) => {
       payDate,
     } = req.body;
 
-    const gross = parseFloat(basicSalary);
+    const gross = parseFloat(grossPay);
+    const basic = parseFloat(basicSalary);
     const perDay = gross / 30;
 
     // Calculate Allowances
@@ -38,18 +40,18 @@ const addSalary = async (req, res) => {
       leaveOfAbsence: perDay * lopDays,
       lateLogin: lateLogins * 300,
       halfDay: (perDay / 2) * halfDays,
-      pf: gross * 0.10,
+      pf: basic * 0.10,
       targetPenalty: parseFloat(targetPenalty),
       loan: parseFloat(loan),
     };
 
     const totalDeductions = Object.values(deductions).reduce((sum, val) => sum + val, 0);
 
-    const netSalary = gross + totalAllowances - totalDeductions;
+    const netSalary = basic + totalAllowances - totalDeductions;
 
     const newSalary = new Salary({
       employeeId,
-      basicSalary: gross,
+      basicSalary: basic,
       allowances: allowances,   
       deductions: deductions,   
       netSalary,
