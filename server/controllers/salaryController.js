@@ -13,6 +13,7 @@ const addSalary = async (req, res) => {
       bonus = 0,
       targetPenalty = 0,
       loan = 0,
+
       payDate,
     } = req.body;
 
@@ -49,9 +50,11 @@ const addSalary = async (req, res) => {
     const newSalary = new Salary({
       employeeId,
       basicSalary: gross,
-      allowances: totalAllowances,
-      deductions: totalDeductions,
+      allowances: allowances,   
+      deductions: deductions,   
       netSalary,
+      overtimeHours,
+      lopDays,
       payDate,
     });
 
@@ -73,5 +76,7 @@ const getSalary = async (req, res) => {
     return res.status(500).json({ success: false, error: "Salary get server error" });
   }
 };
+
+
 
 export { addSalary, getSalary };

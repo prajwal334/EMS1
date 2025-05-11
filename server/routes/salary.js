@@ -7,6 +7,8 @@ const router = express.Router();
 
 router.post('/add', authMiddleware, addSalary )
 router.get('/:id', authMiddleware, getSalary )
+// router.get("/download/:id", downloadSalarySlip);
+
 
 
 export default router;

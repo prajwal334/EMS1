@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 const Add = () => {
   const [salary, setSalary] = useState({
     employeeId: null,
+    grossPay: 0,
     basicSalary: 0,
     payDate: "",
     overtimeHours: 0,
@@ -20,6 +21,7 @@ const Add = () => {
 
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
+
   const [calculated, setCalculated] = useState({ allowances: {}, deductions: {}, netSalary: 0 });
 
   const navigate = useNavigate();
@@ -42,10 +44,12 @@ const Add = () => {
     const selectedEmp = employees.find((emp) => emp._id === selectedEmpId);
     if (selectedEmp) {
       const ctc = selectedEmp.salary || 0;
-      const basicSalary = Math.floor(ctc / 12);
+      const grossPay = Math.floor(ctc / 12);
+      const basicSalary = Math.floor(ctc / 12) * 0.7;
       setSalary((prev) => ({
         ...prev,
         employeeId: selectedEmp._id,
+        grossPay,
         basicSalary,
       }));
     }
@@ -61,21 +65,22 @@ const Add = () => {
   };
 
   useEffect(() => {
-    const gross = salary.basicSalary;
-    const perDay = gross / 30;
+    const gross = salary.grossPay;
+    const basic = salary.basicSalary;
+    const perDay = basic / 30;
 
     const allowances = {
-      houseRent: gross * 0.09,
-      medical: gross * 0.042,
-      travel: gross * 0.068,
-      food: gross * 0.1,
+      houseRent: basic * 0.09,
+      medical: basic * 0.042,
+      travel: basic * 0.068,
+      food: basic * 0.1,
       overTime: salary.overtimeHours * 200,
       bonus: salary.bonus,
       target: salary.targetAllowance,
     };
 
     const deductions = {
-      pf: gross * 0.1,
+      pf: basic * 0.1,
       leaveOfAbsence: perDay * salary.lopDays,
       lateLogin: salary.lateLogins * 300,
       halfDay: (perDay / 2) * salary.halfDays,
@@ -85,7 +90,7 @@ const Add = () => {
 
     const totalAllowances = Object.values(allowances).reduce((sum, val) => sum + val, 0);
     const totalDeductions = Object.values(deductions).reduce((sum, val) => sum + val, 0);
-    const netSalary = gross + totalAllowances - totalDeductions;
+    const netSalary = basic + totalAllowances - totalDeductions;
 
     setCalculated({ allowances, deductions, netSalary });
   }, [salary]);
@@ -99,6 +104,8 @@ const Add = () => {
         },
       });
       if (response.data.success) {
+
+        
         navigate("/admin-dashboard/employees");
       }
     } catch (error) {
@@ -150,6 +157,17 @@ const Add = () => {
           {/* Gross Pay */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Gross Pay</label>
+            <input
+              type="number"
+              name="grossPay"
+              value={salary.grossPay}
+              readOnly
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+            />
+          </div>
+           {/* Basic Salary */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Basic Salary</label>
             <input
               type="number"
               name="basicSalary"
@@ -246,6 +264,8 @@ const Add = () => {
             className="mt-1 p-3 block w-full border border-green-600 rounded-md font-bold text-green-800 bg-green-50"
           />
         </div>
+        
+
 
         <button
           type="submit"
