@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../../context/authContext.jsx";
 import {
   FaBuilding,
   FaCalendarAlt,
@@ -10,6 +11,7 @@ import {
 } from "react-icons/fa";
 
 const Sidebar = () => {
+    const { user } = useAuth()
     return (
         <div className="bg-white text-black h-screen fixed left-0 top-0 bottom-0 space-y-4 w-64">
             <div className="bg-blue-700 h-12 flex items-center justify-center">
@@ -17,24 +19,25 @@ const Sidebar = () => {
             </div>
             <div className="px-6 py-4 space-y-2">
                 <NavLink to="/employee-dashboard"
-                    className={({isActive}) => `${isActive ? "bg-teal-500" : ""} flex items-center space-x-2 py-2 px-4 rounded`}
+                    className={({isActive}) => `${isActive ? "bg-blue-500" : ""} flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`}
                     end>
                     <FaTachometerAlt />
                     <span>Dashboard</span>
                 </NavLink>
-                <NavLink to="/employee-dashboard/profile"
-                    className={({isActive}) => `${isActive ? "bg-teal-500" : ""} flex items-center space-x-2 py-2 px-4 rounded`}
+                <NavLink to={`/employee-dashboard/profile/${user._id}`}
+                    className={({isActive}) => `${isActive ? "bg-blue-500" : ""} flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`}
                     >
                     <FaUser />
                     <span>My-Profile</span>
                 </NavLink>
                  <NavLink to="/employee-dashboard/leads"
-                className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700">
-                    <FaMoneyBillWave />
+                 className={({isActive}) => `${isActive ? "bg-blue-500" : ""} flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`}
+                 >
+                <FaMoneyBillWave />
                     <span>Leads</span>
                 </NavLink>
                 <NavLink to="/employee-dashboard/leaves"
-                    className={({isActive}) => `${isActive ? "bg-teal-500" : ""} flex items-center space-x-2 py-2 px-4 rounded`}>
+                    className={({isActive}) => `${isActive ? "bg-blue-500" : ""} flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`}>
                     <FaBuilding />
                     <span>Leaves</span>
                 </NavLink>
