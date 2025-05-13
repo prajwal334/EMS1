@@ -13,22 +13,22 @@ const List = () => {
         const fetchEmployees = async () => {
             setEmpLoading(true)
             try {
-                const responnse = await axios.get("http://localhost:3000/api/employee", 
+                const response = await axios.get("http://localhost:3000/api/employee", 
                     {
                     headers: {
                         "Authorization" : `Bearer ${localStorage.getItem("token")}`,
                     },
                 });
-                if (responnse.data.success) {
+                if (response.data.success) {
                     let sno = 1;
-                    const data = responnse.data.employees.map((emp) => ({
+                    const data = response.data.employees.map((emp) => ({
                         _id: emp._id,
                         sno: sno++,
                         profileImage: emp.userId.profileImage,
                         empId: emp.userId.empId,
                         name: emp.userId.name,
                         doj: new Date(emp.doj).toDateString(),
-                        dep_name: emp.department.dep_name,
+                        dep_name: emp.department?.dep_name || "N/A",
                         actions: (<EmployeeButtons Id={emp._id} />),
                     }));
                     setEmployees(data)
