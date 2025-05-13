@@ -7,19 +7,35 @@ import HrDashboard from "./pages/HrDashboard";
 import PrivateRoutes from "./utils/PrivateRoutes";
 import RoleBaseRoutes from "./utils/RoleBaseRoutes";
 
+// Dashboard components
 import AdminSummary from "./components/dashboard/AdminSummary";
 import HrSummary from "./components/dashboard/HrSummary";
+import EmployeeSummary from "./components/EmployeeDashboard/EmployeeDashboard";
+
+// Department
 import DepartmentList from "./components/department/DepartmentList";
 import AddDepartment from "./components/department/AddDepartment";
+
+// Employee
 import List from "./components/employee/List";
 import Add from "./components/employee/Add";
 import View from "./components/employee/View";
 import Edit from "./components/employee/Edit";
+
+// Salary
 import AddSalary from "./components/salary/Add";
 import ViewSalary from "./components/salary/View";
+
+// Team
 import TeamList from "./components/team/TeamList";
 import AddTeam from "./components/team/Add";
+
+// PF
 import PfView from "./components/pf/PfView";
+
+// Leave
+import LeaveList from "./components/leave/list";
+import LeaveAdd from "./components/leave/add";
 
 function App() {
   return (
@@ -90,7 +106,12 @@ function App() {
               </RoleBaseRoutes>
             </PrivateRoutes>
           }
-        />
+        >
+          <Route index element={<EmployeeSummary />} />
+          <Route path="profile/:id" element={<View />} />
+          <Route path="leaves" element={<LeaveList />} />
+          <Route path="add-leave" element={<LeaveAdd />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

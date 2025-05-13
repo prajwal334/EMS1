@@ -69,7 +69,7 @@ const Add = () => {
               type="text"
               name="name"
               onChange={handleChange}
-              placeholder="Enter First Name"
+              placeholder="Enter Full Name"
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
