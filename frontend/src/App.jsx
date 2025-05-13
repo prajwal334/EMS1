@@ -17,6 +17,7 @@ import TeamList from './components/team/TeamList';
 import AddTeam from './components/team/Add';
 import LeaveList from './components/leave/list';
 import LeaveAdd from './components/leave/add';
+import LeaveList1 from './components/leave/Table';
 
 import EmployeeSummary from './components/EmployeeDashboard/EmployeeDashboard';
 
@@ -50,7 +51,7 @@ function App() {
 
             <Route path="/admin-dashboard/salary/add" element={<AddSalary />}></Route>
             <Route path="/admin-dashboard/employees/salary/:id" element={<ViewSalary />}></Route>
-
+            <Route path="/admin-dashboard/leaves" element={<LeaveList1 />}></Route>
 
           </Route>
         <Route path="/employee-dashboard" element={

@@ -62,15 +62,19 @@ const View = () => {
                 <p className="text-lg font-bold">Gender:</p>
                 <p className="text-lg">{employee.gender}</p>
               </div>
-
+ 
               <div className="flex space-x-4 mb-4">
                 <p className="text-lg font-bold">Department:</p>
-                <p className="text-lg">{employee.department.dep_name}</p>
+                <p className="text-lg">{employee.department?.dep_name || "N/A"}</p>
               </div>
               <div className="flex space-x-4 mb-4">
                 <p className="text-lg font-bold">Marital Status:</p>
                 <p className="text-lg">{employee.maritalStatus}</p>
               </div>
+              <div className="flex space-x-4 mb-4">
+                <p className="text-lg font-bold">CTC:</p>
+                <p className="text-lg">{employee.salary}</p>
+                </div>
             </div>
           </div>
         </div>

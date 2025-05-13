@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import {
   FaBuilding,
-  FaCalendarAlt,
+  FaCalendarCheck,
   FaCogs,
   FaMoneyBillWave,
   FaTachometerAlt,
@@ -53,10 +53,14 @@ const AdminSidebar = () => {
           <span>Department</span>
         </NavLink>
         <NavLink
-          to="/admin-dashboard"
-          className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700"
+          to="/admin-dashboard/leaves"
+          className={({ isActive }) =>
+            `${
+              isActive ? "bg-blue-500" : ""
+            } flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`
+          }
         >
-          <FaCalendarAlt />
+           <FaCalendarCheck /> 
           <span>Leave</span>
         </NavLink>
         <NavLink
@@ -69,13 +73,7 @@ const AdminSidebar = () => {
           <FaMoneyBillWave />
           <span>Salary</span>
         </NavLink>
-        <NavLink
-          to="/admin-dashboard"
-          className="flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700"
-        >
-          <FaCogs />
-          <span>Settings</span>
-        </NavLink>
+        
       </div>
     </div>
   );
