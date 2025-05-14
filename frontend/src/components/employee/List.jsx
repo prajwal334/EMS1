@@ -61,7 +61,7 @@ const List = () => {
       <div className="flex justify-between items-center">
         <input
           type="text"
-          placeholder="Search Department"
+          placeholder="Search Employee..."
           className="px-4 py-0.5 border border-gray-300 rounded shadow-sm"
           onChange={handleFilter}
         />
