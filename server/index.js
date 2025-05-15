@@ -7,7 +7,9 @@ import employeeRouter from './routes/employee.js';
 import salaryRouter from './routes/salary.js';
 import teamRouter from './routes/team.js';
 import leaveRouter from './routes/leave.js';
+import settingRouter from './routes/setting.js';
 import connectToDatabase from './db/db.js';
+import Summary from './routes/dashboard.js';
 
 dotenv.config();
 
@@ -22,6 +24,8 @@ app.use('/api/employee', employeeRouter);
 app.use('/api/team', teamRouter);
 app.use('/api/salary', salaryRouter)
 app.use('/api/leave', leaveRouter);
+app.use('/api/setting', settingRouter);
+app.use('/api/dashboard', Summary);
 
 
 

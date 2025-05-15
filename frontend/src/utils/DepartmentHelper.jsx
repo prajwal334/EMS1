@@ -12,7 +12,7 @@ export const columns = [
        
     },
     {
-        name: "Description",
+        name: "Employee Name",
         selector: (row) => row.description,
       
     },

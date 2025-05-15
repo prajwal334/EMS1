@@ -80,10 +80,10 @@ const View = () => {
           <td className="px-6 py-3">{salary.employeeId?.employeeId || "N/A"}</td>
           <td className="px-6 py-3">{salary.basicSalary}</td>
           <td className="px-6 py-3">
-            {salary.allowances ? JSON.stringify(salary.allowances) : "N/A"}
+            {salary.allowances.houseRent ? JSON.stringify(salary.allowances.houseRent) : "N/A"}
           </td>
           <td className="px-6 py-3">
-            {salary.deductions ? JSON.stringify(salary.deductions) : "N/A"}
+            {salary.deductions ? JSON.stringify(salary.deductions.pf) : "N/A"}
           </td>
           <td className="px-6 py-3">{salary.netSalary}</td>
           <td className="px-6 py-3">{new Date(salary.payDate).toLocaleDateString()}</td>

@@ -71,7 +71,7 @@ const List = () => {
           Add Employee
         </Link>
       </div>
-      <div className="overflow-x-auto mt-4 shadow-md rounded-lg ">
+      <div className=" mt-3 shadow-md rounded-lg ">
         <DataTable
           columns={columns}
           data={filteredEmployee}

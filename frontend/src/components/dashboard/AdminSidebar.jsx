@@ -7,6 +7,7 @@ import {
   FaMoneyBillWave,
   FaTachometerAlt,
   FaUser,
+  FaClock,
 } from "react-icons/fa";
 
 const AdminSidebar = () => {
@@ -53,6 +54,17 @@ const AdminSidebar = () => {
           <span>Department</span>
         </NavLink>
         <NavLink
+          to="/admin-dashboard/teams"
+          className={({ isActive }) =>
+            `${
+              isActive ? "bg-blue-500" : ""
+            } flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`
+          }
+        >
+          <FaUser />
+          <span>Teams</span>
+        </NavLink>
+        <NavLink
           to="/admin-dashboard/leaves"
           className={({ isActive }) =>
             `${
@@ -72,6 +84,29 @@ const AdminSidebar = () => {
           }>
           <FaMoneyBillWave />
           <span>Salary</span>
+        </NavLink>
+
+        <NavLink
+          to="/admin-dashboard/attendance"
+          className={({ isActive }) =>
+            `${
+              isActive ? "bg-blue-500" : ""
+            } flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`
+          }
+        >
+          <FaClock />
+          <span>Attendance</span>
+        </NavLink>
+        <NavLink
+          to="/admin-dashboard/holidays"
+          className={({ isActive }) =>
+            `${
+              isActive ? "bg-blue-500" : ""
+            } flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`
+          }
+        >
+          <FaCalendarCheck />
+          <span>Holidays</span> 
         </NavLink>
 
         <NavLink
