@@ -25,7 +25,6 @@ const List = () => {
                         _id: emp._id,
                         sno: sno++,
                         profileImage: emp.userId.profileImage,
-                        empId: emp.userId.empId,
                         name: emp.userId.name,
                         doj: new Date(emp.doj).toDateString(),
                         dep_name: emp.department?.dep_name || "N/A",
@@ -72,7 +71,7 @@ const List = () => {
           Add Employee
         </Link>
       </div>
-      <div>
+      <div className="overflow-x-auto mt-4 shadow-md rounded-lg ">
         <DataTable
           columns={columns}
           data={filteredEmployee}

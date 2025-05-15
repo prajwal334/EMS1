@@ -73,6 +73,18 @@ const AdminSidebar = () => {
           <FaMoneyBillWave />
           <span>Salary</span>
         </NavLink>
+
+        <NavLink
+          to="/admin-dashboard/settings"
+          className={({ isActive }) =>
+            `${
+              isActive ? "bg-blue-500" : ""
+            } flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`
+          }
+        >
+          <FaCogs />
+          <span>Change Password</span>
+        </NavLink>
         
       </div>
     </div>

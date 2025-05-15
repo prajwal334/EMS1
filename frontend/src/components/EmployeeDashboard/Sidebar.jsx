@@ -36,7 +36,7 @@ const Sidebar = () => {
                 <FaMoneyBillWave />
                     <span>Leads</span>
                 </NavLink>
-                <NavLink to="/employee-dashboard/leaves"
+                <NavLink to={`/employee-dashboard/leaves/${user._id}`}
                     className={({isActive}) => `${isActive ? "bg-blue-500" : ""} flex items-center space-x-2 py-2 px-4 rounded hover:bg-blue-700`}>
                     <FaBuilding />
                     <span>Leaves</span>

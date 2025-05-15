@@ -13,7 +13,7 @@ export const columns = [
           <img
             src={`http://localhost:3000/uploads/${row.profileImage}`} // Assuming Express serves this statically
             alt={row.name}
-            className="w-10 h-10 rounded-full"
+            className="w-14 h-14 rounded-full"
           />
         ),
       },
@@ -95,7 +95,8 @@ export const EmployeeButtons = ({Id}) => {
       onClick={() => navigate(`/admin-dashboard/employees/salary/${Id}`)}>
         Salary
       </button>
-      <button className="bg-red-500 text-white px-2 py-1 rounded">
+      <button className="bg-red-500 text-white px-2 py-1 rounded"
+      onClick={() => navigate(`/admin-dashboard/employees/leaves/${Id}`)}>
         Leave
       </button>
     </div>
