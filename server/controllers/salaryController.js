@@ -1,5 +1,6 @@
 import Salary from "../models/Salary.js";
 import Employee from "../models/Employee.js";
+import Department from "../models/Department.js";
 
 const addSalary = async (req, res) => {
   try {
@@ -84,6 +85,74 @@ const getSalary = async (req, res) => {
   }
 }
 
+const getDepartmentWiseSalary = async (req, res) => {
+  try {
+    const year = parseInt(req.query.year);
+    const month = parseInt(req.query.month); // optional
+
+    let matchStage = {};
+
+    if (year && month) {
+      const startDate = new Date(year, month - 1, 1); // ✅ JS months are 0-indexed
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999); // ✅ last day of month
+      matchStage = {
+        payDate: { $gte: startDate, $lte: endDate }
+      };
+    } else if (year) {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+      matchStage = {
+        payDate: { $gte: startDate, $lte: endDate }
+      };
+    }
+
+    const result = await Salary.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "employeeId",
+          foreignField: "_id",
+          as: "employee"
+        }
+      },
+      { $unwind: "$employee" },
+      {
+        $lookup: {
+          from: "departments",
+          localField: "employee.department",
+          foreignField: "_id",
+          as: "department"
+        }
+      },
+      { $unwind: "$department" },
+      {
+        $group: {
+          _id: "$department.dep_name",
+          totalSalary: { $sum: "$netSalary" },
+          avgSalary: { $avg: "$netSalary" },
+          employeeCount: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          department: "$_id",
+          totalSalary: 1,
+          avgSalary: 1,
+          employeeCount: 1,
+          _id: 0
+        }
+      }
+    ]);
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    console.error("Error in department-wise salary aggregation:", err);
+    return res.status(500).json({ success: false, error: "Server error while aggregating salary" });
+  }
+};
 
 
-export { addSalary, getSalary };
+
+
+export { addSalary, getSalary, getDepartmentWiseSalary };
