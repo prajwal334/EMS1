@@ -20,10 +20,8 @@ const List = () => {
                     },
                 });
                 if (response.data.success) {
-                    let sno = 1;
                     const data = await response.data.employees.map((emp) => ({
                         _id: emp._id,
-                        sno: sno++,
                         profileImage: emp.userId.profileImage,
                         name: emp.userId.name,
                         doj: new Date(emp.doj).toDateString(),

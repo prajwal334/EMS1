@@ -13,9 +13,10 @@ const addSalary = async (req, res) => {
       lateLogins,
       halfDays,
       targetAllowance = 0,
-      bonus = 0,
+      overtimeAllowance = 0,
       targetPenalty = 0,
       loan = 0,
+      pt = 0,
 
       payDate,
     } = req.body;
@@ -31,7 +32,7 @@ const addSalary = async (req, res) => {
       travel: gross * 0.068,
       food: gross * 0.1,
       overTime: overtimeHours * 200,
-      bonus: parseFloat(bonus),
+      overtimeAllowance: parseFloat(overtimeAllowance),
       target: parseFloat(targetAllowance),
     };
 
@@ -45,6 +46,7 @@ const addSalary = async (req, res) => {
       pf: basic * 0.10,
       targetPenalty: parseFloat(targetPenalty),
       loan: parseFloat(loan),
+      pt: parseFloat(pt),
     };
 
     const totalDeductions = Object.values(deductions).reduce((sum, val) => sum + val, 0);

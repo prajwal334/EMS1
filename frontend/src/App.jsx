@@ -13,6 +13,7 @@ import View from './components/employee/View';
 import Edit from './components/employee/Edit';
 import AddSalary from './components/salary/Add';
 import ViewSalary from './components/salary/View';
+import ViewSalaryEmp from './components/salary/ViewEmp';
 import TeamList from './components/team/TeamList';
 import AddTeam from './components/team/Add';
 import LeaveList from './components/leave/list';
@@ -71,7 +72,7 @@ function App() {
 
             <Route path="/employee-dashboard/leaves/:id" element={<LeaveList />} ></Route>
             <Route path="/employee-dashboard/add-leave" element={<LeaveAdd />} ></Route>
-            <Route path="/employee-dashboard/salary/:id" element={<ViewSalary />} ></Route>
+            <Route path="/employee-dashboard/salary/:id" element={<ViewSalaryEmp />} ></Route>
         </Route>
 
       </Routes>

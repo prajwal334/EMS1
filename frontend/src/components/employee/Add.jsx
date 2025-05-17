@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 const Add = () => {
   const [departments, setDepartments] = useState([]);
   const [formData, setFormData] = useState({});
+const [imageFile, setImageFile] = useState(null);
 
   const navigate = useNavigate();
 
@@ -17,42 +18,50 @@ const Add = () => {
     getDepartments();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "image") {
-      setFormData((prevData) => ({ ...prevData, [name]: files[0] }));
-    } else {
-      setFormData((prevData) => ({ ...prevData, [name]: value }));
-    }
-  };
+ const handleChange = (e) => {
+  const { name, value, type, files } = e.target;
+
+  if (type === "file") {
+    setImageFile(files[0]);
+  } else {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+};
+
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const formDataObj = new FormData();
-    Object.keys(formData).forEach((key) => {
-      formDataObj.append(key, formData[key]);
-    });
-
-    try {
-const response = await axios.post(
-  "http://localhost:3000/api/employee/add",
-  formDataObj,
-  {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
+  const formDataObj = new FormData();
+  for (const key in formData) {
+    formDataObj.append(key, formData[key]);
   }
-);
-      if (response.data.success) {
-        navigate("/admin-dashboard/employees");
+
+  if (imageFile) {
+    formDataObj.append("image", imageFile);
+  }
+
+  try {
+    const response = await axios.post(
+      "http://localhost:3000/api/employee/add",
+      formDataObj,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
       }
-    } catch (error) {
-      if (error.response && !error.response.data.success) {
-        alert(error.response.data.error);
-      }
+    );
+
+    if (response.data.success) {
+      navigate("/admin-dashboard/employees");
     }
-  };
+  } catch (error) {
+    console.error("Error submitting:", error);
+    alert(error?.response?.data?.error || "Server error");
+  }
+};
+
 
   return (
     <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
@@ -74,14 +83,16 @@ const response = await axios.post(
               required
             />
           </div>
-
+          
+          {/* Username Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Username</label>
             <input
               type="text"
               id="username"
               name="username"
-              value={formData.username}
+              value={formData.username || ""}
+              placeholder="Enter Username"
               onChange={handleChange}
                             className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
 
@@ -102,6 +113,95 @@ const response = await axios.post(
               required
             />
           </div>
+
+          {/* NVKSH PERNO Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              NVKSH PERNO
+            </label>
+            <input
+              type="number"
+              name="nvkshPerno"
+              onChange={handleChange}
+              placeholder="Enter NVKSH PERNO"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+
+          {/* NVKSH UNIT PERNO Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              NVKSH UNIT PERNO
+            </label>
+            <input
+              type="  number"
+              name="nvkshUnitPerno"
+              onChange={handleChange}
+              placeholder="Enter NVKSH UNIT PERNO"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />  
+          </div>
+
+          {/*  GRADE Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              GRADE
+            </label>
+            <select
+              name="grade"
+              onChange={handleChange}
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            >
+              <option value="">Select Grade</option>
+              <option value="S3">S3</option>
+              <option value="S2">S2</option>  
+              <option value="S1">S1</option>
+              <option value="S0">S0</option>
+              <option value="E3">E3</option>
+              <option value="E2">E2</option>
+              <option value="E1">E1</option>
+              <option value="E0">E0</option>
+          </select>
+          </div>    
+          
+          
+          {/* Department Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Department
+            </label>
+            <select
+              name="department"
+              onChange={handleChange}
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            >
+              <option value="">Select Department</option>
+              {departments.map((dep) => (
+                <option key={dep._id} value={dep._id}>
+                  {dep.dep_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {/* Designation Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Designation
+            </label>
+            <input
+              type="text"
+              name="designation"
+              onChange={handleChange}
+              placeholder="Enter Designation"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+
           {/* Employee Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -170,39 +270,152 @@ const response = await axios.post(
             </select>
           </div>
 
-          {/* Designation Field */}
+          
+
+          {/* Phone Number Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Designation
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              onChange={handleChange}
+              placeholder="Enter Phone Number"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+          {/*  PAN Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              PAN
             </label>
             <input
               type="text"
-              name="designation"
+              name="pan"
               onChange={handleChange}
-              placeholder="Enter Designation"
+              placeholder="Enter PAN"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+          {/* Aadhar Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Aadhar Number
+            </label>
+            <input
+              type="number"
+              name="aadhar"
+              onChange={handleChange}
+              placeholder="Enter Aadhar Number"
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
           </div>
 
-          {/* Department Field */}
+          {/* Address Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Department
+              Address
+            </label>
+            <input
+              type="text"
+              name="address"
+              onChange={handleChange}
+              placeholder="Enter Address"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Bank A/C No
+              </label>
+              <input
+              type="number"
+              name="bankac"
+              placeholder="Enter Bank A/C No"
+              onChange={handleChange}
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+            </div> 
+            {/* Bank Account Holder Name Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Bank Account Holder Name
+            </label>
+            <input  
+              type="text"
+              name="bankacname"
+              onChange={handleChange}
+              placeholder="Enter Bank Account Holder Name"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+          {/* Bank Name Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Bank Name
+            </label>
+            <input
+              type="text"
+              name="bankname"
+              onChange={handleChange}
+              placeholder="Enter Bank Name"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+          {/* Branch Name Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Branch Name
+            </label>
+            <input
+              type="text"
+              name="branchname"
+              onChange={handleChange}
+              placeholder="Enter Branch Name"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+          </div>
+          {/* Account Type Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Account Type
             </label>
             <select
-              name="department"
+              name="accountType"
               onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             >
-              <option value="">Select Department</option>
-              {departments.map((dep) => (
-                <option key={dep._id} value={dep._id}>
-                  {dep.dep_name}
-                </option>
-              ))}
+              <option value="">Select Account Type</option>
+              <option value="savings">Savings</option>
+              <option value="current">Current</option>
             </select>
+          </div>
+
+          {/* IFSC Code Field */}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              IFSC Code
+            </label>
+            <input
+              type="text"
+              name="ifsc" 
+              onChange={handleChange}
+              placeholder="Enter IFSC Code"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
           </div>
 
           {/* Salary Field */}

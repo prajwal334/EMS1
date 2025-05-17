@@ -9,10 +9,10 @@ export const EmployeeButtons = ({ Id }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1">
       <button
         title="View Profile"
-        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
         onClick={() => navigate(`/admin-dashboard/employees/${Id}`)}
       >
         <FaEye />
@@ -21,7 +21,7 @@ export const EmployeeButtons = ({ Id }) => {
 
       <button
         title="Edit Employee"
-        className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm"
+        className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-sm"
         onClick={() => navigate(`/admin-dashboard/employees/edit/${Id}`)}
       >
         <FaEdit />
@@ -30,7 +30,7 @@ export const EmployeeButtons = ({ Id }) => {
 
       <button
         title="View Salary"
-        className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+        className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
         onClick={() => navigate(`/admin-dashboard/employees/salary/${Id}`)}
       >
         <FaMoneyCheckAlt />
@@ -89,11 +89,6 @@ export const getEmployees = async (id) => {
 };
 // 📊 Table Columns
 export const columns = [
-  {
-    name: "S No",
-    selector: (row, index) => index + 1,
-    width: "70px",
-  },
   {
   name: "Image",
   cell: (row) =>
