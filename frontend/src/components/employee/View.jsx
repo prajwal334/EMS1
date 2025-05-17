@@ -3,13 +3,13 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 const View = () => {
-  const {id} = useParams();
+  const { id } = useParams();
   const [employee, setEmployee] = useState(null);
 
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
-        const responnse = await axios.get(
+        const response = await axios.get(
           `http://localhost:3000/api/employee/${id}`,
           {
             headers: {
@@ -17,13 +17,13 @@ const View = () => {
             },
           }
         );
-        console.log(responnse.data)
-        if (responnse.data.success) {
-          setEmployee(responnse.data.employee);
-        } 
+        console.log(response.data);
+        if (response.data.success) {
+          setEmployee(response.data.employee);
+        }
       } catch (error) {
         if (error.response && !error.response.data.success) {
-            alert(error.response.data.error);
+          alert(error.response.data.error);
         }
       }
     };
@@ -37,11 +37,10 @@ const View = () => {
           <h2 className="text-2xl font-bold mb-6">Employee Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 mb-6">
             <div>
-                <img
-                  src={`http://localhost:3000/${employee.userId.profileImage}`}
-                
-                  className="rounded-full border w-72"
-                />
+              <img
+                src={`http://localhost:3000/${employee.userId.profileImage}`}
+                className="rounded-full border w-72"
+              />
             </div>
             <div>
               <div className="flex space-x-4 mb-4">

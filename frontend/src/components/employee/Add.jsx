@@ -76,15 +76,16 @@ const Add = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Username</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Username
+            </label>
             <input
               type="text"
               id="username"
               name="username"
               value={formData.username}
               onChange={handleChange}
-                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
           </div>

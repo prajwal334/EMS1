@@ -51,6 +51,22 @@ const Sidebar = () => {
           <FaCalendarAlt />
           <span>Salary</span>
         </NavLink>
+
+        <NavLink
+          to={`/employee-dashboard/pf/${user?._id}`}
+          className={navLinkClass}
+        >
+          <FaCalendarAlt />
+          <span>PF A/C</span>
+        </NavLink>
+
+        <NavLink
+          to={`/employee-dashboard/login-history/${user._id}`}
+          className={navLinkClass}
+        >
+          <FaCalendarAlt />
+          <span>Attendance </span>
+        </NavLink>
       </div>
     </div>
   );

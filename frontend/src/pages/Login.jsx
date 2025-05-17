@@ -27,7 +27,7 @@ const Login = () => {
         localStorage.setItem("token", response.data.token);
         login(response.data.user);
 
-        // ✅ Role-based redirection
+        // Role-based redirection
         const role = response.data.user.role;
         if (role === "admin") {
           navigate("/admin-dashboard");

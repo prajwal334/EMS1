@@ -1,6 +1,6 @@
 import React from "react";
 import { useAuth } from "../context/authContext.jsx";
-import HrSidebar from "../components/dashboard/HrSidebar.jsx";
+import HrSidebar from "../components/HrDashboard/HrSidebar.jsx";
 import Navbar from "../components/dashboard/Navbar.jsx";
 import { Outlet } from "react-router-dom";
 

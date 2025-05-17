@@ -7,6 +7,7 @@ import {
   getEmployee,
   updateEmployee,
   fetchEmployeesByDepId,
+  getDepartmentByUserId,
 } from "../controllers/employeeController.js";
 
 const router = express.Router();
@@ -25,5 +26,8 @@ router.put("/:id", authMiddleware, updateEmployee);
 
 // Route to get employees by department ID
 router.get("/department/:id", authMiddleware, fetchEmployeesByDepId);
+
+// Route to get department by User ID
+router.get("/get-department/:userId", getDepartmentByUserId);
 
 export default router;

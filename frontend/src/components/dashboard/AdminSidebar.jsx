@@ -47,9 +47,9 @@ const AdminSidebar = () => {
           <span>Salary</span>
         </NavLink>
 
-        <NavLink to="/admin-dashboard/settings" className={navLinkClass}>
+        <NavLink to="/admin-dashboard/teams" className={navLinkClass}>
           <FaCogs />
-          <span>Settings</span>
+          <span>Teams</span>
         </NavLink>
       </div>
     </div>

@@ -11,6 +11,8 @@ import salaryRouter from "./routes/salary.js";
 import teamRouter from "./routes/team.js";
 import leaveRouter from "./routes/leave.js";
 import summaryRoutes from "./routes/summary.js";
+import pfRouter from "./routes/pf.js";
+import loginHistoryRoutes from "./routes/loginhistory.js";
 
 // Configure environment variables
 dotenv.config();
@@ -34,6 +36,8 @@ app.use("/api/team", teamRouter);
 app.use("/api/salary", salaryRouter);
 app.use("/api/leave", leaveRouter);
 app.use("/api/summary", summaryRoutes);
+app.use("/api/pf", pfRouter);
+app.use("/api/login-history", loginHistoryRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
