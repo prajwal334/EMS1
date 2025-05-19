@@ -8,6 +8,8 @@ const Add = () => {
     employeeId: null,
     grossPay: 0,
     basicSalary: 0,
+    payFrom: "",
+    payTo: "",
     payDate: "",
     overtimeHours: 0,
     lopDays: 0,
@@ -61,13 +63,16 @@ const Add = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    const parsedValue = name === "payDate" ? value : parseFloat(value) || 0;
-    setSalary((prev) => ({
-      ...prev,
-      [name]: parsedValue,
-    }));
-  };
+  const { name, value } = e.target;
+  const isDateField = ["payFrom", "payTo", "payDate"].includes(name);
+  setSalary((prev) => ({
+    ...prev,
+    [name]: isDateField ? value : parseFloat(value) || 0,
+  }));
+};
+
+
+  
 
   useEffect(() => {
     const gross = salary.grossPay;
@@ -197,6 +202,37 @@ const Add = () => {
               readOnly
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
             />
+          </div>
+
+          {/* Pay Date FROM */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Pay Date From
+            </label>
+            <input
+              type="date"
+              name="payFrom"
+              value={salary.payFrom}
+              onChange={handleChange}
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />
+
+          </div>
+
+          {/* Pay Date TO */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Pay Date To
+            </label>
+            <input
+              type="date"
+              name="payTo"
+              value={salary.payTo}
+              onChange={handleChange}
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            />  
           </div>
 
           {/* Pay Date */}

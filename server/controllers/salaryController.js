@@ -19,6 +19,8 @@ const addSalary = async (req, res) => {
       pt = 0,
 
       payDate,
+      payFrom,
+      payTo,
     } = req.body;
 
     const gross = parseFloat(grossPay);
@@ -62,6 +64,8 @@ const addSalary = async (req, res) => {
       overtimeHours,
       lopDays,
       payDate,
+      payFrom,
+      payTo,
     });
 
     await newSalary.save();
@@ -76,10 +80,10 @@ const addSalary = async (req, res) => {
 const getSalary = async (req, res) => {
   try {
     const { id } = req.params;
-    let salary = await Salary.find({ employeeId: id }).populate("employeeId", "employeeId");
+    let salary = await Salary.find({ employeeId: id }).populate("employeeId");
     if(!salary || salary.length < 1){ 
       const employee = await Employee.findOne({userId: id});
-      salary = await Salary.find({ employeeId: employee._id }).populate("employeeId", "employeeId");
+      salary = await Salary.find({ employeeId: employee._id }).populate("employeeId");
     }
     return res.status(200).json({ success: true, salary });
   } catch(error) {
@@ -98,13 +102,21 @@ const getDepartmentWiseSalary = async (req, res) => {
       const startDate = new Date(year, month - 1, 1); // ✅ JS months are 0-indexed
       const endDate = new Date(year, month, 0, 23, 59, 59, 999); // ✅ last day of month
       matchStage = {
-        payDate: { $gte: startDate, $lte: endDate }
+        payDate: { $gte: startDate, $lte: endDate },
+        payFrom: { $gte: startDate, $lte: endDate },
+        payTo: { $gte: startDate, $lte: endDate }
+       
+
       };
     } else if (year) {
       const startDate = new Date(year, 0, 1);
       const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
       matchStage = {
-        payDate: { $gte: startDate, $lte: endDate }
+        payDate: { $gte: startDate, $lte: endDate },
+        payFrom: { $gte: startDate, $lte: endDate },
+        payTo: { $gte: startDate, $lte: endDate }
+        
+
       };
     }
 
