@@ -58,7 +58,6 @@ function App() {
             <Route path="/admin-dashboard/leaves" element={<LeaveList1 />}></Route>
             <Route path="/admin-dashboard/leaves/:id" element={<LeaveDetail />}></Route>
             <Route path="/admin-dashboard/employees/leaves/:id" element={<LeaveList />}></Route>
-            <Route path="/admin-dashboard/employees/leaves" element={<LeaveList />}></Route>
           </Route>
         <Route path="/employee-dashboard" element={
           <PrivateRoutes>
