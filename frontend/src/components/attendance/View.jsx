@@ -13,9 +13,7 @@ const AttendanceCalendar = () => {
   const [selectedDateData, setSelectedDateData] = useState(null);
   const [departmentName, setDepartmentName] = useState("");
 
-  const holidayDates = [
-    // Add holiday dates here, e.g., "2025-01-01", "2025-05-01"
-  ];
+  const holidayDates = []; // If dynamic, fetch in useEffect
 
   const departmentTimingRules = {
     marketing: {
@@ -47,17 +45,15 @@ const AttendanceCalendar = () => {
 
   const formatDate = (date) => date.toLocaleDateString("en-CA");
 
-  // Helper: check if date is today
-  const isToday = (someDate) => {
+  const isToday = (date) => {
     const today = new Date();
     return (
-      someDate.getDate() === today.getDate() &&
-      someDate.getMonth() === today.getMonth() &&
-      someDate.getFullYear() === today.getFullYear()
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
     );
   };
 
-  // Calculate status for a given login time & date
   const getStatusForDate = (date) => {
     const dateStr = formatDate(date);
 
@@ -66,54 +62,57 @@ const AttendanceCalendar = () => {
 
     const record = attendanceData.find((entry) => entry.date === dateStr);
     if (!record || !record.loginTime) {
-      if (isToday(date)) return "No Login (Today)";
-      return "No Login";
+      return isToday(date) ? "No Login (Today)" : "No Login";
     }
-
-    const [loginHour, loginMinute] = record.loginTime.split(":").map(Number);
-    const loginInMinutes = loginHour * 60 + loginMinute;
-
-    const [logoutHour, logoutMinute] = record.logoutTime
-      ? record.logoutTime.split(":").map(Number)
-      : [null, null];
-    const logoutInMinutes =
-      logoutHour !== null ? logoutHour * 60 + logoutMinute : null;
 
     const rules =
       departmentTimingRules[departmentName] ||
       departmentTimingRules["marketing"];
 
-    // If user logged in and logged out properly
-    if (loginInMinutes <= rules.loginTimeLimit) {
-      return "On Time";
-    } else if (loginInMinutes <= rules.lateLoginLimit) {
-      return "Late";
-    } else if (loginInMinutes <= rules.halfDayLoginLimit) {
-      return "Half Day";
-    } else if (logoutInMinutes !== null) {
-      // Late login but logout exists — so don't mark "No Login"
-      return "Half Day";
-    } else {
-      if (isToday(date)) return "No Login (Today)";
-      return "No Login";
+    const [loginHour, loginMinute] = record.loginTime.split(":").map(Number);
+    let loginInMinutes = loginHour * 60 + loginMinute;
+
+    let logoutInMinutes = null;
+    if (record.logoutTime) {
+      const [logoutHour, logoutMinute] = record.logoutTime
+        .split(":")
+        .map(Number);
+      logoutInMinutes = logoutHour * 60 + logoutMinute;
+      if (rules.isNightShift && logoutHour < 12) {
+        logoutInMinutes += 24 * 60;
+      }
     }
+
+    if (loginInMinutes <= rules.loginTimeLimit) return "On Time";
+    if (loginInMinutes <= rules.lateLoginLimit) return "Late";
+    if (loginInMinutes <= rules.halfDayLoginLimit) return "Half Day";
+
+    return logoutInMinutes !== null
+      ? "Half Day"
+      : isToday(date)
+      ? "No Logout (Today)"
+      : "No Login";
   };
 
   const fetchAttendance = async () => {
     try {
+      if (!user?._id) return;
+
       const [deptRes, loginRes] = await Promise.all([
         axios.get(
           `http://localhost:3000/api/employee/get-department/${user._id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         ),
         axios.get(`http://localhost:3000/api/login-history/${user._id}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
-      const dep_name = deptRes?.data?.department?.dep_name
-        ?.trim()
-        .toLowerCase();
+      const dep_name =
+        deptRes?.data?.department?.dep_name?.trim().toLowerCase() ||
+        "marketing";
       setDepartmentName(dep_name);
 
       const dailyData = {};
@@ -122,28 +121,31 @@ const AttendanceCalendar = () => {
         const loginDate = new Date(entry.loginAt);
         const logoutDate = entry.logoutAt ? new Date(entry.logoutAt) : null;
 
-        const dateStr = formatDate(loginDate);
+        const loginDateStr = formatDate(loginDate);
 
-        if (!dailyData[dateStr]) {
-          dailyData[dateStr] = {
-            loginAt: loginDate,
-            logoutAt: null,
-          };
-        } else if (loginDate < dailyData[dateStr].loginAt) {
-          dailyData[dateStr].loginAt = loginDate;
+        if (!dailyData[loginDateStr]) {
+          dailyData[loginDateStr] = { loginAt: loginDate, logoutAt: null };
+        } else if (loginDate < dailyData[loginDateStr].loginAt) {
+          dailyData[loginDateStr].loginAt = loginDate;
         }
 
         if (logoutDate) {
+          const logoutDateStr = formatDate(logoutDate);
           if (
-            !dailyData[dateStr].logoutAt ||
-            logoutDate > dailyData[dateStr].logoutAt
+            logoutDateStr === loginDateStr ||
+            departmentTimingRules[dep_name]?.isNightShift
           ) {
-            dailyData[dateStr].logoutAt = logoutDate;
+            if (
+              !dailyData[loginDateStr].logoutAt ||
+              logoutDate > dailyData[loginDateStr].logoutAt
+            ) {
+              dailyData[loginDateStr].logoutAt = logoutDate;
+            }
           }
         }
       });
 
-      let formatted = Object.entries(dailyData).map(
+      const formatted = Object.entries(dailyData).map(
         ([date, { loginAt, logoutAt }]) => ({
           date,
           loginTime: loginAt.toTimeString().slice(0, 5),
@@ -161,35 +163,6 @@ const AttendanceCalendar = () => {
         })
       );
 
-      // Add today dynamically if missing
-      const todayStr = formatDate(new Date());
-      const hasToday = formatted.some((item) => item.date === todayStr);
-
-      if (!hasToday) {
-        // Check if user logged in today using latest login history data
-        const todayLogins = loginRes.data.filter(
-          (entry) => formatDate(new Date(entry.loginAt)) === todayStr
-        );
-        if (todayLogins.length > 0) {
-          const earliestLogin = todayLogins.reduce((earliest, current) =>
-            new Date(current.loginAt) < new Date(earliest.loginAt)
-              ? current
-              : earliest
-          );
-          const loginDate = new Date(earliestLogin.loginAt);
-          formatted.push({
-            date: todayStr,
-            loginTime: loginDate.toTimeString().slice(0, 5),
-            logoutTime: null,
-            loginTimeAMPM: loginDate.toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            logoutTimeAMPM: null,
-          });
-        }
-      }
-
       setAttendanceData(formatted);
     } catch (err) {
       console.error("Error fetching attendance/department:", err);
@@ -197,7 +170,7 @@ const AttendanceCalendar = () => {
   };
 
   useEffect(() => {
-    if (user?._id) fetchAttendance();
+    fetchAttendance();
   }, [user]);
 
   const getTileClassName = ({ date }) => {
@@ -271,9 +244,9 @@ const AttendanceCalendar = () => {
 };
 
 const Legend = ({ color, label }) => (
-  <div className="flex items-center gap-2">
-    <span className={`w-4 h-4 rounded-full inline-block ${color}`}></span>
-    {label}
+  <div className="flex items-center space-x-2">
+    <div className={`w-4 h-4 rounded ${color}`}></div>
+    <span className="text-sm">{label}</span>
   </div>
 );
 
