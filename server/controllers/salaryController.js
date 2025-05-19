@@ -102,19 +102,14 @@ const getDepartmentWiseSalary = async (req, res) => {
       const startDate = new Date(year, month - 1, 1); // ✅ JS months are 0-indexed
       const endDate = new Date(year, month, 0, 23, 59, 59, 999); // ✅ last day of month
       matchStage = {
-        payDate: { $gte: startDate, $lte: endDate },
-        payFrom: { $gte: startDate, $lte: endDate },
-        payTo: { $gte: startDate, $lte: endDate }
-       
+        payDate: { $gte: startDate, $lte: endDate }
 
       };
     } else if (year) {
       const startDate = new Date(year, 0, 1);
       const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
       matchStage = {
-        payDate: { $gte: startDate, $lte: endDate },
-        payFrom: { $gte: startDate, $lte: endDate },
-        payTo: { $gte: startDate, $lte: endDate }
+        payDate: { $gte: startDate, $lte: endDate }
         
 
       };
