@@ -1,10 +1,15 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import {FaEdit, FaMoneyCheckAlt, FaPlaneDeparture } from "react-icons/fa";
+
 
 const View = () => {
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
+    const navigate = useNavigate();
+
+  
 
   useEffect(() => {
     const fetchEmployee = async () => {
@@ -30,6 +35,8 @@ const View = () => {
 
     fetchEmployee();
   }, [id]);
+
+
 
   return employee ? (
     <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
@@ -82,6 +89,35 @@ const View = () => {
           <Info label="IFSC Code" value={employee.ifsc} />
         </div>
       </div>
+
+      <div className="mt-10 text-center">
+        <button
+                title="Edit Employee"
+                className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-sm"
+                onClick={() => navigate(`/admin-dashboard/employees/edit/${Id}`)}
+              >
+                <FaEdit />
+                Edit
+              </button>
+        
+              <button
+                title="View Salary"
+                className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
+                onClick={() => navigate(`/admin-dashboard/employees/salary/${Id}`)}
+              >
+                <FaMoneyCheckAlt />
+                Salary
+              </button>
+        
+              <button
+                title="Leave Details"
+                className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                onClick={() => navigate(`/admin-dashboard/employees/leaves/${Id}`)}
+              >
+                <FaPlaneDeparture />
+                Leave
+              </button>
+              </div>
     </div>
   ) : (
     <div className="text-center mt-10">Loading...</div>

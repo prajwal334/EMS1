@@ -19,6 +19,8 @@ const addSalary = async (req, res) => {
       pt = 0,
       bonus = 0,
       payDate,
+      payFrom,
+      payTo,
     } = req.body;
 
     // Validate required fields
@@ -85,6 +87,8 @@ const addSalary = async (req, res) => {
       targetPenalty,
       loan,
       payDate,
+      payFrom,
+      payTo,
     });
 
     await newSalary.save();
@@ -102,6 +106,7 @@ const getSalary = async (req, res) => {
   try {
     const { id } = req.params;
 
+
     // Try finding salary records by employeeId directly
     let salary = await Salary.find({ employeeId: id }).populate("employeeId");
 
@@ -116,6 +121,7 @@ const getSalary = async (req, res) => {
       salary = await Salary.find({ employeeId: employee._id }).populate(
         "employeeId"
       );
+
     }
 
     return res.status(200).json({ success: true, salary });
@@ -138,13 +144,18 @@ const getDepartmentWiseSalary = async (req, res) => {
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0, 23, 59, 59, 999);
       matchStage = {
-        payDate: { $gte: startDate, $lte: endDate },
+
+        payDate: { $gte: startDate, $lte: endDate }
+
+
       };
     } else if (year) {
       const startDate = new Date(year, 0, 1);
       const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
       matchStage = {
-        payDate: { $gte: startDate, $lte: endDate },
+
+        payDate: { $gte: startDate, $lte: endDate }
+        
       };
     }
 

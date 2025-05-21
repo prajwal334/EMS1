@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/authContext";
 import { FaUserShield, FaBell, FaSignOutAlt } from "react-icons/fa";
+
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -30,6 +32,14 @@ const Navbar = () => {
     }
   };
 
+  // Determine dashboard label based on user role
+  const dashboardTitle =
+    user?.role === "admin"
+      ? "Admin Dashboard"
+      : user?.role === "employee"
+      ? "Employee Dashboard"
+      : "Dashboard";
+
   return (
     <header className="flex items-center justify-between bg-blue-800 text-white px-6 py-3 shadow-md">
       {/* Left Side: Title */}
@@ -52,7 +62,9 @@ const Navbar = () => {
             {user?.name?.charAt(0).toUpperCase() || "A"}
           </div>
           <p className="text-sm">
-            Welcome, <span className="font-medium">{user?.name}</span>
+
+            Welcome, <span className="font-medium">{user?.name || "User"}</span>
+
           </p>
         </div>
 

@@ -31,6 +31,8 @@ const salarySchema = new Schema({
   overtimeHours: { type: Number },
   lopDays: { type: Number },
   payDate: { type: Date, required: true },
+  payFrom: { type: Date, required: true },
+  payTo: { type: Date, required: true },
 
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

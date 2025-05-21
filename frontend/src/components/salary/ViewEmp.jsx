@@ -45,122 +45,219 @@ const View = () => {
   };
 
   const handleDownloadPDF = (salary) => {
-    const doc = new jsPDF("p", "mm", "a4");
-    const logoImg = new Image();
-    logoImg.src = logo;
+  const doc = new jsPDF("p", "mm", "a3");
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
 
-    const signImg = new Image();
-    signImg.src = logo;
+  const logoImg = new Image();
+  logoImg.src = logo;
 
-    const totalAllowance = Object.values(salary.allowances || {}).reduce((a, b) => a + b, 0);
-    const totalDeduction = Object.values(salary.deductions || {}).reduce((a, b) => a + b, 0);
-    const netSalary = salary.netSalary;
+  const totalAllowance = Object.values(salary.allowances || {}).reduce((a, b) => a + b, 0);
+  const totalDeduction = Object.values(salary.deductions || {}).reduce((a, b) => a + b, 0);
+  const netSalary = salary.netSalary;
 
-    let y = 20;
-    doc.addImage(logoImg, "PNG", 15, y, 40, 15);
-    y += 25;
+  // -- Header with Logo
+  // Logo
+doc.addImage(logoImg, "PNG", 15, 15, 30, 30);
 
-    doc.setFontSize(14);
-    doc.text("NAVIKSHAA TECHNOLOGIES LLP", 60, y);
-    y += 7;
-    doc.setFontSize(11);
-    doc.text("CENTRALIZED PAYROLL SYSTEM", 60, y);
-    y += 5;
-    doc.text("SINGASANDRA, BANGALORE        BRANCH-2", 60, y);
-    y += 10;
+// Centered Title
+doc.setFont("helvetica", "bold");
+doc.setFontSize(20);
+const title = "CENTRALIZED PAYROLL SYSTEM";
+doc.text(title, pageWidth / 2 - doc.getTextWidth(title) / 2, 22);
 
-    doc.setFontSize(10);
-    doc.text(`NVKSH PERNO.: ${salary.employeeId?.employeeId || "N/A"}`, 15, y);
-    y += 6;
-    doc.text(`NAME: ${salary.employeeId?.name || "N/A"}`, 15, y);
-    y += 6;
-    doc.text(`DESIGNATION: ${salary.employeeId?.designation || "N/A"}    PAN: ${salary.employeeId?.pan || "N/A"}`, 15, y);
-    y += 6;
-    doc.text(`PAYSLIP FOR: ${new Date(salary.payDate).toLocaleDateString()}    PAID IN: ${new Date().toLocaleDateString()}`, 15, y);
-    y += 6;
-    doc.text(`BANK A/C NO.: ${salary.employeeId?.bankAcc || "N/A"}    IFSC: ${salary.employeeId?.ifsc || "N/A"}`, 15, y);
-    y += 6;
-    doc.text(`EMP LOCATION: Bangalore    GRADE: A`, 15, y);
-    y += 6;
-    doc.text(`ATTENDANCE: DUTY 22  CL 2  SL 1  LOP ${salary.lopDays || 0}  LL ${salary.lateLogins || 0}`, 15, y);
-    y += 6;
-    doc.text(`LEAVE BALANCE: CL 4  SL 3  EL 12`, 15, y);
-    y += 8;
+// Centered Address (2 lines)
+doc.setFont("helvetica", "normal");
+doc.setFontSize(10);
+const address1 = "Address: First floor, Neela paradise, 551, 60 Feet Rd, near kalaniketan, AECS Layout - A Block,";
+const address2 = "AECS Layout, Singasandra, Bengaluru, Karnataka 560068";
+doc.text(address1, pageWidth / 2 - doc.getTextWidth(address1) / 2, 28);
+doc.text(address2, pageWidth / 2 - doc.getTextWidth(address2) / 2, 33);
 
-    const earnings = [
-      ["BASIC P", salary.basicSalary],
-      ["HRA", salary.allowances.houseRent],
-      ["MA", salary.allowances.medical],
-      ["TA", salary.allowances.travel],
-      ["FA", salary.allowances.food],
-      ["Target A", salary.allowances.target],
-      ["OT", salary.overtimeHours * 200],
-      ["OT A", salary.allowances.overTime],
-      ["", ""],
-    ];
+// ------- Centered Block of Location + Branch --------
+doc.setFont("helvetica", "bold");
+doc.setFontSize(14);
 
-    const deductions = [
-      ["LLD", salary.deductions.lateLogin],
-      ["LOP", salary.deductions.leaveOfAbsence],
-      ["Target P", salary.deductions.targetPenalty],
-      ["PF", salary.deductions.pf],
-      ["Loan", salary.deductions.loan],
-      ["PT", 0],
-      ["", ""],
-      ["", ""],
-      ["", ""],
-    ];
+const blockText = "SINGASANDRA, BANGALORE        BRANCH-2";
+const blockWidth = doc.getTextWidth(blockText);
+doc.text(blockText, pageWidth / 2 - blockWidth / 2, 45); // centered block
 
-    autoTable(doc, {
-  head: [["EARNINGS", "AMOUNT", "DEDUCTIONS", "AMOUNT"]],
-  body: earnings.map((e, i) => [
-    e[0],
-    `₹ ${Number(e[1] || 0).toFixed(2)}`,
-    deductions[i]?.[0] || "",
-    `₹ ${Number(deductions[i]?.[1] || 0).toFixed(2)}`
-  ]),
-  startY: y,
-  styles: { fontSize: 10 },
-  columnStyles: {
-    0: { cellWidth: 40 },
-    1: { cellWidth: 30 },
-    2: { cellWidth: 40 },
-    3: { cellWidth: 30 },
-  },
-});
+// ------- Below Line: Payslip For + Paid In --------
+doc.setFont("helvetica", "normal");
+doc.setFontSize(10);
+
+const formatDate = (date) =>
+  date ? new Date(date).toISOString().slice(0, 10) : "N/A";
+
+const subBlockText = `PAYSLIP FOR ${formatDate(salary.payFrom)}        PAID IN ${formatDate(salary.payTo)}`;
+const subBlockWidth = doc.getTextWidth(subBlockText);
+doc.text(subBlockText, pageWidth / 2 - subBlockWidth / 2, 52);
 
 
-    y = doc.lastAutoTable.finalY + 10;
+  // ----------------- Boxed Fields Start -----------------
 
-    doc.setFontSize(11);
-    doc.text(`GROSS PAY: ₹ ${totalAllowance.toFixed(2)}`, 15, y);
-    doc.text(`DEDUCTION: ₹ ${totalDeduction.toFixed(2)}`, 90, y);
-    doc.text(`NET PAY: ₹ ${netSalary.toFixed(2)}`, 160, y);
-    y += 10;
+  let y = 62;
+  const boxWidth = pageWidth - 30;
 
-    doc.setFontSize(9);
-    doc.text(
-      "Address: First floor, Neela paradise, 551, 60 Feet Rd, near kalaniketan, AECS Layout - A Block, AECS Layout, Singasandra, Bengaluru, Karnataka 560068",
-      15,
-      y,
-      { maxWidth: 180 }
-    );
-    y += 12;
+  // 🧾 Employee Info
+  doc.rect(15, y, boxWidth, 15);
+  doc.text(`NVKSH PERNO.: ${salary.employeeId?.nvkshPerno || "N/A"}`, 17, y + 5);
+doc.text(`NVKSH UNIT PERNO.: ${salary.employeeId?.nvkshUnitPerno || "N/A"}`, 105, y + 5);
+doc.text(`GRADE: ${salary.employeeId?.grade || "N/A"}`, pageWidth - 60, y + 5);
+doc.text(`NAME: ${salary.employeeId?.name || "N/A"}`, 17, y + 11);
+doc.text(`DESIGNATION: ${salary.employeeId?.designation || "N/A"}`, 105, y + 11);
+doc.text(`PAN: ${salary.employeeId?.pan || "N/A"}`, pageWidth - 60, y + 11);
 
-    doc.setFontSize(8);
+  y += 16;
+
+  // 🏦 Bank, Attendance & Leave Details
+doc.rect(15, y, boxWidth, 20); // Increased height for multi-line
+
+// Line 1: Bank A/C and IFSC
+doc.setFont("helvetica", "normal");
+doc.text(`BANK A/C NO.: ${salary.employeeId?.bankac || "N/A"}`, 17, y + 6);
+doc.text(`IFSC/BRANCH CODE: ${salary.employeeId?.ifsc || "N/A"}`, pageWidth / 2 + 10, y + 6);
+
+// Line 2: EMP Location and Attendance
+doc.setFont("helvetica", "bold");
+doc.text("EMP LOCATION:", 17, y + 12);
+doc.text("ATTENDANCE:", pageWidth / 2 + 10, y + 12);
+
+doc.setFont("helvetica", "normal");
+doc.text("BANGALORE", 50, y + 12);
+doc.text(
+  `DUTY 22   CL 2   SL 1   LOP ${salary.lopDays || 0}   LL ${salary.lateLogins || 0}`,
+  pageWidth / 2 + 40,
+  y + 12
+);
+
+// Line 3: Leave Balance
+doc.setFont("helvetica", "bold");
+doc.text("LEAVE BALANCE:", 17, y + 18);
+
+doc.setFont("helvetica", "normal");
+doc.text("CL 4   SL 3   EL 12", 60, y + 18);
+
+// Adjust Y position for next section
+y += 22;
+
+  // 💰 Gross/Deduction/Net
+  doc.rect(15, y, boxWidth, 10);
+  doc.text(`GROSS PAY: ₹ ${totalAllowance.toFixed(2)}`, 17, y + 7);
+  doc.text(`DEDUCTION: ₹ ${totalDeduction.toFixed(2)}`, 90, y + 7);
+  doc.text(`NET PAY: ₹ ${netSalary.toFixed(2)}`, 180, y + 7);
+
+  y += 16;
+
+  // ----------------- Salary Details Section -----------------
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text("SALARY DETAILS:", pageWidth / 2 - 30, y);
+  y += 6;
+
+  // Payment and Deduction Grid Boxes
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+
+  const col1X = 60;
+  const col2X = pageWidth / 2 + 20;
+  const rowHeight = 10;
+  const colW = 65;
+
+  const earnings = [
+    ["BASIC P", salary.basicSalary],
+    ["HRA", salary.allowances.houseRent],
+    ["MA", salary.allowances.medical],
+    ["TA", salary.allowances.travel],
+    ["FA", salary.allowances.food],
+    ["Tr. A", salary.allowances.target],
+    ["OT", salary.overtimeHours * 200],
+    ["OT A", salary.allowances.overtimeAllowance],
+  ];
+
+  const deductions = [
+    ["LCD", salary.deductions.lateLogin],
+    ["LWP", salary.deductions.leaveOfAbsence],
+    ["HD", salary.deductions.halfDay],
+    ["TP", salary.deductions.targetPenalty],
+    ["PF", salary.deductions.pf],
+    ["LOAN", salary.deductions.loan],
+    ["PT", salary.deductions.pt],
+  ];
+
+  // Earnings (Left Box)
+  doc.setFont("helvetica", "bold");
+  doc.text("PAYMENT:", col1X, y + 6);
+  doc.text("DEDUCTION:", col2X, y + 6);
+  doc.setFont("helvetica", "normal");
+
+  y += 10;
+
+  for (let i = 0; i < 8; i++) {
+    const e = earnings[i] || ["", ""];
+    const d = deductions[i] || ["", ""];
+
+    // Left (Earnings)
+    doc.rect(col1X, y, colW, rowHeight);
+    doc.text(e[0], col1X + 3, y + 6);
+    if (e[1] !== "") {
+      doc.text(`₹ ${Number(e[1] || 0).toFixed(2)}`, col1X + 35, y + 6);
+    }
+
+    // Right (Deductions)
+    doc.rect(col2X, y, colW, rowHeight);
+    if (d[0]) doc.text(d[0], col2X + 3, y + 6);
+    if (d[1] !== "") {
+      doc.text(`₹ ${Number(d[1] || 0).toFixed(2)}`, col2X + 35, y + 6);
+    }
+
+    y += rowHeight;
+  }
+
+  // ----------------- Abbreviations -----------------
+  y += 10;
+  doc.setFont("helvetica", "bold");
+  doc.text("ABBREVIATION:", col2X, y);
+  y += 5;
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+
+  const abbrev = [
+    "BASIC P = BASIC PAY",
+    "HRA = HOUSE RENT",
+    "MA = MEDICAL ALLOWANCE",
+    "TA = TRAVEL ALLOWANCE",
+    "FA = FOOD ALLOWANCE",
+    "Tr. A = TARGET ALLOWANCE",
+    "OT = OVERTIME HOURS * 200",
+    "OT A = OVERTIME ALLOWANCE",
+    "LCD = LATE COMING DEDUCTION",
+    "LWP = LEAVE WITHOUT PAY",
+    "TP = TARGET PENALTY",
+    "PF = PROVIDENT FUND",
+    "PT = PROFESSIONAL TAX",
+  ];
+
+  abbrev.forEach((item, i) => {
+    doc.text(item, col2X, y + i * 4);
+  });
+
+
+  // ----------------- Footer -----------------
+  y += 80;
+
+  doc.setFontSize(8);
     doc.text("NOTE:", 15, y);
-    y += 4;
-    doc.text("Any additional deduction has been neutralized through a corresponding earning entry.", 15, y, { maxWidth: 180 });
     y += 6;
-    doc.text("All figures are verified by Finance. For concerns, contact: financedept@navikshaa.com", 15, y, { maxWidth: 180 });
+    doc.text("• Any additional deduction reflected under the Deductions column has been neutralized through a corresponding entry in the Earnings column, wherever applicable.", 15, y, { maxWidth: 250 });
+    y += 4;
+    doc.text("• All figures and entries mentioned in this payslip have been prepared and verified by the Finance Department.", 15, y, { maxWidth: 200 });
+  y += 4;
+  doc.text("• In case of any discrepancies or unusual entries, please contact the Finance Department at financedept@navikshaa.com for clarification.", 15, y, { maxWidth: 200 });
 
-    y += 15;
-    doc.addImage(signImg, "PNG", 150, y, 40, 15);
-    y += 5;
-    doc.text("Authorized Signatory", 155, y + 15);
-
-    doc.save(`Payslip_${salary.employeeId?.employeeId}_${salary._id}.pdf`);
-  };
+  doc.save(`Payslip_${salary.employeeId?.employeeId}_${salary._id}.pdf`);
+};
 
   if (!filteredSalaries) {
     return <div className="text-center mt-10">Loading...</div>;
