@@ -86,7 +86,9 @@ const [imageFile, setImageFile] = useState(null);
           
           {/* Username Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Username</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Username
+            </label>
             <input
               type="text"
               id="username"
@@ -94,8 +96,7 @@ const [imageFile, setImageFile] = useState(null);
               value={formData.username || ""}
               placeholder="Enter Username"
               onChange={handleChange}
-                            className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
           </div>

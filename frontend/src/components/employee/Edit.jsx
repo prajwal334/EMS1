@@ -27,7 +27,7 @@ const Edit = () => {
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
-        const responnse = await axios.get(
+        const response = await axios.get(
           `http://localhost:3000/api/employee/${id}`,
           {
             headers: {
@@ -35,8 +35,8 @@ const Edit = () => {
             },
           }
         );
-        if (responnse.data.success) {
-          const employee = responnse.data.employee;
+        if (response.data.success) {
+          const employee = response.data.employee;
           setEmployee((prev) => ({
             ...prev,
             name: employee.userId.name,

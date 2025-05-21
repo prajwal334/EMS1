@@ -14,20 +14,25 @@ const View = () => {
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/api/employee/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const response = await axios.get(
+          `http://localhost:3000/api/employee/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
         if (response.data.success) {
           setEmployee(response.data.employee);
         }
       } catch (error) {
-        if (error.response && !error.response.data.success) {
-          alert(error.response.data.error);
-        }
+        const message =
+          error?.response?.data?.error || "Failed to load employee details.";
+        alert(message);
       }
     };
+
     fetchEmployee();
   }, [id]);
 
@@ -46,7 +51,6 @@ const View = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column */}
         <div className="space-y-4">
           <Info label="Name" value={employee.userId.name} />
           <Info label="Employee ID" value={employee.employeeId} />
@@ -57,19 +61,23 @@ const View = () => {
           <Info label="Aadhar" value={employee.aadhar} />
         </div>
 
-        {/* Right Column */}
         <div className="space-y-4">
           <Info label="Designation" value={employee.designation} />
-          <Info label="Date of Joining" value={new Date(employee.doj).toLocaleDateString()} />
+          <Info
+            label="Date of Joining"
+            value={new Date(employee.doj).toLocaleDateString()}
+          />
           <Info label="Gender" value={employee.gender} />
           <Info label="Marital Status" value={employee.maritalStatus} />
-          <Info label="Department" value={employee.department?.dep_name || "N/A"} />
+          <Info
+            label="Department"
+            value={employee.department?.dep_name || "N/A"}
+          />
           <Info label="Grade" value={employee.grade} />
           <Info label="CTC" value={`₹ ${employee.salary}`} />
         </div>
       </div>
 
-      {/* Bank Details Section */}
       <div className="mt-10 border-t pt-6">
         <h3 className="text-xl font-semibold mb-4">Bank Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -116,7 +124,7 @@ const View = () => {
   );
 };
 
-// Reusable Info component for consistent styling
+// Reusable info display
 const Info = ({ label, value }) => (
   <div className="flex">
     <span className="w-40 font-semibold text-gray-700">{label}:</span>

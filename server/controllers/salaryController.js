@@ -8,61 +8,84 @@ const addSalary = async (req, res) => {
       employeeId,
       grossPay,
       basicSalary,
-      overtimeHours,
-      lopDays,
-      lateLogins,
-      halfDays,
+      overtimeHours = 0,
+      lopDays = 0,
+      lateLogins = 0,
+      halfDays = 0,
       targetAllowance = 0,
       overtimeAllowance = 0,
       targetPenalty = 0,
       loan = 0,
       pt = 0,
-
+      bonus = 0,
       payDate,
       payFrom,
       payTo,
     } = req.body;
 
+    // Validate required fields
+    if (!employeeId || !grossPay || !basicSalary || !payDate) {
+      return res.status(400).json({
+        success: false,
+        error:
+          "Missing required fields: employeeId, grossPay, basicSalary, payDate",
+      });
+    }
+
     const gross = parseFloat(grossPay);
     const basic = parseFloat(basicSalary);
     const perDay = gross / 30;
 
-    // Calculate Allowances
+    // Allowances calculation
     const allowances = {
       houseRent: gross * 0.09,
       medical: gross * 0.042,
       travel: gross * 0.068,
       food: gross * 0.1,
-      overTime: overtimeHours * 200,
+      overTime: parseFloat(overtimeHours) * 200,
       overtimeAllowance: parseFloat(overtimeAllowance),
       target: parseFloat(targetAllowance),
+      bonus: parseFloat(bonus),
     };
 
-    const totalAllowances = Object.values(allowances).reduce((sum, val) => sum + val, 0);
+    const totalAllowances = Object.values(allowances).reduce(
+      (sum, val) => sum + val,
+      0
+    );
 
-    // Calculate Deductions
+    // Deductions calculation
     const deductions = {
-      leaveOfAbsence: perDay * lopDays,
-      lateLogin: lateLogins * 300,
-      halfDay: (perDay / 2) * halfDays,
-      pf: basic * 0.10,
+      leaveOfAbsence: perDay * parseFloat(lopDays),
+      lateLogin: parseFloat(lateLogins) * 300,
+      halfDay: (perDay / 2) * parseFloat(halfDays),
+      pf: basic * 0.1,
       targetPenalty: parseFloat(targetPenalty),
       loan: parseFloat(loan),
       pt: parseFloat(pt),
     };
 
-    const totalDeductions = Object.values(deductions).reduce((sum, val) => sum + val, 0);
+    const totalDeductions = Object.values(deductions).reduce(
+      (sum, val) => sum + val,
+      0
+    );
 
+    // Final net salary
     const netSalary = basic + totalAllowances - totalDeductions;
 
     const newSalary = new Salary({
       employeeId,
       basicSalary: basic,
-      allowances: allowances,   
-      deductions: deductions,   
+      allowances,
+      deductions,
       netSalary,
       overtimeHours,
       lopDays,
+      lateLogins,
+      halfDays,
+      bonus,
+      targetAllowance,
+      targetPenalty,
+      loan,
       payDate,
       payFrom,
       payTo,
@@ -70,26 +93,45 @@ const addSalary = async (req, res) => {
 
     await newSalary.save();
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, salary: newSalary });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, error: "Salary add server error" });
+    console.error("Salary add error:", error);
+    return res
+      .status(500)
+      .json({ success: false, error: "Server error while adding salary" });
   }
 };
 
 const getSalary = async (req, res) => {
   try {
     const { id } = req.params;
+
+
+    // Try finding salary records by employeeId directly
     let salary = await Salary.find({ employeeId: id }).populate("employeeId");
-    if(!salary || salary.length < 1){ 
-      const employee = await Employee.findOne({userId: id});
-      salary = await Salary.find({ employeeId: employee._id }).populate("employeeId");
+
+    // If none found, try to find employee by userId and then get salary
+    if (!salary || salary.length < 1) {
+      const employee = await Employee.findOne({ userId: id });
+      if (!employee) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Employee not found" });
+      }
+      salary = await Salary.find({ employeeId: employee._id }).populate(
+        "employeeId"
+      );
+
     }
+
     return res.status(200).json({ success: true, salary });
-  } catch(error) {
-    return res.status(500).json({ success: false, error: "Salary get server error" });
+  } catch (error) {
+    console.error("Salary get error:", error);
+    return res
+      .status(500)
+      .json({ success: false, error: "Salary get server error" });
   }
-}
+};
 
 const getDepartmentWiseSalary = async (req, res) => {
   try {
@@ -99,19 +141,21 @@ const getDepartmentWiseSalary = async (req, res) => {
     let matchStage = {};
 
     if (year && month) {
-      const startDate = new Date(year, month - 1, 1); // ✅ JS months are 0-indexed
-      const endDate = new Date(year, month, 0, 23, 59, 59, 999); // ✅ last day of month
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
       matchStage = {
+
         payDate: { $gte: startDate, $lte: endDate }
+
 
       };
     } else if (year) {
       const startDate = new Date(year, 0, 1);
       const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
       matchStage = {
+
         payDate: { $gte: startDate, $lte: endDate }
         
-
       };
     }
 
@@ -122,8 +166,8 @@ const getDepartmentWiseSalary = async (req, res) => {
           from: "employees",
           localField: "employeeId",
           foreignField: "_id",
-          as: "employee"
-        }
+          as: "employee",
+        },
       },
       { $unwind: "$employee" },
       {
@@ -131,8 +175,8 @@ const getDepartmentWiseSalary = async (req, res) => {
           from: "departments",
           localField: "employee.department",
           foreignField: "_id",
-          as: "department"
-        }
+          as: "department",
+        },
       },
       { $unwind: "$department" },
       {
@@ -140,8 +184,8 @@ const getDepartmentWiseSalary = async (req, res) => {
           _id: "$department.dep_name",
           totalSalary: { $sum: "$netSalary" },
           avgSalary: { $avg: "$netSalary" },
-          employeeCount: { $sum: 1 }
-        }
+          employeeCount: { $sum: 1 },
+        },
       },
       {
         $project: {
@@ -149,19 +193,18 @@ const getDepartmentWiseSalary = async (req, res) => {
           totalSalary: 1,
           avgSalary: 1,
           employeeCount: 1,
-          _id: 0
-        }
-      }
+          _id: 0,
+        },
+      },
     ]);
 
     return res.status(200).json({ success: true, data: result });
   } catch (err) {
     console.error("Error in department-wise salary aggregation:", err);
-    return res.status(500).json({ success: false, error: "Server error while aggregating salary" });
+    return res
+      .status(500)
+      .json({ success: false, error: "Server error while aggregating salary" });
   }
 };
-
-
-
 
 export { addSalary, getSalary, getDepartmentWiseSalary };

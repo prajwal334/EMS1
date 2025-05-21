@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import axios from 'axios';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import axios from "axios";
 
-const UserContext = createContext(); // ✅ Capitalized
+const UserContext = createContext(); 
 
-export const AuthProvider = ({ children }) => { // ✅ Capitalized
+export const AuthProvider = ({ children }) => {
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -12,12 +13,15 @@ export const AuthProvider = ({ children }) => { // ✅ Capitalized
       try {
         const token = localStorage.getItem("token");
         if (token) {
-          const response = await axios.get("http://localhost:3000/api/auth/verify", {
-            headers: {
-              Authorization: `Bearer ${token}`
+          const response = await axios.get(
+            "http://localhost:3000/api/auth/verify",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             }
-          });
-          if (response.data.success) { 
+          );
+          if (response.data.success) {
             setUser(response.data.user);
           }
         } else {
@@ -50,4 +54,4 @@ export const AuthProvider = ({ children }) => { // ✅ Capitalized
   );
 };
 
-export const useAuth = () => useContext(UserContext); // ✅ consistent
+export const useAuth = () => useContext(UserContext); 
