@@ -255,6 +255,11 @@ y += 22;
     doc.text("• All figures and entries mentioned in this payslip have been prepared and verified by the Finance Department.", 15, y, { maxWidth: 200 });
   y += 4;
   doc.text("• In case of any discrepancies or unusual entries, please contact the Finance Department at financedept@navikshaa.com for clarification.", 15, y, { maxWidth: 200 });
+  y += 9;
+  doc.text("• This is a computer-generated payslip and does not require a signature.", 15, y, { maxWidth: 200 });
+  y += 4;
+  doc.text("• For any queries, please reach out to the HR department ", 15, y, { maxWidth: 200 });
+
 
   doc.save(`Payslip_${salary.employeeId?.employeeId}_${salary._id}.pdf`);
 };
