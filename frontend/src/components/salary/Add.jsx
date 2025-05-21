@@ -229,7 +229,7 @@ const Add = () => {
             />  
           </div>
 
-          {/* Pay Date */
+          {/* Pay Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Pay Date

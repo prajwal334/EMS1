@@ -45,6 +45,7 @@ import PfView1 from "./components/EmployeePf/PfView";
 // Leave
 import LeaveList from "./components/leave/list";
 import LeaveAdd from "./components/leave/add";
+import Leavetable from "./components/leave/Table";
 import LeaveList1 from "./components/Hrleave/list";
 import LeaveAdd1 from "./components/Hrleave/add";
 import LeaveDetail from "./components/leave/DetailLeave";
@@ -95,7 +96,7 @@ function App() {
           <Route path="salary/add" element={<AddSalary />} />
 
           <Route path="settings" element={<Setting />} />
-          <Route path="leaves" element={<LeaveList1 />} />
+          <Route path="leaves" element={<Leavetable />} />
           <Route path="leaves/:id" element={<LeaveDetail />} />
           <Route path="employees/leaves/:id" element={<LeaveList />} />
 
@@ -148,7 +149,9 @@ function App() {
         >
           <Route index element={<EmployeeSummary />} />
           <Route path="profile/:id" element={<View />} />
-          <Route path="leaves" element={<LeaveList />} />
+                    <Route path="leaves" element={<LeaveList />} />
+
+          <Route path="leaves/:id" element={<LeaveList />} />
           <Route path="add-leave" element={<LeaveAdd />} />
           <Route path="salary/:id" element={<ViewSalaryEmp />} />
           <Route path="pf/:employeeId" element={<PfView1 />} />
