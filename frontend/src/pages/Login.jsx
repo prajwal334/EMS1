@@ -4,30 +4,39 @@ import Logo from "../assets/HRLOGO.png";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const {login} = useAuth()
-  const navigate = useNavigate()
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/login", {
-        email,
-        password,
-      });
+      const response = await axios.post(
+        "http://localhost:3000/api/auth/login",
+        {
+          email,
+          password,
+        }
+      );
+
       if (response.data.success) {
+        // Save token and user
         localStorage.setItem("token", response.data.token);
-        login(response.data.user); // this is async, don't depend on it immediately
-  
-        // Use direct data instead
-        if (response.data.user.role === "admin") {
+        login(response.data.user);
+
+        // Role-based redirection
+        const role = response.data.user.role;
+        if (role === "admin") {
           navigate("/admin-dashboard");
-        } else {
+        } else if (role === "hr") {
+          navigate("/hr-dashboard");
+        } else if (role === "employee") {
           navigate("/employee-dashboard");
+        } else {
+          setError("Unauthorized role. Please contact support.");
         }
       }
     } catch (error) {
@@ -38,7 +47,7 @@ const Login = () => {
       }
     }
   };
-  
+
   return (
     <div className="flex flex-col items-center h-screen justify-center bg-gradient-to-b from-blue-500 from-50% to-blue-100 to-50% text-white space-y-4">
       <img src={Logo} alt="Logo" className="w-52 h-52" />
@@ -73,7 +82,11 @@ const Login = () => {
           </div>
           <div className="flex items-center justify-between mt-4">
             <label className="inline-flex items-center">
-              <input type="checkbox" id="remember" className="mr-2 form-checkbox" />
+              <input
+                type="checkbox"
+                id="remember"
+                className="mr-2 form-checkbox"
+              />
               <span className="text-sm">Remember me</span>
             </label>
             <a href="#" className="text-sm text-blue-500 hover:underline">
@@ -81,7 +94,10 @@ const Login = () => {
             </a>
           </div>
           <div className="mt-4">
-            <button type="submit" className="w-full bg-blue-600 text-white py-2">
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2"
+            >
               Login
             </button>
           </div>

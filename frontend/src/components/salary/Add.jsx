@@ -24,7 +24,6 @@ const Add = () => {
 
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
-
   const [calculated, setCalculated] = useState({
     allowances: {},
     deductions: {},
@@ -52,7 +51,7 @@ const Add = () => {
     if (selectedEmp) {
       const ctc = selectedEmp.salary || 0;
       const grossPay = Math.floor(ctc / 12);
-      const basicSalary = Math.floor(ctc / 12) * 0.7;
+      const basicSalary = grossPay * 0.7;
       setSalary((prev) => ({
         ...prev,
         employeeId: selectedEmp._id,
@@ -137,7 +136,6 @@ const Add = () => {
       <h2 className="text-2xl font-bold mb-6">Add Salary</h2>
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Department */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Department
@@ -145,7 +143,7 @@ const Add = () => {
             <select
               name="department"
               onChange={handleDepartment}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              className="mt-1 p-2 w-full border rounded"
               required
             >
               <option value="">Select Department</option>
@@ -156,8 +154,6 @@ const Add = () => {
               ))}
             </select>
           </div>
-
-          {/* Employee */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Employee
@@ -165,7 +161,7 @@ const Add = () => {
             <select
               name="employeeId"
               onChange={handleEmployee}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              className="mt-1 p-2 w-full border rounded"
               required
             >
               <option value="">Select Employee</option>
@@ -176,8 +172,6 @@ const Add = () => {
               ))}
             </select>
           </div>
-
-          {/* Gross Pay */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Gross Pay
@@ -187,7 +181,7 @@ const Add = () => {
               name="grossPay"
               value={salary.grossPay}
               readOnly
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              className="mt-1 p-2 w-full border rounded"
             />
           </div>
           {/* Basic Salary */}
@@ -200,7 +194,7 @@ const Add = () => {
               name="basicSalary"
               value={salary.basicSalary}
               readOnly
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              className="mt-1 p-2 w-full border rounded"
             />
           </div>
 
@@ -235,7 +229,7 @@ const Add = () => {
             />  
           </div>
 
-          {/* Pay Date */}
+          {/* Pay Date */
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Pay Date
@@ -245,12 +239,12 @@ const Add = () => {
               name="payDate"
               value={salary.payDate}
               onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              className="mt-1 p-2 w-full border rounded"
               required
             />
           </div>
 
-          {/* Input Fields */}
+          {/* Add other dynamic input fields */}
           {[
             { label: "Overtime Hours", name: "overtimeHours" },
             { label: "Professional Tax", name: "pt" },
@@ -271,7 +265,7 @@ const Add = () => {
                 name={name}
                 value={salary[name]}
                 onChange={handleChange}
-                className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                className="mt-1 p-2 w-full border rounded"
               />
             </div>
           ))}
@@ -340,9 +334,9 @@ const Add = () => {
 
         <button
           type="submit"
-          className="w-full mt-8 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded"
+          className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded"
         >
-          Submit Salary
+          Add Salary
         </button>
       </form>
     </div>
