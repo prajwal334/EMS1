@@ -55,14 +55,6 @@ const Sidebar = () => {
         </NavLink>
 
         <NavLink
-          to={`/employee-dashboard/holidays/${user?._id}`}
-          className={navLinkClass}
-        >
-          <FaRegCalendarCheck className="text-lg text-white" />
-          <span className="text-white font-medium">Holidays</span>
-        </NavLink>
-
-        <NavLink
           to={`/employee-dashboard/salary/${user?._id}`}
           className={navLinkClass}
         >
