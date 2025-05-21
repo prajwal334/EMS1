@@ -12,7 +12,7 @@ const salarySchema = new Schema({
     travel: { type: Number },
     food: { type: Number },
     overTime: { type: Number },
-    bonus: { type: Number },
+    overtimeAllowance: { type: Number },
     target: { type: Number },
   },
 
@@ -23,6 +23,7 @@ const salarySchema = new Schema({
     pf: { type: Number },
     targetPenalty: { type: Number },
     loan: { type: Number },
+    pt: { type: Number },
   },
 
   netSalary: { type: Number },

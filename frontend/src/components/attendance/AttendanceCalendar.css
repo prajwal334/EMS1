@@ -55,6 +55,10 @@
   border: 2px solid #cbd5e0 !important;
 }
 
+.react-calendar__tile.absent {
+  background-color: #ee1a1a !important; /* light red */
+  color: white !important;
+}
 /* Hover state for all tiles */
 .react-calendar__tile:hover {
   background-color: #63b3ed !important; /* blue */

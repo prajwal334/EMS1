@@ -59,11 +59,12 @@ const List = () => {
       <div className="text-center mb-4">
         <h3 className="text-2xl font-bold">Manage Employee</h3>
       </div>
+
       <div className="flex justify-between items-center mb-4">
         <input
           type="text"
-          placeholder="Search Employee"
-          className="px-4 py-1 border border-gray-300 rounded shadow-sm"
+          placeholder="Search Employee..."
+          className="px-4 py-0.5 border border-gray-300 rounded shadow-sm"
           onChange={handleFilter}
         />
         <Link
@@ -73,7 +74,8 @@ const List = () => {
           Add Employee
         </Link>
       </div>
-      <div>
+
+      <div className="mt-3 shadow-md rounded-lg">
         <DataTable
           columns={columns}
           data={filteredEmployee}

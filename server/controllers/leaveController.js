@@ -23,12 +23,14 @@ const  addLeave = async (req, res) => {
     }
 }
 
-const getLeaves = async (req, res) => {
+const getLeave = async (req, res) => {
     try {
         const { id } = req.params;
-        const employee = await Employee.findOne({ userId: id });
-
-        const leaves = await Leave.find({ employeeId: employee._id }).populate("employeeId", { password: 0 });
+        let leaves = await Leave.find({employeeId: id})
+        if (!leaves || leaves.length === 0) {
+            const employee = await Employee.findOne({ userId: id });
+             leaves = await Leave.find({ employeeId: employee._id })
+        }
         return res.status(200).json({ success: true, leaves });
     } catch (error) {
         console.error(error.message); // log full error, not just .message
@@ -36,4 +38,63 @@ const getLeaves = async (req, res) => {
     }
 }
 
-export { addLeave, getLeaves };
+const getLeaves = async (req, res) => {
+    try{
+        const leaves = await Leave.find().populate({
+            path:"employeeId", 
+            populate: [
+                {
+                    path: "department",
+                    select: "dep_name"
+                },
+                {
+                    path: "userId",
+                    select: "name"
+                }
+            ]
+        })
+        return res.status(200).json({ success: true, leaves })
+    } catch (error) {
+        console.error(error.message); // log full error, not just .message
+        return res.status(500).json({ success: false, error: "Leave get server Error " });
+    }
+}
+
+const getLeaveDetail = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const leave = await Leave.findById({ _id: id}).populate({
+            path: "employeeId", 
+            populate: [
+                {
+                    path: "department",
+                    select: "dep_name"
+                },
+                {
+                    path: "userId",
+                    select: "name, profileImage"
+                }
+            ]
+        });
+        return res.status(200).json({ success: true, leave });
+    } catch (error) {
+        console.error(error.message); // log full error, not just .message
+        return res.status(500).json({ success: false, error: "Leave get serverz Error " });
+    }
+}
+
+const updateLeave = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const leave = await Leave.findByIdAndUpdate({ _id: id }, { status: req.body.status });
+        if (!leave) {
+            return res.status(404).json({ success: false, error: "Leave not found" });
+        }
+        return res.status(200).json({ success: true, message: "Leave updated successfully" });
+    } catch (error) {
+        console.error(error.message); // log full error, not just .message
+        return res.status(500).json({ success: false, error: "Leave update server Error " });
+    }
+}
+
+export { addLeave, getLeave, getLeaves, getLeaveDetail, updateLeave };

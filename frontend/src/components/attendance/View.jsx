@@ -11,9 +11,8 @@ const AttendanceCalendar = () => {
 
   const [attendanceData, setAttendanceData] = useState([]);
   const [selectedDateData, setSelectedDateData] = useState(null);
-  const [departmentName, setDepartmentName] = useState("");
 
-  const holidayDates = []; // If dynamic, fetch in useEffect
+  const holidayDates = []; // Add holiday dates here as needed
 
   const departmentTimingRules = {
     marketing: {
@@ -45,29 +44,27 @@ const AttendanceCalendar = () => {
 
   const formatDate = (date) => date.toLocaleDateString("en-CA");
 
-  const isToday = (date) => {
+  const isToday = (someDate) => {
     const today = new Date();
     return (
-      date.getFullYear() === today.getFullYear() &&
-      date.getMonth() === today.getMonth() &&
-      date.getDate() === today.getDate()
+      someDate.getDate() === today.getDate() &&
+      someDate.getMonth() === today.getMonth() &&
+      someDate.getFullYear() === today.getFullYear()
     );
   };
 
-  const getStatusForDate = (date) => {
-    const dateStr = formatDate(date);
+  const calculateStatus = (
+    record,
+    rules,
+    dateStr,
+    isTodayFlag,
+    holidayDates
+  ) => {
+    const date = new Date(dateStr);
 
     if (date.getDay() === 0) return "Sunday";
     if (holidayDates.includes(dateStr)) return "Holiday";
-
-    const record = attendanceData.find((entry) => entry.date === dateStr);
-    if (!record || !record.loginTime) {
-      return isToday(date) ? "No Login (Today)" : "No Login";
-    }
-
-    const rules =
-      departmentTimingRules[departmentName] ||
-      departmentTimingRules["marketing"];
+    if (!record.loginTime) return isTodayFlag ? "No Login (Today)" : "No Login";
 
     const [loginHour, loginMinute] = record.loginTime.split(":").map(Number);
     let loginInMinutes = loginHour * 60 + loginMinute;
@@ -78,6 +75,7 @@ const AttendanceCalendar = () => {
         .split(":")
         .map(Number);
       logoutInMinutes = logoutHour * 60 + logoutMinute;
+
       if (rules.isNightShift && logoutHour < 12) {
         logoutInMinutes += 24 * 60;
       }
@@ -86,12 +84,37 @@ const AttendanceCalendar = () => {
     if (loginInMinutes <= rules.loginTimeLimit) return "On Time";
     if (loginInMinutes <= rules.lateLoginLimit) return "Late";
     if (loginInMinutes <= rules.halfDayLoginLimit) return "Half Day";
+    if (logoutInMinutes !== null) return "Half Day";
+    return isTodayFlag ? "No Logout (Today)" : "No Login";
+  };
 
-    return logoutInMinutes !== null
-      ? "Half Day"
-      : isToday(date)
-      ? "No Logout (Today)"
-      : "No Login";
+  const saveAttendanceToDB = async (recordsData, dep_name) => {
+    try {
+      const records = recordsData.map((item) => ({
+        userId: user?._id,
+        username: user?.name || "Unknown",
+        department: dep_name,
+        date: item.date,
+        loginTime: item.loginTime,
+        logoutTime: item.logoutTime,
+        status: item.status,
+      }));
+
+      if (records.length === 0) return;
+
+      await axios.post(
+        "http://localhost:3000/api/attendance/save",
+        { records },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Error saving attendance:",
+        error.response?.data || error.message
+      );
+    }
   };
 
   const fetchAttendance = async () => {
@@ -113,64 +136,98 @@ const AttendanceCalendar = () => {
       const dep_name =
         deptRes?.data?.department?.dep_name?.trim().toLowerCase() ||
         "marketing";
-      setDepartmentName(dep_name);
+
+      const isNightShift =
+        departmentTimingRules[dep_name]?.isNightShift || false;
+      const rules =
+        departmentTimingRules[dep_name] || departmentTimingRules["marketing"];
 
       const dailyData = {};
 
       loginRes.data.forEach((entry) => {
+        if (!entry.loginAt) return;
+
         const loginDate = new Date(entry.loginAt);
         const logoutDate = entry.logoutAt ? new Date(entry.logoutAt) : null;
 
         const loginDateStr = formatDate(loginDate);
+        let logoutDateStr = logoutDate ? formatDate(logoutDate) : null;
 
-        if (!dailyData[loginDateStr]) {
-          dailyData[loginDateStr] = { loginAt: loginDate, logoutAt: null };
-        } else if (loginDate < dailyData[loginDateStr].loginAt) {
-          dailyData[loginDateStr].loginAt = loginDate;
+        if (isNightShift && logoutDateStr && logoutDateStr !== loginDateStr) {
+          logoutDateStr = loginDateStr;
         }
 
-        if (logoutDate) {
-          const logoutDateStr = formatDate(logoutDate);
+        if (!dailyData[loginDateStr]) {
+          dailyData[loginDateStr] = {
+            loginAt: loginDate,
+            logoutAt: logoutDate,
+          };
+        } else {
+          if (loginDate < dailyData[loginDateStr].loginAt) {
+            dailyData[loginDateStr].loginAt = loginDate;
+          }
           if (
-            logoutDateStr === loginDateStr ||
-            departmentTimingRules[dep_name]?.isNightShift
+            logoutDate &&
+            (!dailyData[loginDateStr].logoutAt ||
+              logoutDate > dailyData[loginDateStr].logoutAt)
           ) {
-            if (
-              !dailyData[loginDateStr].logoutAt ||
-              logoutDate > dailyData[loginDateStr].logoutAt
-            ) {
-              dailyData[loginDateStr].logoutAt = logoutDate;
-            }
+            dailyData[loginDateStr].logoutAt = logoutDate;
           }
         }
       });
 
       const formatted = Object.entries(dailyData).map(
-        ([date, { loginAt, logoutAt }]) => ({
-          date,
-          loginTime: loginAt.toTimeString().slice(0, 5),
-          logoutTime: logoutAt ? logoutAt.toTimeString().slice(0, 5) : null,
-          loginTimeAMPM: loginAt.toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          logoutTimeAMPM: logoutAt
-            ? logoutAt.toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : null,
-        })
+        ([date, { loginAt, logoutAt }]) => {
+          const loginTime = loginAt.toTimeString().slice(0, 5);
+          const logoutTime = logoutAt
+            ? logoutAt.toTimeString().slice(0, 5)
+            : null;
+
+          const record = {
+            loginTime,
+            logoutTime,
+          };
+
+          const status = calculateStatus(
+            record,
+            rules,
+            date,
+            isToday(new Date(date)),
+            holidayDates
+          );
+
+          return {
+            date,
+            loginTime,
+            logoutTime,
+            loginTimeAMPM: loginAt.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            logoutTimeAMPM: logoutAt
+              ? logoutAt.toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : null,
+            status,
+          };
+        }
       );
 
       setAttendanceData(formatted);
+      await saveAttendanceToDB(formatted, dep_name);
     } catch (err) {
       console.error("Error fetching attendance/department:", err);
     }
   };
 
   useEffect(() => {
-    fetchAttendance();
+    if (user?._id) {
+      fetchAttendance();
+    }
   }, [user]);
 
   const getTileClassName = ({ date }) => {
@@ -188,6 +245,13 @@ const AttendanceCalendar = () => {
     );
   };
 
+  const getStatusForDate = (date) => {
+    const dateStr = formatDate(date);
+
+    const record = attendanceData.find((entry) => entry.date === dateStr);
+    return record?.status || (isToday(date) ? "No Login (Today)" : "No Login");
+  };
+
   const handleDateClick = (value) => {
     const dateStr = formatDate(value);
     const data = attendanceData.find((entry) => entry.date === dateStr);
@@ -198,6 +262,7 @@ const AttendanceCalendar = () => {
         logoutTime: null,
         loginTimeAMPM: null,
         logoutTimeAMPM: null,
+        status: getStatusForDate(new Date(dateStr)),
       }
     );
   };

@@ -12,10 +12,12 @@ import AdminSummary from "./components/dashboard/AdminSummary";
 import HrSummary from "./components/HrDashboard/HrSummary";
 import EmployeeSummary from "./components/EmployeeDashboard/EmployeeDashboard";
 
-// Department
+// Admin Department
 import DepartmentList from "./components/department/DepartmentList";
 import AddDepartment from "./components/department/AddDepartment";
 import DeleteDepartment from "./components/department/DeleteDepartment";
+
+// HR Department
 import DepartmentList1 from "./components/HrDepartment/DepartmentList";
 import AddDepartment1 from "./components/HrDepartment/AddDepartment";
 import DeleteDepartment1 from "./components/HrDepartment/DeleteDepartement";
@@ -30,6 +32,7 @@ import HrList from "./components/employee/HrList";
 // Salary
 import AddSalary from "./components/salary/Add";
 import ViewSalary from "./components/salary/View";
+import ViewSalaryEmp from "./components/salary/ViewEmp";
 
 // Team
 import TeamList from "./components/team/TeamList";
@@ -40,14 +43,20 @@ import PfView from "./components/pf/PfView";
 import PfView1 from "./components/EmployeePf/PfView";
 
 // Leave
-import LeaveList from "./components/Employeeleave/list";
-import LeaveAdd from "./components/Employeeleave/add";
+import LeaveList from "./components/leave/list";
+import LeaveAdd from "./components/leave/add";
 import LeaveList1 from "./components/Hrleave/list";
 import LeaveAdd1 from "./components/Hrleave/add";
+import LeaveDetail from "./components/leave/DetailLeave";
 
 // Attendance
 import View4 from "./components/attendance/View";
 import View5 from "./components/attendance/View";
+import AdminView from "./components/attendance/AdminView";
+import AttendanceEditView from "./components/attendance/AdminEditView";
+
+// Settings
+import Setting from "./components/EmployeeDashboard/Setting";
 
 function App() {
   return (
@@ -84,6 +93,17 @@ function App() {
           <Route path="team/:id" element={<AddTeam />} />
 
           <Route path="salary/add" element={<AddSalary />} />
+
+          <Route path="settings" element={<Setting />} />
+          <Route path="leaves" element={<LeaveList1 />} />
+          <Route path="leaves/:id" element={<LeaveDetail />} />
+          <Route path="employees/leaves/:id" element={<LeaveList />} />
+
+          <Route path="attendance" element={<AdminView />} />
+          <Route
+            path="attendance/view/:userId"
+            element={<AttendanceEditView />}
+          />
         </Route>
 
         {/* HR Dashboard */}
@@ -110,11 +130,8 @@ function App() {
           <Route path="hr-employees" element={<HrList />} />
 
           <Route path="pf/:employeeId" element={<PfView />} />
-
           <Route path="leaves" element={<LeaveList1 />} />
-
           <Route path="add-leave" element={<LeaveAdd1 />} />
-
           <Route path="login-history/:employeeId" element={<View4 />} />
         </Route>
 
@@ -133,6 +150,7 @@ function App() {
           <Route path="profile/:id" element={<View />} />
           <Route path="leaves" element={<LeaveList />} />
           <Route path="add-leave" element={<LeaveAdd />} />
+          <Route path="salary/:id" element={<ViewSalaryEmp />} />
           <Route path="pf/:employeeId" element={<PfView1 />} />
           <Route path="login-history/:userId" element={<View5 />} />
         </Route>

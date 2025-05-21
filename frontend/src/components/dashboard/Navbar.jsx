@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/authContext";
-import { FaBell } from "react-icons/fa";
+import { FaUserShield, FaBell, FaSignOutAlt } from "react-icons/fa";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -31,19 +31,41 @@ const Navbar = () => {
   };
 
   return (
-    <div className="flex items-center justify-between h-12 bg-blue-700 text-white px-5">
-      <p>Welcome {user.name}</p>
+    <header className="flex items-center justify-between bg-blue-800 text-white px-6 py-3 shadow-md">
+      {/* Left Side: Title */}
+      <div className="flex items-center space-x-3">
+        <FaUserShield className="text-2xl" />
+        <h1 className="text-xl font-bold tracking-wide">Admin Dashboard</h1>
+      </div>
+
+      {/* Right Side: Time, Notification, Welcome, Logout */}
       <div className="flex items-center space-x-4">
-        <p className="text-sm">{time}</p>
-        <FaBell className="text-white" />
+        {/* Clock */}
+        <p className="text-sm font-mono">{time}</p>
+
+        {/* Notification Icon */}
+        <FaBell className="text-lg" />
+
+        {/* Welcome & Initial */}
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-semibold">
+            {user?.name?.charAt(0).toUpperCase() || "A"}
+          </div>
+          <p className="text-sm">
+            Welcome, <span className="font-medium">{user?.name}</span>
+          </p>
+        </div>
+
+        {/* Logout Button */}
         <button
-          className="px-4 py-1 bg-blue-600 hover:bg-blue-800 rounded"
           onClick={handleLogout}
+          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm font-medium"
         >
+          <FaSignOutAlt />
           Logout
         </button>
       </div>
-    </div>
+    </header>
   );
 };
 

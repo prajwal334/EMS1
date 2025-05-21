@@ -2,23 +2,25 @@ import { useNavigate } from "react-router-dom";
 
 // Column Definitions
 export const columns = [
-  {
-    name: "S No",
-    selector: (row) => row.sno,
-  },
-  {
-    name: "Department Name",
-    selector: (row) => row.dep_name,
-  },
-  {
-    name: "Description",
-    selector: (row) => row.description,
-  },
-  {
-    name: "Action",
-    selector: (row) => row.actions,
-  },
-];
+    {
+        name: "S No",
+        selector: (row) => row.sno
+    },
+    {
+        name: "Department Name",
+        selector: (row) => row.dep_name,
+       
+    },
+    {
+        name: "Employee Name",
+        selector: (row) => row.description,
+      
+    },
+    {
+        name: "Action",
+        selector: (row) => row.actions,
+    }
+]
 
 // DepartmentButtons Component
 export const DepartmentButtons = ({ _id }) => {

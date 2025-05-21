@@ -3,18 +3,21 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectToDatabase from "./db/db.js";
 
-// Import Routers
+// Import routers
 import authRouter from "./routes/auth.js";
 import departmentRouter from "./routes/department.js";
 import employeeRouter from "./routes/employee.js";
 import salaryRouter from "./routes/salary.js";
 import teamRouter from "./routes/team.js";
 import leaveRouter from "./routes/leave.js";
+import settingRouter from "./routes/setting.js";
 import summaryRoutes from "./routes/summary.js";
 import pfRouter from "./routes/pf.js";
 import loginHistoryRoutes from "./routes/loginhistory.js";
+import dashboardRouter from "./routes/dashboard.js";
+import attendanceRoutes from "./routes/attendance.js";
 
-// Configure environment variables
+// Load environment variables
 dotenv.config();
 
 // Connect to MongoDB
@@ -35,9 +38,12 @@ app.use("/api/employee", employeeRouter);
 app.use("/api/team", teamRouter);
 app.use("/api/salary", salaryRouter);
 app.use("/api/leave", leaveRouter);
+app.use("/api/setting", settingRouter);
+app.use("/api/dashboard", dashboardRouter);
 app.use("/api/summary", summaryRoutes);
 app.use("/api/pf", pfRouter);
 app.use("/api/login-history", loginHistoryRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;

@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import LoginHistory from "../models/LoginHistory.js";
 
-// Login Controller
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -45,7 +44,6 @@ const login = async (req, res) => {
     res.status(500).json({ success: false, error: "Server Error" });
   }
 };
-
 
 // Logout Controller
 const logout = async (req, res) => {

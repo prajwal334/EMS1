@@ -14,9 +14,10 @@ const Add = () => {
     lateLogins: 0,
     halfDays: 0,
     targetAllowance: 0,
-    bonus: 0,
+    overtimeAllowance: 0,
     targetPenalty: 0,
     loan: 0,
+    pt: 0,
   });
 
   const [departments, setDepartments] = useState([]);
@@ -78,7 +79,7 @@ const Add = () => {
       travel: gross * 0.068,
       food: gross * 0.1,
       overTime: salary.overtimeHours * 200,
-      bonus: salary.bonus,
+      overtimeAllowance: salary.overtimeAllowance,
       target: salary.targetAllowance,
     };
 
@@ -89,6 +90,7 @@ const Add = () => {
       halfDay: (perDay / 2) * salary.halfDays,
       targetPenalty: salary.targetPenalty,
       loan: salary.loan,
+      pt: salary.pt,
     };
 
     const totalAllowances = Object.values(allowances).reduce(
@@ -109,10 +111,7 @@ const Add = () => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/salary/add",
-        {
-          ...salary,
-          netSalary: calculated.netSalary,
-        },
+        salary,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -180,6 +179,7 @@ const Add = () => {
               className="mt-1 p-2 w-full border rounded"
             />
           </div>
+          {/* Basic Salary */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Basic Salary
@@ -208,34 +208,90 @@ const Add = () => {
 
           {/* Add other dynamic input fields */}
           {[
-            "overtimeHours",
-            "lopDays",
-            "lateLogins",
-            "halfDays",
-            "targetAllowance",
-            "bonus",
-            "targetPenalty",
-            "loan",
-          ].map((field) => (
-            <div key={field}>
+            { label: "Overtime Hours", name: "overtimeHours" },
+            { label: "Professional Tax", name: "pt" },
+            { label: "LOP Days", name: "lopDays" },
+            { label: "Late Logins", name: "lateLogins" },
+            { label: "Half Days", name: "halfDays" },
+            { label: "OverTime Allowance", name: "overtimeAllowance" },
+            { label: "Target Allowance", name: "targetAllowance" },
+            { label: "Target Penalty", name: "targetPenalty" },
+            { label: "Loan Deduction", name: "loan" },
+          ].map(({ label, name }) => (
+            <div key={name}>
               <label className="block text-sm font-medium text-gray-700">
-                {field}
+                {label}
               </label>
               <input
                 type="number"
-                name={field}
-                value={salary[field]}
+                name={name}
+                value={salary[name]}
                 onChange={handleChange}
                 className="mt-1 p-2 w-full border rounded"
               />
             </div>
           ))}
+        </div>
 
-          <div className="md:col-span-2 mt-4">
-            <p>
-              <strong>Net Salary:</strong> ₹{calculated.netSalary.toFixed(2)}
-            </p>
+        {/* Allowance Breakdown */}
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold mb-4">
+            Allowances (Calculated)
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(calculated.allowances).map(([key, value]) => (
+              <div key={key}>
+                <label className="block text-sm font-medium text-gray-700">
+                  {key
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^./, (s) => s.toUpperCase())}
+                </label>
+                <input
+                  type="number"
+                  readOnly
+                  value={value.toFixed(2)}
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md bg-gray-100"
+                />
+              </div>
+            ))}
           </div>
+        </div>
+
+        {/* Deduction Breakdown */}
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold mb-4">
+            Deductions (Calculated)
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(calculated.deductions).map(([key, value]) => (
+              <div key={key}>
+                <label className="block text-sm font-medium text-gray-700">
+                  {key
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^./, (s) => s.toUpperCase())}
+                </label>
+                <input
+                  type="number"
+                  readOnly
+                  value={value.toFixed(2)}
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md bg-gray-100"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Net Pay Preview */}
+        <div className="mt-6">
+          <label className="block text-lg font-semibold text-gray-800">
+            Net Salary
+          </label>
+          <input
+            type="number"
+            value={calculated.netSalary.toFixed(2)}
+            readOnly
+            className="mt-1 p-3 block w-full border border-green-600 rounded-md font-bold text-green-800 bg-green-50"
+          />
         </div>
 
         <button

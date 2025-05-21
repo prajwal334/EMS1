@@ -1,4 +1,6 @@
 import Salary from "../models/Salary.js";
+import Employee from "../models/Employee.js";
+import Department from "../models/Department.js";
 
 const addSalary = async (req, res) => {
   try {
@@ -11,13 +13,15 @@ const addSalary = async (req, res) => {
       lateLogins = 0,
       halfDays = 0,
       targetAllowance = 0,
-      bonus = 0,
+      overtimeAllowance = 0,
       targetPenalty = 0,
       loan = 0,
+      pt = 0,
+      bonus = 0,
       payDate,
     } = req.body;
 
-    // Input validation
+    // Validate required fields
     if (!employeeId || !grossPay || !basicSalary || !payDate) {
       return res.status(400).json({
         success: false,
@@ -37,8 +41,9 @@ const addSalary = async (req, res) => {
       travel: gross * 0.068,
       food: gross * 0.1,
       overTime: parseFloat(overtimeHours) * 200,
-      bonus: parseFloat(bonus),
+      overtimeAllowance: parseFloat(overtimeAllowance),
       target: parseFloat(targetAllowance),
+      bonus: parseFloat(bonus),
     };
 
     const totalAllowances = Object.values(allowances).reduce(
@@ -54,6 +59,7 @@ const addSalary = async (req, res) => {
       pf: basic * 0.1,
       targetPenalty: parseFloat(targetPenalty),
       loan: parseFloat(loan),
+      pt: parseFloat(pt),
     };
 
     const totalDeductions = Object.values(deductions).reduce(
@@ -61,6 +67,7 @@ const addSalary = async (req, res) => {
       0
     );
 
+    // Final net salary
     const netSalary = basic + totalAllowances - totalDeductions;
 
     const newSalary = new Salary({
@@ -95,22 +102,20 @@ const getSalary = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Employee ID is required" });
-    }
+    // Try finding salary records by employeeId directly
+    let salary = await Salary.find({ employeeId: id }).populate("employeeId");
 
-    const salary = await Salary.find({ employeeId: id }).populate(
-      "employeeId",
-      "employeeId name"
-    );
-
-    if (!salary || salary.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "No salary records found for this employee",
-      });
+    // If none found, try to find employee by userId and then get salary
+    if (!salary || salary.length < 1) {
+      const employee = await Employee.findOne({ userId: id });
+      if (!employee) {
+        return res
+          .status(404)
+          .json({ success: false, error: "Employee not found" });
+      }
+      salary = await Salary.find({ employeeId: employee._id }).populate(
+        "employeeId"
+      );
     }
 
     return res.status(200).json({ success: true, salary });
@@ -118,8 +123,77 @@ const getSalary = async (req, res) => {
     console.error("Salary get error:", error);
     return res
       .status(500)
-      .json({ success: false, error: "Server error while fetching salary" });
+      .json({ success: false, error: "Salary get server error" });
   }
 };
 
-export { addSalary, getSalary };
+const getDepartmentWiseSalary = async (req, res) => {
+  try {
+    const year = parseInt(req.query.year);
+    const month = parseInt(req.query.month); // optional
+
+    let matchStage = {};
+
+    if (year && month) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+      matchStage = {
+        payDate: { $gte: startDate, $lte: endDate },
+      };
+    } else if (year) {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+      matchStage = {
+        payDate: { $gte: startDate, $lte: endDate },
+      };
+    }
+
+    const result = await Salary.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "employeeId",
+          foreignField: "_id",
+          as: "employee",
+        },
+      },
+      { $unwind: "$employee" },
+      {
+        $lookup: {
+          from: "departments",
+          localField: "employee.department",
+          foreignField: "_id",
+          as: "department",
+        },
+      },
+      { $unwind: "$department" },
+      {
+        $group: {
+          _id: "$department.dep_name",
+          totalSalary: { $sum: "$netSalary" },
+          avgSalary: { $avg: "$netSalary" },
+          employeeCount: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          department: "$_id",
+          totalSalary: 1,
+          avgSalary: 1,
+          employeeCount: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    console.error("Error in department-wise salary aggregation:", err);
+    return res
+      .status(500)
+      .json({ success: false, error: "Server error while aggregating salary" });
+  }
+};
+
+export { addSalary, getSalary, getDepartmentWiseSalary };

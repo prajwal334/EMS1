@@ -1,12 +1,18 @@
 import express from "express";
 import {
-  getAttendance,
-  addOrUpdateAttendance,
+  saveAttendance,
+  viewAttendance,
+  editAttendanceTime,
+  viewAttendanceByUserId,
+  updateAttendanceByDate,
 } from "../controllers/attendanceController.js";
 
 const router = express.Router();
 
-router.get("/", getAttendance);
-router.post("/add", addOrUpdateAttendance);
+router.post("/save", saveAttendance);
+router.get("/", viewAttendance);
+router.get("/:userId", viewAttendanceByUserId);
+router.put("/edit/:userId", editAttendanceTime);
+router.put("/update/:userId", updateAttendanceByDate);
 
 export default router;
