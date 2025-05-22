@@ -31,7 +31,8 @@ const Add = () => {
         }
       );
       if (response.data.success) {
-        navigate("/employee-dashboard/leaves");
+        navigate("/employee-dashboard");
+        alert("Leave applied successfully");
       }
     } catch (error) {
       if (error.response && !error.response.data.success) {

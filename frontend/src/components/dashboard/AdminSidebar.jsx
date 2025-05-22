@@ -42,11 +42,7 @@ const AdminSidebar = () => {
       icon: <FaClock />,
       label: "Attendance",
     },
-    {
-      to: "/admin-dashboard/holidays",
-      icon: <FaCalendarCheck />,
-      label: "Holidays",
-    },
+    
     {
       to: "/admin-dashboard/settings",
       icon: <FaCogs />,

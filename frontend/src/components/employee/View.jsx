@@ -90,35 +90,7 @@ const View = () => {
         </div>
       </div>
 
-      <div className="mt-10 text-center">
-        <button
-                title="Edit Employee"
-                className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-sm"
-                onClick={() => navigate(`/admin-dashboard/employees/edit/${Id}`)}
-              >
-                <FaEdit />
-                Edit
-              </button>
-        
-              <button
-                title="View Salary"
-                className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
-                onClick={() => navigate(`/admin-dashboard/employees/salary/${Id}`)}
-              >
-                <FaMoneyCheckAlt />
-                Salary
-              </button>
-        
-              <button
-                title="Leave Details"
-                className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                onClick={() => navigate(`/admin-dashboard/employees/leaves/${Id}`)}
-              >
-                <FaPlaneDeparture />
-                Leave
-              </button>
-              </div>
-    </div>
+          </div>
   ) : (
     <div className="text-center mt-10">Loading...</div>
   );

@@ -211,10 +211,57 @@ const updateAttendanceByDate = async (req, res) => {
   }
 };
 
+const getAttendanceStatsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const records = await Attendance.find({ userId });
+
+    let stats = {
+      presence: 0,
+      lop: 0,
+      lateLogin: 0,
+      halfDay: 0,
+      casualLeave: 0,
+      earnedLeave: 0,
+      sickLeave: 0,
+    };
+
+    const LATE_THRESHOLD = "10:00"; // 10:00 AM
+
+    for (const rec of records) {
+      if (rec.status === "Present") stats.presence += 1;
+      if (rec.status === "LOP") stats.lop += 1;
+      if (rec.status === "Half Day") stats.halfDay += 1;
+
+      // Late login logic
+      if (
+        rec.loginTime &&
+        rec.status === "Present" &&
+        rec.loginTime > LATE_THRESHOLD
+      ) {
+        stats.lateLogin += 1;
+      }
+
+      // Optional leave types
+      if (rec.status === "Casual Leave") stats.casualLeave += 1;
+      if (rec.status === "Earned Leave") stats.earnedLeave += 1;
+      if (rec.status === "Sick Leave") stats.sickLeave += 1;
+    }
+
+    return res.status(200).json({ success: true, stats });
+  } catch (err) {
+    console.error("Error fetching attendance stats:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
 export {
   saveAttendance,
   viewAttendance,
   editAttendanceTime,
   viewAttendanceByUserId,
   updateAttendanceByDate,
+  getAttendanceStatsByUserId,
 };
