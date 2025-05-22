@@ -1,4 +1,5 @@
 import Department from "../models/Department.js";
+import Employee from "../models/Employee.js";
 
 const getDepartments = async (req, res) => {
   try {
@@ -43,5 +44,32 @@ const deleteDepartment = async (req, res) => {
     return res.status(500).json({ success: false, error: "Server Error" });
   }
 };
+const getDepartmentsWithEmployeeCount = async (req, res) => {
+  try {
+    const departments = await Department.aggregate([
+      {
+        $lookup: {
+          from: "employees", // MongoDB collection name
+          localField: "_id",
+          foreignField: "department",
+          as: "employees",
+        },
+      },
+      {
+        $project: {
+          dep_name: 1,
+          employeeCount: { $size: "$employees" },
+        },
+      },
+    ]);
 
-export { addDepartment, getDepartments, deleteDepartment };
+    return res.status(200).json({ success: true, departments });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Error fetching departments with employee count",
+    });
+  }
+};
+
+export { addDepartment, getDepartments, deleteDepartment,getDepartmentsWithEmployeeCount };

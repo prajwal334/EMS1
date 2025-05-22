@@ -8,6 +8,12 @@ const List = () => {
   const [employees, setEmployees] = useState([]);
   const [empLoading, setEmpLoading] = useState(false);
   const [filteredEmployee, setFilteredEmployees] = useState([]);
+  const [filteredDepartment, setFilteredDepartment] = useState([]);
+  const [activeDepartment, setActiveDepartment] = useState("ALL");
+
+
+
+
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -46,6 +52,21 @@ const List = () => {
     fetchEmployees();
   }, []);
 
+  const handleDepartmentFilter = (department) => {
+  setActiveDepartment(department);
+  if (department === "ALL") {
+    setFilteredEmployees(employees);
+  } else {
+    const records = employees.filter(
+      (emp) => emp.dep_name.toLowerCase() === department.toLowerCase()
+    );
+    setFilteredEmployees(records);
+  }
+};
+
+
+
+  
   const handleFilter = (e) => {
     const keyword = e.target.value.toLowerCase();
     const records = employees.filter((emp) =>
@@ -60,20 +81,42 @@ const List = () => {
         <h3 className="text-2xl font-bold">Manage Employee</h3>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
-        <input
-          type="text"
-          placeholder="Search Employee..."
-          className="px-4 py-0.5 border border-gray-300 rounded shadow-sm"
-          onChange={handleFilter}
-        />
-        <Link
-          to="/admin-dashboard/add-employee"
-          className="px-4 py-1 bg-blue-600 rounded hover:bg-blue-800 text-white shadow-lg"
-        >
-          Add Employee
-        </Link>
-      </div>
+      <div className="mb-1">
+  <div className="flex justify-between items-center mb-2">
+    <div className="flex flex-wrap gap-2">
+      {["IT", "HR", "Sales", "Marketing", "Compliance", "Finance", "Operations", "ALL"].map((label) => (
+  <button
+    key={label}
+    onClick={() => handleDepartmentFilter(label)}
+    className={`px-4 py-1 rounded shadow-lg ${
+      activeDepartment === label
+        ? "bg-blue-700 text-white"
+        : "bg-blue-400 text-black hover:bg-blue-600"
+    }`}
+  >
+    {label}
+  </button>
+))}
+
+    </div>
+    <Link
+      to="/admin-dashboard/add-employee"
+      className="px-4 py-1 bg-blue-600 rounded hover:bg-blue-800 text-white shadow-lg"
+    >
+      Add Employee
+    </Link>
+  </div>
+
+  <div className="flex justify-end">
+    <input
+      type="text"
+      placeholder="Search Employee..."
+      className="px-4 py-1 border border-gray-300 rounded shadow-sm"
+      onChange={handleFilter}
+    />
+  </div>
+</div>
+
 
       <div className="mt-3 shadow-md rounded-lg">
         <DataTable
