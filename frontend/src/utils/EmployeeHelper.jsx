@@ -1,45 +1,50 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import DataTable from "react-data-table-component";
-import { FaEye, FaEdit, FaUserCircle, FaMoneyCheckAlt, FaPlaneDeparture } from "react-icons/fa";
+import {
+  FaEye,
+  FaEdit,
+  FaUserCircle,
+  FaMoneyCheckAlt,
+  FaPlaneDeparture,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-// 🔘 Reusable Action Buttons
+// 🔘 Action Buttons
 export const EmployeeButtons = ({ Id }) => {
   const navigate = useNavigate();
+  const buttonBaseClasses =
+    "flex items-center justify-center gap-1 border border-gray-400 text-gray-700 px-2 py-1 rounded-md text-sm hover:bg-gray-100 transition-all w-[100px]";
 
   return (
-    <div className="flex flex-wrap gap-2 justify-center">
+    <div className="flex gap-2 justify-center">
       <button
-        title="View Profile"
-        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
+        title="View"
+        className={buttonBaseClasses}
         onClick={() => navigate(`/admin-dashboard/employees/${Id}`)}
       >
         <FaEye />
         View
       </button>
-
       <button
-        title="Edit Employee"
-        className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-sm"
+        title="Edit"
+        className={buttonBaseClasses}
         onClick={() => navigate(`/admin-dashboard/employees/edit/${Id}`)}
       >
         <FaEdit />
         Edit
       </button>
-
       <button
-        title="View Salary"
-        className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
+        title="Salary"
+        className={buttonBaseClasses}
         onClick={() => navigate(`/admin-dashboard/employees/salary/${Id}`)}
       >
         <FaMoneyCheckAlt />
         Salary
       </button>
-
       <button
-        title="Leave Details"
-        className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+        title="Leave"
+        className={buttonBaseClasses}
         onClick={() => navigate(`/admin-dashboard/employees/leaves/${Id}`)}
       >
         <FaPlaneDeparture />
@@ -49,7 +54,7 @@ export const EmployeeButtons = ({ Id }) => {
   );
 };
 
-// 📊 Table Columns Definition
+// 📊 Table Columns
 export const columns = [
   {
     name: "Image",
@@ -58,22 +63,24 @@ export const columns = [
         <img
           src={`http://localhost:3000/uploads/${row.profileImage}`}
           alt={row.name}
-          className="w-12 h-12 rounded-full border shadow-sm object-cover"
+          className="w-10 h-10 rounded-full border shadow-sm object-cover"
         />
       ) : (
-        <FaUserCircle className="text-gray-400 text-4xl bg-slate-100 rounded-full p-1" />
+        <FaUserCircle className="text-gray-400 text-3xl bg-slate-100 rounded-full p-1" />
       ),
-    width: "80px",
+    width: "70px",
   },
   {
     name: "Name",
-    selector: (row) => row.name,
+    selector: (row) => (
+      <span className="text-lg font-semibold text-gray-800">{row.name}</span>
+    ),
     sortable: true,
   },
   {
     name: "Department",
     selector: (row) => (
-      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+      <span className="text-sm font-medium text-indigo-700 uppercase tracking-wide">
         {row.dep_name}
       </span>
     ),
@@ -97,28 +104,23 @@ export const columns = [
   },
 ];
 
+// Fetch Departments
 export const fetchDepartments = async () => {
-  let departments;
   try {
     const response = await axios.get("http://localhost:3000/api/department", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
-    if (response.data.success) {
-      departments = response.data.departments;
-    }
+    return response.data.success ? response.data.departments : [];
   } catch (error) {
-    if (error.response && !error.response.data.success) {
-      alert(error.response.data.error);
-    }
+    console.error("Error fetching departments:", error);
+    return [];
   }
-  return departments;
 };
 
-//employees for salary
+// Fetch Employees by Department
 export const getEmployees = async (id) => {
-  let employees;
   try {
     const response = await axios.get(
       `http://localhost:3000/api/employee/department/${id}`,
@@ -128,16 +130,13 @@ export const getEmployees = async (id) => {
         },
       }
     );
-    if (response.data.success) {
-      employees = response.data.employees;
-    }
+    return response.data.success ? response.data.employees : [];
   } catch (error) {
-    if (error.response && !error.response.data.success) {
-      alert(error.response.data.error);
-    }
+    console.error("Error fetching employees:", error);
+    return [];
   }
-  return employees;
 };
+
 // 🚀 Main Component
 export const EmployeeTable = () => {
   const [employees, setEmployees] = useState([]);
@@ -174,8 +173,8 @@ export const EmployeeTable = () => {
   }, [employees, filterText]);
 
   return (
-    <div className="p-6 sm:p-8 bg-white rounded-xl shadow-lg border border-gray-200">
-      <h2 className="text-3xl font-semibold mb-6 text-slate-800">Employee Directory</h2>
+    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md border border-gray-200">
+      <h2 className="text-2xl font-semibold mb-4 text-slate-800">Employee Directory</h2>
 
       <div className="mb-4">
         <input
@@ -201,16 +200,26 @@ export const EmployeeTable = () => {
           headCells: {
             style: {
               fontWeight: "600",
-              fontSize: "14px",
+              fontSize: "16px",
               backgroundColor: "#f1f5f9",
               color: "#1e293b",
-              paddingTop: "12px",
-              paddingBottom: "12px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
             },
           },
           rows: {
             style: {
-              minHeight: "60px",
+              minHeight: "48px",
+              paddingTop: "4px",
+              paddingBottom: "4px",
+              borderBottom: "1px solid #e5e7eb", // Tailwind slate-200
+              marginBottom: "6px",
+            },
+          },
+          cells: {
+            style: {
+              paddingTop: "6px",
+              paddingBottom: "6px",
             },
           },
         }}
