@@ -14,27 +14,31 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
-        {
-          email,
-          password,
-        }
-      );
+      const response = await axios.post("http://localhost:3000/api/auth/login", {
+        email,
+        password,
+      });
 
       if (response.data.success) {
-        // Save token and user
-        localStorage.setItem("token", response.data.token);
-        login(response.data.user);
+        const user = response.data.user;
+        const token = response.data.token;
+
+        // Store token and user globally
+        localStorage.setItem("token", token);
+        login(user);
 
         // Role-based redirection
-        const role = response.data.user.role;
-        if (role === "admin") {
+        if (user.role === "admin") {
           navigate("/admin-dashboard");
-        } else if (role === "hr") {
+        } else if (user.role === "hr") {
           navigate("/hr-dashboard");
-        } else if (role === "employee") {
-          navigate("/employee-dashboard");
+        } else if (user.role === "employee") {
+          // ✅ Check if employee is logging in for the first time
+          if (user.firstLogin) {
+            navigate("/set-new-password"); // redirect to reset password screen
+          } else {
+            navigate("/employee-dashboard");
+          }
         } else {
           setError("Unauthorized role. Please contact support.");
         }
@@ -82,11 +86,7 @@ const Login = () => {
           </div>
           <div className="flex items-center justify-between mt-4">
             <label className="inline-flex items-center">
-              <input
-                type="checkbox"
-                id="remember"
-                className="mr-2 form-checkbox"
-              />
+              <input type="checkbox" id="remember" className="mr-2 form-checkbox" />
               <span className="text-sm">Remember me</span>
             </label>
             <a href="#" className="text-sm text-blue-500 hover:underline">
@@ -94,10 +94,7 @@ const Login = () => {
             </a>
           </div>
           <div className="mt-4">
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2"
-            >
+            <button type="submit" className="w-full bg-blue-600 text-white py-2">
               Login
             </button>
           </div>

@@ -3,6 +3,8 @@ import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboad";
 import EmployeeDashboard from "./pages/EmployeeDashboad";
 import HrDashboard from "./pages/HrDashboard";
+import SetNewPassword from "./pages/SetNewPassword";
+import AdminResetPassword from "./pages/EmployeePassword";
 
 import PrivateRoutes from "./utils/PrivateRoutes";
 import RoleBaseRoutes from "./utils/RoleBaseRoutes";
@@ -65,6 +67,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/set-new-password" element={<SetNewPassword />} />
+        <Route path="/admin-reset-password" element={<AdminResetPassword />} />
+
 
         {/* Admin Dashboard */}
         <Route

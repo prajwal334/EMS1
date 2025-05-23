@@ -48,6 +48,12 @@ const AdminSidebar = () => {
       icon: <FaCogs />,
       label: "Change Password",
     },
+
+    {
+      to: "/admin-reset-password",
+      icon: <FaCogs />,
+      label: "Employee Password Change"
+    }
   ];
 
   return (

@@ -16,6 +16,7 @@ import pfRouter from "./routes/pf.js";
 import loginHistoryRoutes from "./routes/loginhistory.js";
 import dashboardRouter from "./routes/dashboard.js";
 import attendanceRoutes from "./routes/attendance.js";
+import adminRouter from "./routes/admin.js";
 
 // Load environment variables
 dotenv.config();
@@ -44,6 +45,7 @@ app.use("/api/summary", summaryRoutes);
 app.use("/api/pf", pfRouter);
 app.use("/api/login-history", loginHistoryRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/admin", adminRouter);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
