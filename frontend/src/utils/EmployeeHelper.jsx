@@ -101,6 +101,7 @@ export const columns = [
     ignoreRowClick: true,
     allowOverflow: true,
     button: true,
+    width: "450px",
   },
 ];
 

@@ -1,15 +1,12 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {FaEdit, FaMoneyCheckAlt, FaPlaneDeparture } from "react-icons/fa";
-
+import { FaEdit, FaMoneyCheckAlt, FaPlaneDeparture } from "react-icons/fa";
 
 const View = () => {
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
-    const navigate = useNavigate();
-
-  
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEmployee = async () => {
@@ -36,32 +33,50 @@ const View = () => {
     fetchEmployee();
   }, [id]);
 
-
-
   return employee ? (
     <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
-      <h2 className="text-3xl font-bold text-center mb-8">Employee Profile</h2>
-
+<h2 className="text-3xl font-bold text-center mb-8 text-gray-800 drop-shadow-[2px_2px_3px_rgba(0,0,0,0.5)] transform transition-transform hover:scale-105 hover:translate-y-1">
+  Employee Profile
+</h2>
       <div className="flex justify-center mb-6">
+  <div className="relative w-36 h-36 perspective-1000">
+    <div className="w-full h-full transform transition-transform duration-500 hover:rotate-y-6 hover:scale-105 shadow-2xl rounded-full overflow-hidden">
+      {employee?.userId?.profileImage ? (
         <img
           src={`http://localhost:3000/uploads/${employee.userId.profileImage}`}
           alt="Profile"
-          className="rounded-full border w-36 h-36 object-cover"
+          className="w-full h-full object-cover"
         />
-      </div>
+      ) : (
+        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+          <svg
+            className="w-16 h-16 text-gray-500"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
+          </svg>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <Info label="Name" value={employee.userId.name} />
           <Info label="Employee ID" value={employee.employeeId} />
+          <Info label="NVKSH PERNO" value={employee.nvkshPerno} />
+          <Info label="NVKSH UNIT PERNO" value={employee.nvkshUnitPerno} />
           <Info label="Email" value={employee.userId.email} />
           <Info label="Phone" value={employee.phone} />
           <Info label="Address" value={employee.address} />
           <Info label="PAN" value={employee.pan} />
-          <Info label="Aadhar" value={employee.aadhar} />
         </div>
 
         <div className="space-y-4">
+          <Info label="Aadhar" value={employee.aadhar} />
           <Info label="Designation" value={employee.designation} />
           <Info
             label="Date of Joining"
@@ -89,8 +104,7 @@ const View = () => {
           <Info label="IFSC Code" value={employee.ifsc} />
         </div>
       </div>
-
-          </div>
+    </div>
   ) : (
     <div className="text-center mt-10">Loading...</div>
   );

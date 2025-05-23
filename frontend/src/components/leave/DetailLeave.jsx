@@ -59,7 +59,7 @@ const DetailLeave = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 mb-6">
             <div>
               <img
-                src={`http://localhost:3000/${leave.employeeId.userId.profileImage}`}
+                src={`http://localhost:3000/uploads/${leave.employeeId.userId.profileImage}`}
                 className="rounded-full border w-72"
                 alt="Employee Profile"
               />

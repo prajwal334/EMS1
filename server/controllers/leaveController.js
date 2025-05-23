@@ -1,5 +1,6 @@
 import Employee from "../models/Employee.js";
 import Leave from "../models/Leave.js";
+import mongoose from "mongoose";
 
 const  addLeave = async (req, res) => {
     try {
@@ -24,19 +25,24 @@ const  addLeave = async (req, res) => {
 }
 
 const getLeave = async (req, res) => {
-    try {
-        const { id } = req.params;
-        let leaves = await Leave.find({employeeId: id})
-        if (!leaves || leaves.length === 0) {
-            const employee = await Employee.findOne({ userId: id });
-             leaves = await Leave.find({ employeeId: employee._id })
-        }
-        return res.status(200).json({ success: true, leaves });
-    } catch (error) {
-        console.error(error.message); // log full error, not just .message
-        return res.status(500).json({ success: false, error: "Leave get server Error " });
+  try {
+    const { id } = req.params;
+
+    // Check if the ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid ID" });
     }
-}
+  
+    const leaves = await Leave.find({ employeeId: id });
+return res.status(200).json({ success: true, leaves: leaves || [] });
+
+  } catch (error) {
+    console.error("getLeave error:", error);
+    return res.status(500).json({ success: false, error: "Leave get server Error" });
+  }
+};
+
+
 
 const getLeaves = async (req, res) => {
     try{

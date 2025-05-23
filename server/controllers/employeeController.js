@@ -121,6 +121,7 @@ const getEmployees = async (req, res) => {
   }
 };
 
+
 // Get employee by id
 const getEmployee = async (req, res) => {
   const { id } = req.params;
