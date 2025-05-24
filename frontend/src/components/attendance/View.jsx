@@ -286,8 +286,8 @@ const AttendanceCalendar = () => {
         <Legend color="bg-pink-300" label="Half Day" />
         <Legend color="bg-gray-300" label="Holiday" />
         <Legend color="bg-blue-300" label="Sunday" />
+        <Legend color="bg-red-600 text-white" label="Absent" />
         <Legend color="border-2 border-gray-300" label="No Login" />
-        <Legend color="border-2 border-red-500" label="No Login (Today)" />
       </div>
 
       {selectedDateData ? (

@@ -67,6 +67,7 @@ const saveAttendance = async (req, res) => {
     }
 
     res.status(200).json({ message: "Attendance data saved successfully." });
+    // console.log("Records received:", JSON.stringify(records, null, 2));
   } catch (err) {
     console.error("Error saving attendance:", err);
     res.status(500).json({ message: "Server error" });
@@ -256,6 +257,55 @@ const getAttendanceStatsByUserId = async (req, res) => {
   }
 };
 
+const viewAttendanceByDepartmentId = async (req, res) => {
+  try {
+    const { departmentId } = req.params;
+
+    const employees = await Employee.find({ department: departmentId });
+
+    if (!employees || employees.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No employees found in department" });
+    }
+
+    const userIds = employees.map((emp) => emp.userId);
+
+    const attendanceRecords = await Attendance.find({
+      userId: { $in: userIds },
+    });
+
+    const attendanceMap = {};
+
+    for (const emp of employees) {
+      attendanceMap[emp.userId] = {
+        userId: emp.userId,
+        employeeId: emp.employeeId,
+        name: emp.name,
+        department: emp.department,
+        attendance: [],
+      };
+    }
+
+    for (const record of attendanceRecords) {
+      if (attendanceMap[record.userId]) {
+        attendanceMap[record.userId].attendance.push({
+          date: record.date,
+          loginTime: record.loginTime,
+          logoutTime: record.logoutTime,
+          status: record.status,
+        });
+      }
+    }
+
+    const result = Object.values(attendanceMap);
+
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    console.error("Error fetching department attendance:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 export {
   saveAttendance,
@@ -264,4 +314,5 @@ export {
   viewAttendanceByUserId,
   updateAttendanceByDate,
   getAttendanceStatsByUserId,
+  viewAttendanceByDepartmentId,
 };

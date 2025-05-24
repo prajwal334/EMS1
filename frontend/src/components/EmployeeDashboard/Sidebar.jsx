@@ -78,6 +78,14 @@ const Sidebar = () => {
           <FaClock className="text-lg text-white" />
           <span className="text-white font-medium">Attendance</span>
         </NavLink>
+
+        <NavLink
+          to={`/employee-dashboard/teams/user/${user?._id}`}
+          className={navLinkClass}
+        >
+          <FaClock className="text-lg text-white" />
+          <span className="text-white font-medium">Team</span>
+        </NavLink>
       </div>
     </div>
   );

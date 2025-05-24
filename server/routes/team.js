@@ -1,11 +1,19 @@
-import express from 'express';
-import authMiddleware from '../middleware/authMiddlware.js';
-import { addTeam, getTeams } from '../controllers/teamControl.js';
-
+import express from "express";
+import {
+  upload,
+  createTeam,
+  deleteTeam,
+  getAllTeams,
+  getTeamById,
+  getTeamsByUserId,
+} from "../controllers/teamControler.js";
 
 const router = express.Router();
 
-router.get('/', authMiddleware, getTeams );
-router.post('/add', authMiddleware, addTeam )
+router.post("/add", upload.single("team_dp"), createTeam);
+router.get("/", getAllTeams);
+router.delete("/:id", deleteTeam);
+router.get("/:id", getTeamById);
+router.get("/user/:userId", getTeamsByUserId);
 
 export default router;

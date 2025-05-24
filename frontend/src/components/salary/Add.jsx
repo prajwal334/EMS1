@@ -62,16 +62,13 @@ const Add = () => {
   };
 
   const handleChange = (e) => {
-  const { name, value } = e.target;
-  const isDateField = ["payFrom", "payTo", "payDate"].includes(name);
-  setSalary((prev) => ({
-    ...prev,
-    [name]: isDateField ? value : parseFloat(value) || 0,
-  }));
-};
-
-
-  
+    const { name, value } = e.target;
+    const isDateField = ["payFrom", "payTo", "payDate"].includes(name);
+    setSalary((prev) => ({
+      ...prev,
+      [name]: isDateField ? value : parseFloat(value) || 0,
+    }));
+  };
 
   useEffect(() => {
     const gross = salary.grossPay;
@@ -211,7 +208,6 @@ const Add = () => {
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
-
           </div>
 
           {/* Pay Date TO */}
@@ -226,7 +222,7 @@ const Add = () => {
               onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
-            />  
+            />
           </div>
 
           {/* Pay Date */}

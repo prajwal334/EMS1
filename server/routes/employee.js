@@ -16,7 +16,7 @@ router.get("/", authMiddleware, getEmployees);
 
 router.post("/add", authMiddleware, upload.single("image"), addEmployee);
 
-// ✅ Move this above the dynamic /:id route
+// :id route
 router.get("/department/:id", authMiddleware, fetchEmployeesByDepId);
 
 router.get("/:id", authMiddleware, getEmployee);
