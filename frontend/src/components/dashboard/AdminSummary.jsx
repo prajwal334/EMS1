@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 import DepartmentSalaryChart from "./DepartmentSalaryChart.jsx";
+import DepartmentWiseAttendance from "./AttendanceSummary.jsx";
 
 const AdminSummary = () => {
   const [summary, setSummary] = useState(null);
@@ -191,6 +192,14 @@ const AdminSummary = () => {
             No salary data found for the selected period.
           </p>
         )}
+      </section>
+
+      <br />
+      <br />
+
+      {/* Attendance */}
+      <section>
+        <DepartmentWiseAttendance />
       </section>
     </div>
   );

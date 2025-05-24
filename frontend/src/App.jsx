@@ -37,6 +37,9 @@ import ViewSalaryEmp from "./components/salary/ViewEmp";
 // Team
 import TeamList from "./components/team/TeamList";
 import AddTeam from "./components/team/Add";
+import ViewTeam from "./components/team/ViewTeam";
+import EmTeam from "./components/team/EmTeam";
+import EmView from "./components/team/EmView";
 
 // PF
 import PfView from "./components/pf/PfView";
@@ -91,7 +94,7 @@ function App() {
 
           <Route path="teams" element={<TeamList />} />
           <Route path="add-team" element={<AddTeam />} />
-          <Route path="team/:id" element={<AddTeam />} />
+          <Route path="teams/team/:id" element={<ViewTeam />} />
 
           <Route path="salary/add" element={<AddSalary />} />
 
@@ -154,6 +157,8 @@ function App() {
           <Route path="salary/:id" element={<ViewSalaryEmp />} />
           <Route path="pf/:employeeId" element={<PfView1 />} />
           <Route path="login-history/:userId" element={<View5 />} />
+          <Route path="teams/user/:UseId" element={<EmTeam />} />
+          <Route path="teams/team/:id" element={<EmView />} />
         </Route>
       </Routes>
     </BrowserRouter>
