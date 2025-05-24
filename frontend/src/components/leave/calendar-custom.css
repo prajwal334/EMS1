@@ -1,0 +1,31 @@
+/* calendar-custom.css */
+
+.react-calendar {
+  border: none;
+  font-family: Arial, sans-serif;
+}
+
+.react-calendar__tile--now {
+  background: #ebf8ff !important;
+}
+
+/* Leave Range */
+.highlight {
+  background-color: #38b2ac !important; /* teal */
+  color: white !important;
+  border-radius: 6px;
+}
+
+/* Sunday styling */
+.sunday-bg {
+  background-color: red !important;
+  color: black !important;
+  border-radius: 6px;
+}
+
+/* Saturday styling */
+.saturday-bg {
+  background-color: yellow !important;
+  color: black !important;
+  border-radius: 6px;
+}
