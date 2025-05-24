@@ -10,6 +10,7 @@ import {
   FaClock,
   FaUserShield,
   FaUsers,
+  FaComments,
 } from "react-icons/fa";
 
 const AdminSidebar = () => {
@@ -36,6 +37,11 @@ const AdminSidebar = () => {
       to: "/admin-dashboard/salary/add",
       icon: <FaMoneyBillWave />,
       label: "Salary",
+    },
+    {
+      to: "/admin-dashboard/chat/add",
+      icon: <FaComments />,
+      label: "Chat",
     },
     {
       to: "/admin-dashboard/attendance",
