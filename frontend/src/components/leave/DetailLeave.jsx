@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import "./calendar-custom.css";
+import "./calendar-custom.css"; // ⬅️ Custom styling (create this file)
 
 const DetailLeave = () => {
   const { id } = useParams();
@@ -25,10 +25,11 @@ const DetailLeave = () => {
           setLeave(response.data.leave);
         }
       } catch (error) {
-        alert(error?.response?.data?.error || "Failed to fetch leave detail.");
+        if (error.response && !error.response.data.success) {
+          alert(error.response.data.error);
+        }
       }
     };
-
     fetchLeave();
   }, [id]);
 
@@ -43,29 +44,21 @@ const DetailLeave = () => {
           },
         }
       );
-
       if (response.data.success) {
-        // 🔁 Re-fetch pending leaves (to update red dot)
-        await axios.get("http://localhost:3000/api/leave/pending", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-
-        // ✅ Redirect
-// After approval/rejection
-navigate("/admin-dashboard/employees", { state: { refreshPendingLeaves: true } });
+        navigate("/admin-dashboard/leaves");
       }
     } catch (error) {
-      alert(error?.response?.data?.error || "Failed to update status.");
+      if (error.response && !error.response.data.success) {
+        alert(error.response.data.error);
+      }
     }
   };
 
   return leave ? (
     <div className="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
       <h2 className="text-2xl font-bold mb-6">Employee Leave Details</h2>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Profile Image */}
         <div>
           <img
             src={`http://localhost:3000/uploads/${leave.employeeId.userId.profileImage}`}
@@ -74,6 +67,7 @@ navigate("/admin-dashboard/employees", { state: { refreshPendingLeaves: true } }
           />
         </div>
 
+        {/* Leave Details */}
         <div>
           {[
             ["Name", leave.employeeId.userId.name],
@@ -88,6 +82,7 @@ navigate("/admin-dashboard/employees", { state: { refreshPendingLeaves: true } }
             </div>
           ))}
 
+          {/* Status or Action Buttons */}
           <div className="flex space-x-4 mt-4 items-center">
             <p className="font-bold">
               {leave.status === "Pending" ? "Action" : "Status"}:
@@ -114,6 +109,7 @@ navigate("/admin-dashboard/employees", { state: { refreshPendingLeaves: true } }
         </div>
       </div>
 
+      {/* Calendar Display */}
       <div className="mt-6">
         <p className="text-lg font-bold mb-2">Leave Calendar:</p>
         <Calendar
@@ -123,15 +119,20 @@ navigate("/admin-dashboard/employees", { state: { refreshPendingLeaves: true } }
             const start = new Date(leave.startDate);
             const end = new Date(leave.endDate);
 
+            // Highlight leave range
             if (date >= start && date <= end) {
               return "highlight";
             }
-            if (date.getDay() === 0) return "sunday-bg"; // Sunday
-            if (date.getDay() === 6) return "saturday-bg"; // Saturday
+
+            // Sunday
+            if (date.getDay() === 0) return "sunday-bg";
+
+            // Saturday
+            if (date.getDay() === 6) return "saturday-bg";
+
             return null;
           }}
-          // Optional: disable all tiles
-          // tileDisabled={() => true}
+          tileDisabled={() => true}
         />
       </div>
     </div>
