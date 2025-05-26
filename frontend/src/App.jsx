@@ -18,8 +18,10 @@ import EmployeeSummary from "./components/EmployeeDashboard/EmployeeDashboard";
 import DepartmentList from "./components/department/DepartmentList";
 import AddDepartment from "./components/department/AddDepartment";
 import DeleteDepartment from "./components/department/DeleteDepartment";
+// Group Chat
+import ChatLayout from "./pages/ChatLayout";
+import ChatRoom from "./components/groupChat/ChatRoom";
 import GroupChatAdd from "./components/groupChat/AddGroup";
-import GroupChat from "./components/groupChat/GroupList";
 
 // HR Department
 import DepartmentList1 from "./components/HrDepartment/DepartmentList";
@@ -111,8 +113,10 @@ function App() {
           <Route path="employees/leaves/:id" element={<LeaveList />} />
 
           <Route path="attendance" element={<AdminView />} />
-          <Route path="chat" element={<GroupChat />} />
           <Route path="chat/add" element={<GroupChatAdd />} />
+          <Route path="groups" element={<ChatLayout />}>
+           <Route path=":id" element={<ChatRoom />} />
+           </Route>
           <Route
             path="attendance/view/:userId"
             element={<AttendanceEditView />}

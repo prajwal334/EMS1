@@ -39,7 +39,7 @@ const AdminSidebar = () => {
       label: "Salary",
     },
     {
-      to: "/admin-dashboard/chat",
+      to: "/admin-dashboard/groups",
       icon: <FaComments />,
       label: "Chat",
     },
