@@ -1,49 +1,41 @@
-// ChatRoom.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useSocket } from "../../context/SocketContext";
 import { useAuth } from "../../context/authContext";
 import EmojiPicker from "emoji-picker-react";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { FiSend, FiPaperclip } from "react-icons/fi";
 
 const ChatRoom = () => {
-  const { id } = useParams(); // groupId
+  const { id } = useParams();
   const { user } = useAuth();
   const socket = useSocket();
 
   const [group, setGroup] = useState(null);
   const [message, setMessage] = useState("");
+  const [file, setFile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [editingMsgId, setEditingMsgId] = useState(null);
-  const [typingUser, setTypingUser] = useState(null);
-  const [file, setFile] = useState(null);
+  const [showMembers, setShowMembers] = useState(false);
 
   const scrollRef = useRef();
-  const typingTimeoutRef = useRef(null);
 
-  // Fetch messages & group info
   useEffect(() => {
     const fetchChat = async () => {
-      try {
-        const res = await axios.get(`http://localhost:3000/api/group/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        if (res.data.success) {
-          setGroup(res.data.group);
-        }
+      const token = localStorage.getItem("token");
 
-        const msgRes = await axios.get(`http://localhost:3000/api/messages/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        if (msgRes.data.success) {
-          setMessages(msgRes.data.messages);
-        }
-      } catch (err) {
-        console.error("Fetch error", err);
-      }
+      const groupRes = await axios.get(`http://localhost:3000/api/group/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (groupRes.data.success) setGroup(groupRes.data.group);
+
+      const msgRes = await axios.get(`http://localhost:3000/api/messages/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (msgRes.data.success) setMessages(msgRes.data.messages);
     };
-
     fetchChat();
   }, [id]);
 
@@ -55,18 +47,9 @@ const ChatRoom = () => {
       setMessages((prev) => [...prev, msg]);
     });
 
-    socket.on("typing", (name) => {
-      setTypingUser(name);
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => {
-        setTypingUser(null);
-      }, 2000);
-    });
-
     return () => {
       socket.emit("leave-group", id);
       socket.off("receive-message");
-      socket.off("typing");
     };
   }, [socket, id]);
 
@@ -78,8 +61,6 @@ const ChatRoom = () => {
   if (!message.trim() && !file) return;
 
   try {
-    let sentMessage = null;
-
     const formData = new FormData();
     formData.append("groupId", id);
     formData.append("message", message);
@@ -93,108 +74,142 @@ const ChatRoom = () => {
     });
 
     if (res.data.success) {
-      sentMessage = res.data.message;
-
-      // Emit to socket AFTER successful save
-      socket.emit("sendMessage", sentMessage);
-
-      // Also show locally (optional, since socket will do it too)
-      setMessages((prev) => [...prev, sentMessage]);
+      // ✅ Emit the fully saved message from backend
+      socket.emit("send-message", res.data.message);
+      setMessages((prev) => [...prev, res.data.message]);
     }
 
     setMessage("");
     setFile(null);
-    setShowEmojiPicker(false);
-  } catch (error) {
-    console.error("Failed to send message", error);
+  } catch (err) {
+    console.error("Send error", err);
   }
 };
 
-  const handleEdit = (msg) => {
-    setMessage(msg.message);
-    setEditingMsgId(msg._id);
+
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:3000/api/messages/${id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
-    setMessages((prev) => prev.filter((m) => m._id !== id));
-  };
-
-  const handleTyping = () => {
-    socket.emit("typing", { groupId: id, senderName: user.name });
-  };
+  const getFileURL = (filePath) =>
+    `http://localhost:3000/${filePath.replace("public/", "")}`;
 
   return (
-    <div className="max-w-3xl mx-auto p-4 bg-white shadow rounded mt-6">
-      <h2 className="text-2xl font-bold mb-4">
-        Group Chat: {group?.group_name || "..."}
-      </h2>
+    <div className="h-screen flex flex-col bg-gray-100">
+      {/* Header */}
+      <div className="bg-white flex items-center justify-between px-4 py-2 shadow-md">
+        <div className="flex items-center gap-3">
+          <img
+            src={
+              group?.group_dp
+                ? getFileURL(group.group_dp)
+                : "https://via.placeholder.com/100"
+            }
+            className="w-10 h-10 rounded-full object-cover"
+            alt="group"
+          />
+          <h2 className="text-lg font-semibold">{group?.group_name}</h2>
+        </div>
 
-      <div className="h-96 overflow-y-auto border rounded p-4 mb-4 bg-gray-50">
+        <div className="relative">
+          <BsThreeDotsVertical
+            className="text-xl cursor-pointer"
+            onClick={() => setShowMembers(!showMembers)}
+          />
+          {showMembers && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border shadow-lg rounded z-50 p-2">
+              <h4 className="font-semibold text-sm mb-1">Group Members</h4>
+              <ul className="text-sm text-gray-800 space-y-1 max-h-40 overflow-y-auto">
+                {group?.members?.map((m) => (
+                  <li key={m._id}>👤 {m.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 p-4 overflow-y-auto">
         {messages.map((msg) => (
-          <div key={msg._id} className={`mb-3 ${msg.sender._id === user._id ? "text-right" : "text-left"}`}>
-            <div className="inline-block px-3 py-2 rounded-lg bg-blue-100 text-gray-800 relative">
-              <strong>{msg.sender.name}</strong>: {msg.message}
+          <div
+            key={msg._id}
+            className={`mb-2 flex ${
+              msg.sender._id === user._id ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div className="max-w-xs bg-white rounded-xl p-3 shadow relative">
+              <div className="text-sm text-gray-800 break-words">
+                {msg.message}
+              </div>
               {msg.file && (
                 <div className="mt-2">
-                  <a
-                    href={`http://localhost:3000/${msg.file.replace("public\\", "").replace(/\\/g, "/")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline"
-                  >
-                    📎 Attachment
-                  </a>
+                  {msg.file.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                    <img
+                      src={getFileURL(msg.file)}
+                      alt="attachment"
+                      className="rounded max-h-48"
+                    />
+                  ) : (
+                    <a
+                      href={getFileURL(msg.file)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      📎 Download file
+                    </a>
+                  )}
                 </div>
               )}
-
-              {msg.sender._id === user._id && (
-                <div className="absolute top-1 right-1 space-x-1 text-xs">
-                  <button onClick={() => handleEdit(msg)}>✏️</button>
-                  <button onClick={() => handleDelete(msg._id)}>🗑️</button>
-                </div>
-              )}
+              <div className="text-xs text-right text-gray-500 mt-1">
+                {formatTime(msg.createdAt)}
+              </div>
             </div>
           </div>
         ))}
-        <div ref={scrollRef} />
-        {typingUser && (
-          <div className="text-sm italic text-gray-500">{typingUser} is typing...</div>
-        )}
+        <div ref={scrollRef}></div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 relative">
-          <button onClick={() => setShowEmojiPicker(!showEmojiPicker)}>😊</button>
-          {showEmojiPicker && (
-            <div className="absolute bottom-12 left-0 z-50">
-              <EmojiPicker onEmojiClick={(e) => setMessage((prev) => prev + e.emoji)} />
-            </div>
-          )}
-          <input
-            type="text"
-            className="flex-1 border rounded px-3 py-2"
-            placeholder={editingMsgId ? "Edit message..." : "Type a message..."}
-            value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              handleTyping();
-            }}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          />
-        </div>
+      {/* Input Box */}
+      <div className="bg-white px-4 py-3 flex items-center gap-2 border-t relative">
+        {/* File upload */}
+        <label htmlFor="file" className="cursor-pointer text-xl text-gray-600">
+          <FiPaperclip />
+        </label>
+        <input
+          id="file"
+          type="file"
+          className="hidden"
+          onChange={(e) => setFile(e.target.files[0])}
+        />
 
-        <div className="flex justify-between items-center">
-          <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-          <button
-            onClick={handleSend}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            {editingMsgId ? "Update" : "Send"}
-          </button>
-        </div>
+        {/* Emoji */}
+        <button onClick={() => setShowEmojiPicker((prev) => !prev)}>😊</button>
+        {showEmojiPicker && (
+          <div className="absolute bottom-16 left-4 z-50">
+            <EmojiPicker onEmojiClick={(e) => setMessage((prev) => prev + e.emoji)} />
+          </div>
+        )}
+
+        {/* Text input */}
+        <input
+          type="text"
+          placeholder="Type a message"
+          className="flex-1 px-4 py-2 border rounded-full focus:outline-none"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+        />
+
+        {/* Send button */}
+        <button
+          onClick={handleSend}
+          className="text-white bg-blue-600 rounded-full p-2 hover:bg-blue-700"
+        >
+          <FiSend className="text-lg" />
+        </button>
       </div>
     </div>
   );
