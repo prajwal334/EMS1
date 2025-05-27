@@ -1,192 +1,210 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { FaCog } from "react-icons/fa";
+import { FiUpload, FiUserPlus, FiUserX } from "react-icons/fi";
 
-const AddGroup = () => {
-  const [group, setGroup] = useState({
-    group_name: "",
-    group_dp: null,
-    memberUserIds: [],
-  });
-
+const SettingsPanel = () => {
+  const [activeTab, setActiveTab] = useState("groups");
   const [employees, setEmployees] = useState([]);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
+
+  const [groupName, setGroupName] = useState("");
+  const [groupDP, setGroupDP] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const res = await axios.get("http://localhost:3000/api/employee", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setEmployees(res.data.employees || []);
-      } catch (error) {
-        console.error("Error fetching employees:", error);
-      }
-    };
-
     fetchEmployees();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setGroup({ ...group, [name]: value });
+  const fetchEmployees = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/api/employee", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setEmployees(res.data.employees || []);
+    } catch (err) {
+      console.error("Failed to fetch employees", err);
+    }
   };
 
-  const handleFileChange = (e) => {
-    setGroup({ ...group, group_dp: e.target.files[0] });
-  };
-
-  const handleMemberSelect = (e) => {
-    const selected = e.target.value;
-    if (selected && !group.memberUserIds.includes(selected)) {
-      setGroup((prev) => ({
-        ...prev,
-        memberUserIds: [...prev.memberUserIds, selected],
-      }));
+  const handleAddMember = (id) => {
+    if (!members.includes(id)) {
+      setMembers((prev) => [...prev, id]);
     }
   };
 
   const handleRemoveMember = (id) => {
-    setGroup((prev) => ({
-      ...prev,
-      memberUserIds: prev.memberUserIds.filter((uid) => uid !== id),
-    }));
+    setMembers((prev) => prev.filter((mid) => mid !== id));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setGroupDP(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setPreviewImage(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
 
+  const handleCreateGroup = async () => {
     try {
       const formData = new FormData();
-      formData.append("group_name", group.group_name);
-group.memberUserIds.forEach((id) => formData.append("members", id));
-      if (group.group_dp) {
-        formData.append("group_dp", group.group_dp);
-      }
+      formData.append("group_name", groupName);
+      if (groupDP) formData.append("group_dp", groupDP);
+      members.forEach((id) => formData.append("members", id));
 
-      const res = await axios.post(
-        "http://localhost:3000/api/group/add",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const res = await axios.post("http://localhost:3000/api/group/add", formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       if (res.data.success) {
-        setSuccessMessage("✅ Group created successfully!");
-        setTimeout(() => {
-          navigate("/admin-dashboard/chat");
-        }, 1500);
+        setSuccess("Group Created ✅");
+        setGroupName("");
+        setGroupDP(null);
+        setMembers([]);
+        setPreviewImage(null);
+        setTimeout(() => setSuccess(""), 2000);
       }
-    } catch (error) {
-      const msg = error.response?.data?.error || "Something went wrong";
-      setErrorMessage(`❌ ${msg}`);
+    } catch (err) {
+      console.error("Group creation failed", err);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Add Group</h2>
-
-      {errorMessage && (
-        <div className="mb-4 text-red-600 bg-red-100 border border-red-300 p-3 rounded">
-          {errorMessage}
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="mb-4 text-green-600 bg-green-100 border border-green-300 p-3 rounded">
-          {successMessage}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        {/* Group Name */}
-        <div className="mb-4">
-          <label className="text-sm font-medium text-gray-700">Group Name</label>
-          <input
-            type="text"
-            name="group_name"
-            onChange={handleChange}
-            placeholder="Enter Group Name"
-            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
-
-        {/* Group DP */}
-        <div className="mb-4">
-          <label className="text-sm font-medium text-gray-700">Group Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
-          />
-        </div>
-
-        {/* Members */}
-        <div className="mb-6">
-          <label className="text-sm font-medium text-gray-700">Add Members</label>
-          <select
-            name="memberUserIds"
-            onChange={handleMemberSelect}
-            value=""
-            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+    <div className="flex h-full w-full bg-[url('/assets/chat-bg.jpg')] bg-cover bg-center">
+      {/* Settings Sidebar */}
+      <div className="w-64 p-6 border-r bg-white bg-opacity-70">
+        <h2 className="text-xl font-semibold flex items-center gap-2 mb-6">
+          <FaCog /> Setting
+        </h2>
+        <ul className="space-y-4 text-gray-700">
+          <li
+            className={`cursor-pointer hover:underline ${
+              activeTab === "groups" ? "font-bold text-blue-600" : ""
+            }`}
+            onClick={() => setActiveTab("groups")}
           >
-            <option value="" disabled>
-              Select a member to add
-            </option>
-            {employees
-              .filter((emp) => !group.memberUserIds.includes(emp.userId._id))
-              .map((emp) => (
-                <option key={emp.userId._id} value={emp.userId._id}>
-                  {emp.userId.name} ({emp.department?.dep_name || "No Dept"})
-                </option>
-              ))}
-          </select>
+            Groups
+          </li>
+          <li
+            className={`cursor-pointer hover:underline ${
+              activeTab === "notifications" ? "font-bold text-blue-600" : ""
+            }`}
+            onClick={() => setActiveTab("notifications")}
+          >
+            Notification
+          </li>
+          <li
+            className={`cursor-pointer hover:underline ${
+              activeTab === "privacy" ? "font-bold text-blue-600" : ""
+            }`}
+            onClick={() => setActiveTab("privacy")}
+          >
+            Privacy
+          </li>
+        </ul>
+      </div>
 
-          {/* Selected Members */}
-          <div className="flex flex-wrap gap-2 mt-2">
-            {group.memberUserIds.map((id) => {
-              const member = employees.find((emp) => emp.userId._id === id);
-              return (
-                <span
-                  key={id}
-                  className="flex items-center bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded-full"
-                >
-                  ✔ {member?.userId.name} ({member?.department?.dep_name || "No Dept"})
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveMember(id)}
-                    className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold"
-                    title="Remove Member"
+      {/* Main Content Area */}
+      <div className="flex-1 p-8 bg-white bg-opacity-50 overflow-y-auto">
+        {activeTab === "groups" && (
+          <div className="w-full max-w-md bg-white bg-opacity-70 p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">Create New</h3>
+
+            {/* Team Name */}
+            <input
+              type="text"
+              placeholder="Enter Team Name"
+              className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-full text-center"
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+            />
+
+            {/* Upload Icon */}
+            <div className="flex justify-center mb-6">
+              <label className="cursor-pointer relative inline-block">
+                <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                <div className="w-20 h-20 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                  {previewImage ? (
+                    <img src={previewImage} alt="Group" className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <FiUpload className="text-2xl text-gray-500" />
+                  )}
+                </div>
+              </label>
+            </div>
+
+            {/* Add Members */}
+            <p className="font-bold mb-2">Add Members</p>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {employees.map((emp) => {
+                const isMember = members.includes(emp.userId._id);
+                return (
+                  <div
+                    key={emp.userId._id}
+                    className="flex justify-between items-center text-sm py-2 px-2 hover:bg-gray-100 rounded"
                   >
-                    ×
-                  </button>
-                </span>
-              );
-            })}
-          </div>
-        </div>
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={`http://localhost:3000/${emp.userId.avatar?.replace("public/", "")}`}
+                        alt={emp.userId.name}
+                        className="w-8 h-8 rounded-full object-cover border"
+                      />
+                      <div>
+                        <p>{emp.userId.name}</p>
+                        <p className="text-xs text-gray-500">{emp.department?.dep_name || "No Dept"}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() =>
+                        isMember
+                          ? handleRemoveMember(emp.userId._id)
+                          : handleAddMember(emp.userId._id)
+                      }
+                      className="text-lg"
+                    >
+                      {isMember ? (
+                        <FiUserX className="text-red-500 hover:text-red-700" />
+                      ) : (
+                        <FiUserPlus className="text-green-500 hover:text-green-700" />
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Create Group
-        </button>
-      </form>
+            {/* Create Button */}
+            <button
+              onClick={handleCreateGroup}
+              className="mt-6 w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded"
+            >
+              CREATE
+            </button>
+
+            {/* Success Message */}
+            {success && (
+              <p className="text-green-600 text-center mt-4 font-medium">{success}</p>
+            )}
+          </div>
+        )}
+
+        {activeTab === "notifications" && (
+          <div className="text-gray-800">🔔 Notification settings coming soon...</div>
+        )}
+
+        {activeTab === "privacy" && (
+          <div className="text-gray-800">🔒 Privacy options will appear here.</div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default AddGroup;
+export default SettingsPanel;

@@ -22,6 +22,9 @@ import attendanceRoutes from "./routes/attendance.js";
 import adminRouter from "./routes/admin.js";
 import groupRouter from "./routes/groupChat.js";
 import groupMessageRouter from "./routes/groupMessage.js"; // ✅ Add this route
+import directChatRoutes from "./routes/directChat.js";
+import directMessageRoutes from "./routes/directMessage.js";
+
 // Load environment variables
 dotenv.config();
 
@@ -62,6 +65,8 @@ app.use("/api/admin", adminRouter);
 app.use("/api/group", groupRouter);
 app.use("/api/messages", groupMessageRouter); // ✅ Mount route
 app.use("/uploads", express.static("public/uploads"));
+app.use("/api/direct-chats", directChatRoutes);
+app.use("/api/direct-messages", directMessageRoutes);
 
 
 // ✅ Socket.io Logic

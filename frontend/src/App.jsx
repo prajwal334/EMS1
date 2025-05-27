@@ -18,10 +18,14 @@ import EmployeeSummary from "./components/EmployeeDashboard/EmployeeDashboard";
 import DepartmentList from "./components/department/DepartmentList";
 import AddDepartment from "./components/department/AddDepartment";
 import DeleteDepartment from "./components/department/DeleteDepartment";
-// Group Chat
+
+// Chat
 import ChatLayout from "./pages/ChatLayout";
 import ChatRoom from "./components/groupChat/ChatRoom";
 import GroupChatAdd from "./components/groupChat/AddGroup";
+import HomePlaceholder from "./pages/HomePlaceholder";
+import DirectChat from "./components/groupChat/DirectChat";
+import NewChat from "./pages/NewChat";
 
 // HR Department
 import DepartmentList1 from "./components/HrDepartment/DepartmentList";
@@ -77,7 +81,6 @@ function App() {
         <Route path="/set-new-password" element={<SetNewPassword />} />
         <Route path="/admin-reset-password" element={<AdminResetPassword />} />
 
-
         {/* Admin Dashboard */}
         <Route
           path="/admin-dashboard"
@@ -113,14 +116,18 @@ function App() {
           <Route path="employees/leaves/:id" element={<LeaveList />} />
 
           <Route path="attendance" element={<AdminView />} />
-          <Route path="chat/add" element={<GroupChatAdd />} />
+          <Route path="attendance/view/:userId" element={<AttendanceEditView />} />
+
+          {/* ✅ Group & Direct Chat under "groups" route */}
           <Route path="groups" element={<ChatLayout />}>
-           <Route path=":id" element={<ChatRoom />} />
-           </Route>
-          <Route
-            path="attendance/view/:userId"
-            element={<AttendanceEditView />}
-          />
+            <Route index element={<HomePlaceholder />} />
+            <Route path="chat/add" element={<GroupChatAdd />} />
+            <Route path="new-chat" element={<NewChat />} />
+            <Route path="direct/:id" element={<DirectChat />} />
+            <Route path=":id" element={<ChatRoom />} />
+          </Route>
+
+          {/* ✅ Optional: allow direct chat at /admin-dashboard/direct/:id */}
         </Route>
 
         {/* HR Dashboard */}
