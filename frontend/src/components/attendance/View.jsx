@@ -12,36 +12,6 @@ const AttendanceCalendar = () => {
   const [attendanceData, setAttendanceData] = useState([]);
   const [selectedDateData, setSelectedDateData] = useState(null);
 
-  const holidayDates = []; // Add holiday dates here as needed
-
-  const departmentTimingRules = {
-    marketing: {
-      loginTimeLimit: 9 * 60,
-      lateLoginLimit: 10 * 60,
-      halfDayLoginLimit: 12 * 60,
-      logoutLimit: 18 * 60,
-    },
-    it: {
-      loginTimeLimit: 21 * 60,
-      lateLoginLimit: 21 * 60 + 4,
-      halfDayLoginLimit: 24 * 60,
-      logoutLimit: 6 * 60,
-      isNightShift: true,
-    },
-    hr: {
-      loginTimeLimit: 5 * 60,
-      lateLoginLimit: 6 * 60,
-      halfDayLoginLimit: 8 * 60,
-      logoutLimit: 10 * 60,
-    },
-    sales: {
-      loginTimeLimit: 11 * 60,
-      lateLoginLimit: 12 * 60,
-      halfDayLoginLimit: 13 * 60,
-      logoutLimit: 20 * 60,
-    },
-  };
-
   const formatDate = (date) => date.toLocaleDateString("en-CA");
 
   const isToday = (someDate) => {
@@ -53,174 +23,80 @@ const AttendanceCalendar = () => {
     );
   };
 
-  const calculateStatus = (
-    record,
-    rules,
-    dateStr,
-    isTodayFlag,
-    holidayDates
-  ) => {
-    const date = new Date(dateStr);
-
-    if (date.getDay() === 0) return "Sunday";
-    if (holidayDates.includes(dateStr)) return "Holiday";
-    if (!record.loginTime) return isTodayFlag ? "No Login (Today)" : "No Login";
-
-    const [loginHour, loginMinute] = record.loginTime.split(":").map(Number);
-    let loginInMinutes = loginHour * 60 + loginMinute;
-
-    let logoutInMinutes = null;
-    if (record.logoutTime) {
-      const [logoutHour, logoutMinute] = record.logoutTime
-        .split(":")
-        .map(Number);
-      logoutInMinutes = logoutHour * 60 + logoutMinute;
-
-      if (rules.isNightShift && logoutHour < 12) {
-        logoutInMinutes += 24 * 60;
-      }
-    }
-
-    if (loginInMinutes <= rules.loginTimeLimit) return "On Time";
-    if (loginInMinutes <= rules.lateLoginLimit) return "Late";
-    if (loginInMinutes <= rules.halfDayLoginLimit) return "Half Day";
-    if (logoutInMinutes !== null) return "Half Day";
-    return isTodayFlag ? "No Logout (Today)" : "No Login";
-  };
-
-  const saveAttendanceToDB = async (recordsData, dep_name) => {
-    try {
-      const records = recordsData.map((item) => ({
-        userId: user?._id,
-        username: user?.name || "Unknown",
-        department: dep_name,
-        date: item.date,
-        loginTime: item.loginTime,
-        logoutTime: item.logoutTime,
-        status: item.status,
-      }));
-
-      if (records.length === 0) return;
-
-      await axios.post(
-        "http://localhost:3000/api/attendance/save",
-        { records },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-    } catch (error) {
-      console.error(
-        "Error saving attendance:",
-        error.response?.data || error.message
-      );
-    }
+  const normalizeStatus = (status) => {
+    const normalized = status?.toLowerCase() || "";
+    if (normalized.includes("on time")) return "On Time";
+    if (normalized.includes("late")) return "Late";
+    if (normalized.includes("half")) return "Half Day";
+    if (normalized.includes("holiday")) return "Holiday";
+    if (normalized.includes("sunday")) return "Sunday";
+    return "No Login";
   };
 
   const fetchAttendance = async () => {
     try {
       if (!user?._id) return;
 
-      const [deptRes, loginRes] = await Promise.all([
-        axios.get(
-          `http://localhost:3000/api/employee/get-department/${user._id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        ),
-        axios.get(`http://localhost:3000/api/login-history/${user._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      const res = await axios.get(
+        `http://localhost:3000/api/login-history/${user._id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      const dep_name =
-        deptRes?.data?.department?.dep_name?.trim().toLowerCase() ||
-        "marketing";
+      const groupedByDate = {};
 
-      const isNightShift =
-        departmentTimingRules[dep_name]?.isNightShift || false;
-      const rules =
-        departmentTimingRules[dep_name] || departmentTimingRules["marketing"];
-
-      const dailyData = {};
-
-      loginRes.data.forEach((entry) => {
-        if (!entry.loginAt) return;
-
-        const loginDate = new Date(entry.loginAt);
-        const logoutDate = entry.logoutAt ? new Date(entry.logoutAt) : null;
-
-        const loginDateStr = formatDate(loginDate);
-        let logoutDateStr = logoutDate ? formatDate(logoutDate) : null;
-
-        if (isNightShift && logoutDateStr && logoutDateStr !== loginDateStr) {
-          logoutDateStr = loginDateStr;
-        }
-
-        if (!dailyData[loginDateStr]) {
-          dailyData[loginDateStr] = {
-            loginAt: loginDate,
-            logoutAt: logoutDate,
-          };
+      res.data.forEach((entry) => {
+        // Prefer entry.date if it's valid, else derive from loginTime
+        let dateObj;
+        if (entry.date && !isNaN(new Date(entry.date))) {
+          dateObj = new Date(entry.date);
+        } else if (entry.loginTime) {
+          dateObj = new Date(entry.loginTime);
         } else {
-          if (loginDate < dailyData[loginDateStr].loginAt) {
-            dailyData[loginDateStr].loginAt = loginDate;
-          }
-          if (
-            logoutDate &&
-            (!dailyData[loginDateStr].logoutAt ||
-              logoutDate > dailyData[loginDateStr].logoutAt)
-          ) {
-            dailyData[loginDateStr].logoutAt = logoutDate;
-          }
+          return; // skip invalid entries
         }
+
+        const dateStr = dateObj.toLocaleDateString("en-CA");
+
+        if (!groupedByDate[dateStr]) {
+          groupedByDate[dateStr] = [];
+        }
+
+        groupedByDate[dateStr].push(entry);
       });
 
-      const formatted = Object.entries(dailyData).map(
-        ([date, { loginAt, logoutAt }]) => {
-          const loginTime = loginAt.toTimeString().slice(0, 5);
-          const logoutTime = logoutAt
-            ? logoutAt.toTimeString().slice(0, 5)
-            : null;
+      const formatted = Object.entries(groupedByDate).map(([date, entries]) => {
+        const validEntry =
+          entries.find(
+            (e) => e.status && e.status.toLowerCase() !== "unknown"
+          ) || entries[0];
 
-          const record = {
-            loginTime,
-            logoutTime,
-          };
-
-          const status = calculateStatus(
-            record,
-            rules,
-            date,
-            isToday(new Date(date)),
-            holidayDates
-          );
-
-          return {
-            date,
-            loginTime,
-            logoutTime,
-            loginTimeAMPM: loginAt.toLocaleTimeString("en-US", {
+        const loginTime = validEntry.loginTime
+          ? new Date(validEntry.loginTime).toLocaleTimeString("en-IN", {
               hour: "2-digit",
               minute: "2-digit",
               hour12: true,
-            }),
-            logoutTimeAMPM: logoutAt
-              ? logoutAt.toLocaleTimeString("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                })
-              : null,
-            status,
-          };
-        }
-      );
+            })
+          : null;
+
+        const logoutTime = validEntry.logoutTime
+          ? new Date(validEntry.logoutTime).toLocaleTimeString("en-IN", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })
+          : null;
+
+        return {
+          date,
+          status: normalizeStatus(validEntry.status),
+          loginTime,
+          logoutTime,
+        };
+      });
 
       setAttendanceData(formatted);
-      await saveAttendanceToDB(formatted, dep_name);
     } catch (err) {
-      console.error("Error fetching attendance/department:", err);
+      console.error("Error fetching login history:", err);
     }
   };
 
@@ -229,6 +105,12 @@ const AttendanceCalendar = () => {
       fetchAttendance();
     }
   }, [user]);
+
+  const getStatusForDate = (date) => {
+    const dateStr = formatDate(date);
+    const record = attendanceData.find((entry) => entry.date === dateStr);
+    return record?.status || (isToday(date) ? "No Login (Today)" : "No Login");
+  };
 
   const getTileClassName = ({ date }) => {
     const status = getStatusForDate(date);
@@ -245,13 +127,6 @@ const AttendanceCalendar = () => {
     );
   };
 
-  const getStatusForDate = (date) => {
-    const dateStr = formatDate(date);
-
-    const record = attendanceData.find((entry) => entry.date === dateStr);
-    return record?.status || (isToday(date) ? "No Login (Today)" : "No Login");
-  };
-
   const handleDateClick = (value) => {
     const dateStr = formatDate(value);
     const data = attendanceData.find((entry) => entry.date === dateStr);
@@ -260,8 +135,6 @@ const AttendanceCalendar = () => {
         date: dateStr,
         loginTime: null,
         logoutTime: null,
-        loginTimeAMPM: null,
-        logoutTimeAMPM: null,
         status: getStatusForDate(new Date(dateStr)),
       }
     );
@@ -286,8 +159,8 @@ const AttendanceCalendar = () => {
         <Legend color="bg-pink-300" label="Half Day" />
         <Legend color="bg-gray-300" label="Holiday" />
         <Legend color="bg-blue-300" label="Sunday" />
-        <Legend color="bg-red-600 text-white" label="Absent" />
         <Legend color="border-2 border-gray-300" label="No Login" />
+        <Legend color="border-2 border-red-500" label="No Login (Today)" />
       </div>
 
       {selectedDateData ? (
@@ -295,9 +168,9 @@ const AttendanceCalendar = () => {
           <h3 className="text-lg font-semibold">
             Details for {selectedDateData.date}
           </h3>
-          <p>Login: {selectedDateData.loginTimeAMPM || "—"}</p>
-          <p>Logout: {selectedDateData.logoutTimeAMPM || "—"}</p>
-          <p>Status: {getStatusForDate(new Date(selectedDateData.date))}</p>
+          <p>Login: {selectedDateData.loginTime || "—"}</p>
+          <p>Logout: {selectedDateData.logoutTime || "—"}</p>
+          <p>Status: {selectedDateData.status}</p>
         </div>
       ) : (
         <p className="mt-4 text-gray-600 text-center">

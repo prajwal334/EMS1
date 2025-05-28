@@ -62,6 +62,10 @@ import AttendanceEditView from "./components/attendance/AdminEditView";
 // Settings
 import Setting from "./components/EmployeeDashboard/Setting";
 
+//tasks
+import DptTaskList from "./components/task/DptTaskList";
+import TaskList from "./components/task/Tasklist";
+
 function App() {
   return (
     <BrowserRouter>
@@ -99,6 +103,7 @@ function App() {
           <Route path="salary/add" element={<AddSalary />} />
 
           <Route path="settings" element={<Setting />} />
+
           <Route path="leaves" element={<Leavetable />} />
           <Route path="leaves/:id" element={<LeaveDetail />} />
           <Route path="employees/leaves/:id" element={<LeaveList />} />
@@ -107,6 +112,12 @@ function App() {
           <Route
             path="attendance/view/:userId"
             element={<AttendanceEditView />}
+          />
+
+          <Route path="tasks" element={<DptTaskList />} />
+          <Route
+            path="tasks/department/:id/subdepartments"
+            element={<TaskList />}
           />
         </Route>
 

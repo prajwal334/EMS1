@@ -42,11 +42,16 @@ const AdminSidebar = () => {
       icon: <FaClock />,
       label: "Attendance",
     },
-    
+
     {
       to: "/admin-dashboard/settings",
       icon: <FaCogs />,
       label: "Change Password",
+    },
+    {
+      to: "/admin-dashboard/tasks",
+      icon: <FaCogs />,
+      label: "Task",
     },
   ];
 

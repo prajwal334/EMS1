@@ -25,7 +25,7 @@ const HrSidebar = () => {
       </div>
 
       <div className="px-6 py-4 space-y-2">
-        <NavLink to="/hr-dashboard" className={navLinkClass} end>
+        <NavLink to="/hr-dashboard/" className={navLinkClass}>
           <FaTachometerAlt />
           <span>Dashboard</span>
         </NavLink>

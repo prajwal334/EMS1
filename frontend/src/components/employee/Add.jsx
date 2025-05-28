@@ -6,7 +6,8 @@ import { useNavigate } from "react-router-dom";
 const Add = () => {
   const [departments, setDepartments] = useState([]);
   const [formData, setFormData] = useState({});
-const [imageFile, setImageFile] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [subDepartments, setSubDepartments] = useState([]);
 
   const navigate = useNavigate();
 
@@ -18,50 +19,59 @@ const [imageFile, setImageFile] = useState(null);
     getDepartments();
   }, []);
 
- const handleChange = (e) => {
-  const { name, value, type, files } = e.target;
+  const handleChange = async (e) => {
+    const { name, value, type, files } = e.target;
 
-  if (type === "file") {
-    setImageFile(files[0]);
-  } else {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  }
-};
+    if (type === "file") {
+      setImageFile(files[0]);
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
 
+      if (name === "department") {
+        try {
+          const response = await axios.get(
+            `http://localhost:3000/api/department/${value}/subdepartments`
+          );
+          setSubDepartments(response.data.subDepartments); // Adjust based on API response shape
+        } catch (error) {
+          console.error("Failed to fetch sub-departments:", error);
+        }
+      }
+    }
+  };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const formDataObj = new FormData();
-  for (const key in formData) {
-    formDataObj.append(key, formData[key]);
-  }
-
-  if (imageFile) {
-    formDataObj.append("image", imageFile);
-  }
-
-  try {
-    const response = await axios.post(
-      "http://localhost:3000/api/employee/add",
-      formDataObj,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    if (response.data.success) {
-      navigate("/admin-dashboard/employees");
+    const formDataObj = new FormData();
+    for (const key in formData) {
+      formDataObj.append(key, formData[key]);
     }
-  } catch (error) {
-    console.error("Error submitting:", error);
-    alert(error?.response?.data?.error || "Server error");
-  }
-};
 
+    if (imageFile) {
+      formDataObj.append("image", imageFile);
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/employee/add",
+        formDataObj,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        navigate("/admin-dashboard/employees");
+      }
+    } catch (error) {
+      console.error("Error submitting:", error);
+      alert(error?.response?.data?.error || "Server error");
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
@@ -83,7 +93,7 @@ const [imageFile, setImageFile] = useState(null);
               required
             />
           </div>
-          
+
           {/* Username Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -136,13 +146,13 @@ const [imageFile, setImageFile] = useState(null);
               NVKSH UNIT PERNO
             </label>
             <input
-              type="  number"
+              type="number"
               name="nvkshUnitPerno"
               onChange={handleChange}
               placeholder="Enter NVKSH UNIT PERNO"
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
-            />  
+            />
           </div>
 
           {/*  GRADE Field */}
@@ -158,17 +168,16 @@ const [imageFile, setImageFile] = useState(null);
             >
               <option value="">Select Grade</option>
               <option value="S3">S3</option>
-              <option value="S2">S2</option>  
+              <option value="S2">S2</option>
               <option value="S1">S1</option>
               <option value="S0">S0</option>
               <option value="E3">E3</option>
               <option value="E2">E2</option>
               <option value="E1">E1</option>
               <option value="E0">E0</option>
-          </select>
-          </div>    
-          
-          
+            </select>
+          </div>
+
           {/* Department Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -193,14 +202,20 @@ const [imageFile, setImageFile] = useState(null);
             <label className="block text-sm font-medium text-gray-700">
               Designation
             </label>
-            <input
-              type="text"
+            <select
               name="designation"
+              value={formData.designation || ""}
               onChange={handleChange}
-              placeholder="Enter Designation"
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
-            />
+            >
+              <option value="">Select Designation</option>
+              {subDepartments.map((subDep) => (
+                <option key={subDep._id} value={subDep._id}>
+                  {subDep.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Employee Field */}
@@ -271,8 +286,6 @@ const [imageFile, setImageFile] = useState(null);
             </select>
           </div>
 
-          
-
           {/* Phone Number Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -334,8 +347,8 @@ const [imageFile, setImageFile] = useState(null);
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Bank A/C No
-              </label>
-              <input
+            </label>
+            <input
               type="number"
               name="bankac"
               placeholder="Enter Bank A/C No"
@@ -343,13 +356,13 @@ const [imageFile, setImageFile] = useState(null);
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
-            </div> 
-            {/* Bank Account Holder Name Field */}
+          </div>
+          {/* Bank Account Holder Name Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Bank Account Holder Name
             </label>
-            <input  
+            <input
               type="text"
               name="bankacname"
               onChange={handleChange}
@@ -411,7 +424,7 @@ const [imageFile, setImageFile] = useState(null);
             </label>
             <input
               type="text"
-              name="ifsc" 
+              name="ifsc"
               onChange={handleChange}
               placeholder="Enter IFSC Code"
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"

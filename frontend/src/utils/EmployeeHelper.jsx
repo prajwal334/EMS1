@@ -175,7 +175,9 @@ export const EmployeeTable = () => {
 
   return (
     <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md border border-gray-200">
-      <h2 className="text-2xl font-semibold mb-4 text-slate-800">Employee Directory</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-slate-800">
+        Employee Directory
+      </h2>
 
       <div className="mb-4">
         <input
@@ -195,8 +197,12 @@ export const EmployeeTable = () => {
         highlightOnHover
         striped
         responsive
-        noDataComponent={<div className="py-4 text-gray-500">No employees found.</div>}
-        progressComponent={<div className="py-4 text-gray-500">Loading employees...</div>}
+        noDataComponent={
+          <div className="py-4 text-gray-500">No employees found.</div>
+        }
+        progressComponent={
+          <div className="py-4 text-gray-500">Loading employees...</div>
+        }
         customStyles={{
           headCells: {
             style: {

@@ -94,7 +94,7 @@ const getTeamById = async (req, res) => {
     const team = await Team.findById(id)
       .populate("departmentId", "dep_name")
       .populate("leaderUserId", "name")
-      .populate("memberUserIds", "name email") 
+      .populate("memberUserIds", "name email")
       .select("team_name team_dp departmentId leaderUserId memberUserIds");
 
     if (!team) {

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Calendar from "react-calendar";
 import axios from "axios";
-import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
 import "react-calendar/dist/Calendar.css";
 
@@ -13,6 +12,44 @@ const Legend = ({ color, label }) => (
   </div>
 );
 
+// Format a date as YYYY-MM-DD
+const formatDate = (date) => date.toLocaleDateString("en-CA");
+
+// Normalize status
+const normalizeStatus = (status) => {
+  const s = status?.toLowerCase() || "";
+  if (s.includes("absent")) return "Absent";
+  if (s.includes("half")) return "Half Day";
+  if (s.includes("late")) return "Late";
+  if (s.includes("on time")) return "On Time";
+  if (s.includes("holiday")) return "Holiday";
+  if (s.includes("sunday")) return "Sunday";
+  return "No Login";
+};
+
+// Define status priority
+const getStatusPriority = (status) => {
+  switch (normalizeStatus(status)) {
+    case "Absent":
+      return 6;
+    case "Half Day":
+      return 5;
+    case "Late":
+      return 4;
+    case "On Time":
+      return 3;
+    case "Holiday":
+      return 2;
+    case "Sunday":
+      return 1;
+    case "No Login":
+      return 0;
+    default:
+      return -1;
+  }
+};
+
+// Main component
 const AttendanceEditView = ({ userId }) => {
   const [attendance, setAttendance] = useState([]);
   const [selectedDateData, setSelectedDateData] = useState(null);
@@ -20,149 +57,186 @@ const AttendanceEditView = ({ userId }) => {
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const [message, setMessage] = useState(""); // ✅ message text
-  const [messageType, setMessageType] = useState(""); // ✅ 'success' or 'error'
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
   useEffect(() => {
     if (!userId) return;
 
     setLoading(true);
     setError(null);
+
     axios
-      .get(`http://localhost:3000/api/attendance/${userId}`)
+      .get(`http://localhost:3000/api/login-history/${userId}`)
       .then((res) => {
-        const data = res.data;
-        const attendanceArray = Array.isArray(data.attendance)
-          ? data.attendance
-          : [];
+        const rawData = res.data || [];
 
-        setAttendance(attendanceArray);
+        if (rawData.length > 0) {
+          const first = rawData[0];
+          setUserDetails({
+            name: first.username || "",
+            department: first.department || "",
+            employeeId: first.employeeId || "",
+          });
+        }
 
-        const first = attendanceArray[0] || {};
-        setUserDetails({
-          name: first.username || "",
-          department: first.department || "",
-          employeeId: data.employeeId || first.userId || "",
+        // Group entries by date with most meaningful status
+        const grouped = rawData.reduce((acc, entry) => {
+          const dateKey = formatDate(new Date(entry.date));
+          const prev = acc[dateKey];
+
+          const currentPriority = getStatusPriority(entry.status);
+          const prevPriority = prev ? getStatusPriority(prev.status) : -1;
+
+          if (!prev || currentPriority > prevPriority) {
+            acc[dateKey] = entry;
+          }
+
+          return acc;
+        }, {});
+
+        // Format the entries
+        const formatted = Object.entries(grouped).map(([date, entry]) => {
+          const login = entry.loginTime ? new Date(entry.loginTime) : null;
+          const logout = entry.logoutTime ? new Date(entry.logoutTime) : null;
+
+          return {
+            ...entry,
+            date,
+            loginTime: login
+              ? login.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : "",
+            logoutTime: logout
+              ? logout.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : "",
+            status: normalizeStatus(entry.status),
+          };
         });
+
+        setAttendance(formatted);
       })
       .catch((err) => {
-        console.error(err);
-        setError("Failed to fetch attendance data.");
+        console.error("Error fetching login history:", err);
+        setError("Failed to fetch login history.");
       })
       .finally(() => setLoading(false));
   }, [userId]);
 
   const handleDateClick = (date) => {
-    const clicked = dayjs(date).format("YYYY-MM-DD");
-    const found = attendance.find(
-      (a) => dayjs(a.date).format("YYYY-MM-DD") === clicked
-    );
-
-    setSelectedDateData(
-      found ? { ...found, date: clicked } : { date: clicked }
-    );
+    const clickedDate = formatDate(date);
+    const found = attendance.find((a) => a.date === clickedDate);
+    setSelectedDateData(found ? { ...found } : { date: clickedDate });
     setEditMode(false);
   };
 
   const getTileClassName = ({ date, view }) => {
     if (view !== "month") return "";
 
-    const dateStr = dayjs(date).format("YYYY-MM-DD");
-    const record = attendance.find(
-      (a) => dayjs(a.date).format("YYYY-MM-DD") === dateStr
-    );
+    const dateStr = formatDate(date);
+    const record = attendance.find((a) => a.date === dateStr);
 
-    if (record) {
-      const status = (record.status || "absent").toLowerCase();
+    const status =
+      record?.status || (date.getDay() === 0 ? "Sunday" : "No Login");
 
-      switch (status) {
-        case "on time":
-          return "on-time";
-        case "late":
-          return "late";
-        case "half day":
-          return "half-day";
-        case "absent":
-          return "absent";
-        case "holiday":
-          return "holiday";
-        default:
-          return "absent";
-      }
-    } else {
-      if (dayjs(date).day() === 0) {
+    switch (status) {
+      case "On Time":
+        return "on-time";
+      case "Late":
+        return "late";
+      case "Half Day":
+        return "half-day";
+      case "Holiday":
+        return "holiday";
+      case "Absent":
+        return "absent";
+      case "Sunday":
         return "sunday";
-      } else {
+      default:
         return "no-login";
-      }
     }
   };
 
   const showMessage = (text, type) => {
     setMessage(text);
     setMessageType(type);
-
     setTimeout(() => {
       setMessage("");
       setMessageType("");
-    }, 3000); // auto-hide after 3s
+    }, 3000);
   };
 
   const handleEditSave = () => {
     const payload = {
-      userId,
       loginTime: selectedDateData.loginTime || "",
       logoutTime: selectedDateData.logoutTime || "",
       status: selectedDateData.status || "",
+      date: selectedDateData.date,
+    };
+
+    const updateLocal = (newEntry) => {
+      const updated = attendance.map((a) =>
+        a.date === newEntry.date ? newEntry : a
+      );
+      if (!updated.some((a) => a.date === newEntry.date))
+        updated.push(newEntry);
+      setAttendance(updated);
     };
 
     if (selectedDateData._id) {
       axios
-        .put(
-          `http://localhost:3000/api/attendance/edit/${selectedDateData._id}`,
-          { ...payload, date: selectedDateData.date }
-        )
+        .put(`http://localhost:3000/api/login-history/edit/${userId}`, payload)
         .then(() => {
-          const updated = attendance.map((a) =>
-            a._id === selectedDateData._id ? { ...a, ...selectedDateData } : a
-          );
-          setAttendance(updated);
+          updateLocal({ ...selectedDateData });
           setEditMode(false);
-          showMessage("Attendance updated successfully!", "success");
+          showMessage("Login history updated successfully!", "success");
         })
-        .catch((err) => {
-          console.error(err);
-          showMessage("Server error while updating attendance.", "error");
-        });
+        .catch(() => showMessage("Error updating login history.", "error"));
     } else {
       axios
-        .post(`http://localhost:3000/api/attendance/`, {
+        .post("http://localhost:3000/api/login-history/", {
           ...payload,
-          date: selectedDateData.date,
+          userId,
         })
         .then((res) => {
-          const newEntry = res.data;
-          setAttendance([...attendance, newEntry]);
+          const newEntry = {
+            ...res.data,
+            date: formatDate(new Date(res.data.date)),
+            loginTime: new Date(res.data.loginTime).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            logoutTime: new Date(res.data.logoutTime).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            status: normalizeStatus(res.data.status),
+          };
+          updateLocal(newEntry);
           setSelectedDateData(newEntry);
           setEditMode(false);
-          showMessage("Attendance saved successfully!", "success");
+          showMessage("Login history saved successfully!", "success");
         })
-        .catch((err) => {
-          console.error(err);
-          showMessage("Server error while saving attendance.", "error");
-        });
+        .catch(() => showMessage("Error saving login history.", "error"));
     }
   };
 
   return (
     <div className="p-4 max-w-5xl mx-auto relative">
-      {/* ✅ Message Toast */}
       {message && (
         <div
           className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded shadow-lg z-50 ${
             messageType === "success" ? "bg-green-500" : "bg-red-500"
-          } text-white transition duration-300`}
+          } text-white`}
         >
           {message}
         </div>
@@ -171,21 +245,16 @@ const AttendanceEditView = ({ userId }) => {
       {loading && <p className="text-center text-gray-600">Loading...</p>}
       {error && <p className="text-center text-red-600">{error}</p>}
 
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-6 border-b pb-3">
-        <div className="flex flex-wrap gap-4 justify-between w-full">
-          <p className="font-medium text-sm sm:text-base">
-            <span className="font-semibold">Name:</span>{" "}
-            {userDetails.name || "—"}
-          </p>
-          <p className="font-medium text-sm sm:text-base">
-            <span className="font-semibold">Department:</span>{" "}
-            {userDetails.department || "—"}
-          </p>
-          <p className="font-medium text-sm sm:text-base">
-            <span className="font-semibold">Employee ID:</span>{" "}
-            {userDetails.employeeId || userId || "—"}
-          </p>
-        </div>
+      <div className="flex flex-wrap gap-4 justify-between mb-6 border-b pb-3">
+        <p>
+          <b>Name:</b> {userDetails.name || "—"}
+        </p>
+        <p>
+          <b>Department:</b> {userDetails.department || "—"}
+        </p>
+        <p>
+          <b>Employee ID:</b> {userDetails.employeeId || userId || "—"}
+        </p>
       </div>
 
       <h2 className="text-2xl font-bold mb-4 text-center">
@@ -231,7 +300,6 @@ const AttendanceEditView = ({ userId }) => {
               {editMode ? "Edit Attendance" : "Attendance Details"} –{" "}
               {selectedDateData.date}
             </h3>
-
             {editMode ? (
               <div className="space-y-3">
                 <div>
@@ -279,6 +347,7 @@ const AttendanceEditView = ({ userId }) => {
                     <option value="Late">Late</option>
                     <option value="Half Day">Half Day</option>
                     <option value="Holiday">Holiday</option>
+                    <option value="Absent">Absent</option>
                   </select>
                 </div>
                 <div className="flex justify-center mt-3">
@@ -323,7 +392,9 @@ const AttendancePage = () => {
   return userId ? (
     <AttendanceEditView userId={userId} />
   ) : (
-    <p>Please provide a userId in the URL.</p>
+    <p className="text-center mt-6 text-red-600">
+      Please provide a userId in the URL.
+    </p>
   );
 };
 
