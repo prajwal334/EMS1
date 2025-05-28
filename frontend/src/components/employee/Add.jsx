@@ -464,6 +464,7 @@ const [imageFile, setImageFile] = useState(null);
               <option value="admin">Admin</option>
               <option value="employee">Employee</option>
               <option value="hr">HR</option>
+              <option value="leader">Team Leader</option>
               <option value="manager">Manager</option>
             </select>
           </div>
