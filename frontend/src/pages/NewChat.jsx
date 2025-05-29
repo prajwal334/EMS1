@@ -12,17 +12,17 @@ const NewChat = () => {
   }, []);
 
   const fetchEmployees = async () => {
-    try {
-      const res = await axios.get("http://localhost:3000/api/user/employees", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      setEmployees(res.data.employees || []);
-    } catch (err) {
-      console.error("Failed to fetch employees", err);
-    }
-  };
+      try {
+        const res = await axios.get("http://localhost:3000/api/employee", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setEmployees(res.data.employees || []);
+      } catch (err) {
+        console.error("Failed to fetch employees", err);
+      }
+    };
 
   const startChat = async (userId) => {
     try {
