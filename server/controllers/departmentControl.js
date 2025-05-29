@@ -44,6 +44,7 @@ const deleteDepartment = async (req, res) => {
     return res.status(500).json({ success: false, error: "Server Error" });
   }
 };
+
 const getDepartmentsWithEmployeeCount = async (req, res) => {
   try {
     const departments = await Department.aggregate([

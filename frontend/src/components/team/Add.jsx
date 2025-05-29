@@ -6,6 +6,7 @@ const AddTeam = () => {
   const [team, setTeam] = useState({
     team_name: "",
     departmentId: "",
+    designationId: "",
     leaderUserId: "",
     memberUserIds: [],
     team_dp: null,
@@ -14,6 +15,7 @@ const AddTeam = () => {
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
+  const [subdepartments, setSubdepartments] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -53,11 +55,35 @@ const AddTeam = () => {
         .sort((a, b) => a.userId.name.localeCompare(b.userId.name));
 
       setFilteredEmployees(filtered);
+
+      // Fetch subdepartments (designations)
+      axios
+        .get(
+          `http://localhost:3000/api/department/${team.departmentId}/subdepartments`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        )
+        .then((res) => {
+          setSubdepartments(res.data.subdepartments || []);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch subdepartments:", err);
+          setSubdepartments([]);
+        });
     } else {
       setFilteredEmployees([]);
+      setSubdepartments([]);
     }
 
-    setTeam((prev) => ({ ...prev, leaderUserId: "", memberUserIds: [] }));
+    setTeam((prev) => ({
+      ...prev,
+      leaderUserId: "",
+      memberUserIds: [],
+      designationId: "",
+    }));
   }, [team.departmentId, employees]);
 
   const handleChange = (e) => {
@@ -95,6 +121,7 @@ const AddTeam = () => {
       const formData = new FormData();
       formData.append("team_name", team.team_name);
       formData.append("departmentId", team.departmentId);
+      formData.append("designationId", team.designationId);
       formData.append("leaderUserId", team.leaderUserId);
       team.memberUserIds.forEach((id) => formData.append("memberUserIds", id));
       if (team.team_dp) {
@@ -184,6 +211,25 @@ const AddTeam = () => {
             {departments.map((dept) => (
               <option key={dept._id} value={dept._id}>
                 {dept.dep_name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label className="text-sm font-medium text-gray-700">
+            Designation
+          </label>
+          <select
+            name="designationId"
+            onChange={handleChange}
+            value={team.designationId}
+            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="">Select Designation</option>
+            {subdepartments.map((sub) => (
+              <option key={sub._id} value={sub._id}>
+                {sub.name}
               </option>
             ))}
           </select>

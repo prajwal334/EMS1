@@ -27,14 +27,19 @@ const Add = () => {
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
 
+      // Fetch sub-departments when department changes
       if (name === "department") {
         try {
           const response = await axios.get(
             `http://localhost:3000/api/department/${value}/subdepartments`
           );
-          setSubDepartments(response.data.subDepartments); // Adjust based on API response shape
+          setSubDepartments(response.data.subDepartments);
+
+          // reset designation when department changes
+          setFormData((prev) => ({ ...prev, designation: "" }));
         } catch (error) {
           console.error("Failed to fetch sub-departments:", error);
+          setSubDepartments([]);
         }
       }
     }
@@ -42,16 +47,32 @@ const Add = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const formDataObj = new FormData();
+  
+    // Append all fields except 'designation'
     for (const key in formData) {
-      formDataObj.append(key, formData[key]);
+      if (key !== "designation") {
+        formDataObj.append(key, formData[key]);
+      }
     }
-
+  
+    // Convert sub-department _id to its name for the 'designation' field
+    const selectedSubDep = subDepartments.find(
+      (subDep) => subDep._id === formData.designation
+    );
+  
+    if (selectedSubDep) {
+      formDataObj.append("designation", selectedSubDep.name);
+    } else {
+      formDataObj.append("designation", formData.designation);
+    }
+  
+    // Append image if available
     if (imageFile) {
       formDataObj.append("image", imageFile);
     }
-
+  
     try {
       const response = await axios.post(
         "http://localhost:3000/api/employee/add",
@@ -63,7 +84,7 @@ const Add = () => {
           },
         }
       );
-
+  
       if (response.data.success) {
         navigate("/admin-dashboard/employees");
       }
@@ -72,6 +93,7 @@ const Add = () => {
       alert(error?.response?.data?.error || "Server error");
     }
   };
+  
 
   return (
     <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
@@ -204,7 +226,7 @@ const Add = () => {
             </label>
             <select
               name="designation"
-              value={formData.designation || ""}
+              value={formData.designation}
               onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
@@ -478,6 +500,7 @@ const Add = () => {
               <option value="employee">Employee</option>
               <option value="hr">HR</option>
               <option value="manager">Manager</option>
+              <option value="leader">Leader</option>
             </select>
           </div>
 

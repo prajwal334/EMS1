@@ -27,7 +27,7 @@ const DptTaskList = () => {
   }, []);
 
   const handleCardClick = (depId) => {
-    navigate(`/admin-dashboard/tasks/department/${depId}/subdepartments`);
+    navigate(`/admin-dashboard/tasks/department/${depId}`);
   };
 
   return (

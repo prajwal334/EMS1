@@ -64,7 +64,8 @@ import Setting from "./components/EmployeeDashboard/Setting";
 
 //tasks
 import DptTaskList from "./components/task/DptTaskList";
-import TaskList from "./components/task/Tasklist";
+import RoleList from "./components/task/Rolelist";
+import TaskList from "./components/task/TaskList";
 
 function App() {
   return (
@@ -115,10 +116,8 @@ function App() {
           />
 
           <Route path="tasks" element={<DptTaskList />} />
-          <Route
-            path="tasks/department/:id/subdepartments"
-            element={<TaskList />}
-          />
+          <Route path="tasks/department/:id" element={<RoleList />} />
+          <Route path="tasks/subDepartment/:id" element={<TaskList />} />
         </Route>
 
         {/* HR Dashboard */}
