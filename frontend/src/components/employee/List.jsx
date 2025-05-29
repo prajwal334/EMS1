@@ -11,10 +11,6 @@ const List = () => {
   const [filteredDepartment, setFilteredDepartment] = useState([]);
   const [activeDepartment, setActiveDepartment] = useState("ALL");
 
-
-
-
-
   useEffect(() => {
     const fetchEmployees = async () => {
       setEmpLoading(true);

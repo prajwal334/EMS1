@@ -6,13 +6,15 @@ import {
   getLeaves,
   getLeaveDetail,
   updateLeave,
+  getLeavesByUserId,
 } from "../controllers/leaveController.js";
 
 const router = express.Router();
 router.post("/add", authMiddleware, addLeave);
 router.get("/:id", authMiddleware, getLeave);
 router.get("/detail/:id", authMiddleware, getLeaveDetail);
-router.get("/", getLeaves);
+router.get("/", authMiddleware, getLeaves);
 router.put("/:id", authMiddleware, updateLeave);
+router.get("/user/:userId", getLeavesByUserId);
 
 export default router;

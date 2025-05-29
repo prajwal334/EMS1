@@ -8,11 +8,13 @@ import {
   updateEmployee,
   fetchEmployeesByDepId,
   getDepartmentByUserId,
+  fetchUsersGroupedByRoleInDepartment,
+  fetchUsersGroupedByDesignationInDepartment,
 } from "../controllers/employeeController.js";
 
 const router = express.Router();
 
-router.get("/", authMiddleware, getEmployees);
+router.get("/", getEmployees);
 
 router.post("/add", authMiddleware, upload.single("image"), addEmployee);
 
@@ -25,5 +27,15 @@ router.put("/:id", authMiddleware, updateEmployee);
 
 // Route to get department by User ID
 router.get("/get-department/:userId", getDepartmentByUserId);
+
+router.get(
+  "/users/roles/department/:departmentId",
+  fetchUsersGroupedByRoleInDepartment
+);
+
+router.get(
+  "/users/designations/:departmentId",
+  fetchUsersGroupedByDesignationInDepartment
+);
 
 export default router;

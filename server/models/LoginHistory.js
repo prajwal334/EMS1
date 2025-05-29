@@ -6,6 +6,9 @@ const loginHistorySchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  username: { type: String },
+  department: { type: String },
+  status: { type: String },
   loginAt: { type: Date, default: Date.now },
   logoutAt: { type: Date, default: null },
 });

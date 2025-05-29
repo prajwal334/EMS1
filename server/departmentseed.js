@@ -1,25 +1,33 @@
-// departmentseed.js
 import mongoose from "mongoose";
 import Department from "./models/Department.js";
-import connectToDatabase from "./db/db.js"; // Make sure this function connects mongoose
+import connectToDatabase from "./db/db.js";
 
 const predefinedDepartments = [
-  { dep_name: "IT", description: "Handles all tech infrastructure" },
+  {
+    dep_name: "IT",
+    description: "Handles all tech infrastructure",
+    sub_departments: [
+      { name: "MERN Stack" },
+      { name: "DIRA" },
+      { name: "UI/UX" },
+      { name: "Frontend" },
+      { name: "AI" },
+      { name: "ML" },
+      { name: "Network" },
+    ],
+  },
   { dep_name: "HR", description: "Human Resources department" },
   { dep_name: "Sales", description: "Sales and business development" },
   { dep_name: "Finance", description: "Handles financial operations" },
   { dep_name: "Marketing", description: "Marketing and promotions" },
   { dep_name: "Compliance", description: "Compliance and regulation" },
-  { dep_name: "Operations", description: "Operations and logistics" }
+  { dep_name: "Operations", description: "Operations and logistics" },
 ];
 
 const seedDepartments = async () => {
   try {
-    // ✅ Connect to the DB
     await connectToDatabase();
-
-    // ✅ Seed data
-    await Department.deleteMany(); // optional: clear old data
+    await Department.deleteMany();
     await Department.insertMany(predefinedDepartments);
     console.log("✅ Departments seeded successfully");
   } catch (error) {

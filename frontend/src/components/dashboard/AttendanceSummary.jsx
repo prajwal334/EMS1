@@ -33,29 +33,23 @@ const DepartmentWiseAttendance = () => {
       const res = await axios.get("http://localhost:3000/api/department", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const fetchedDepartments = res.data.departments || [];
-      console.log("Fetched departments:", fetchedDepartments);
-      setDepartments(fetchedDepartments);
+      setDepartments(res.data.departments || []);
     };
     fetchDepartments();
   }, []);
 
   useEffect(() => {
-    const fetchAttendance = async () => {
+    const fetchLoginHistoryData = async () => {
       const token = localStorage.getItem("token");
-      const targetDeps = departments.map((d) => d._id);
       const allData = {};
 
       await Promise.all(
-        targetDeps.map(async (depId) => {
+        departments.map(async (dep) => {
           try {
             const res = await axios.get(
-              `http://localhost:3000/api/attendance/department/${depId}`,
+              `http://localhost:3000/api/login-history/department/${dep._id}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
-
-            const data = res.data.data || [];
-            console.log(`Raw attendance for department ${depId}:`, data);
 
             const summary = {
               "On Time": 0,
@@ -64,34 +58,48 @@ const DepartmentWiseAttendance = () => {
               Absent: 0,
             };
 
-            data.forEach((emp) => {
-              // Include if department id matches exactly
-              if (emp.department === depId) {
-                emp.attendance.forEach((entry) => {
-                  const date = new Date(entry.date);
-                  const matchYear = date.getFullYear() === Number(selectedYear);
-                  const matchMonth = selectedMonth
-                    ? date.getMonth() + 1 === Number(selectedMonth)
-                    : true;
+            const dailyStatusByUser = {};
 
-                  if (matchYear && matchMonth) {
-                    const status = entry.status?.trim();
-                    if (Object.prototype.hasOwnProperty.call(summary, status)) {
-                      summary[status]++;
-                    }
+            res.data.forEach((entry) => {
+              const entryDate = new Date(entry.date);
+              const entryYear = entryDate.getFullYear();
+              const entryMonth = entryDate.getMonth() + 1;
+
+              if (
+                entryYear === Number(selectedYear) &&
+                (selectedMonth ? entryMonth === Number(selectedMonth) : true)
+              ) {
+                const key = `${entry.employeeId}-${entry.date}`;
+                if (!dailyStatusByUser[key]) {
+                  dailyStatusByUser[key] = entry.status?.trim();
+                } else {
+                  const current = dailyStatusByUser[key];
+                  const incoming = entry.status?.trim();
+
+                  const priority = {
+                    "On Time": 3,
+                    "Late Login": 2,
+                    "Half Day": 1,
+                    Absent: 0,
+                  };
+
+                  if (priority[incoming] > priority[current]) {
+                    dailyStatusByUser[key] = incoming;
                   }
-                });
+                }
               }
             });
 
-            console.log(`Processed summary for department ${depId}:`, summary);
-            allData[depId] = summary;
+            Object.values(dailyStatusByUser).forEach((status) => {
+              if (summary[status] !== undefined) {
+                summary[status]++;
+              }
+            });
+
+            allData[dep._id] = summary;
           } catch (err) {
-            console.error(
-              `Error fetching attendance for department ${depId}:`,
-              err
-            );
-            allData[depId] = {
+            console.error(`Error fetching login history for ${dep._id}:`, err);
+            allData[dep._id] = {
               "On Time": 0,
               "Half Day": 0,
               "Late Login": 0,
@@ -102,10 +110,11 @@ const DepartmentWiseAttendance = () => {
       );
 
       setAttendanceData(allData);
-      console.log("Final attendanceData:", allData);
     };
 
-    if (departments.length > 0) fetchAttendance();
+    if (departments.length > 0) {
+      fetchLoginHistoryData();
+    }
   }, [departments, selectedYear, selectedMonth]);
 
   const renderChart = (depId, depName) => {
@@ -151,18 +160,24 @@ const DepartmentWiseAttendance = () => {
                   display: false,
                 },
                 datalabels: {
+                  display: true,
                   color: "#000",
-                  formatter: (_, context) => {
-                    const percent = percentages[context.dataIndex];
-                    return `${percent}%`;
-                  },
-                  anchor: "end",
-                  align: "end",
-                  offset: 8,
                   font: {
-                    size: 12,
+                    size: 13,
                     weight: "bold",
                   },
+                  formatter: (value, context) => {
+                    const dataset = context.chart.data.datasets[0];
+                    const total = dataset.data.reduce(
+                      (sum, val) => sum + val,
+                      0
+                    );
+                    const percent =
+                      total === 0 ? 0 : ((value / total) * 100).toFixed(1);
+                    return `${percent}%`;
+                  },
+                  anchor: "center",
+                  align: "center",
                 },
               },
             }}

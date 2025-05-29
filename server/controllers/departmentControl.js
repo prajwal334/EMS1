@@ -44,6 +44,7 @@ const deleteDepartment = async (req, res) => {
     return res.status(500).json({ success: false, error: "Server Error" });
   }
 };
+
 const getDepartmentsWithEmployeeCount = async (req, res) => {
   try {
     const departments = await Department.aggregate([
@@ -72,4 +73,43 @@ const getDepartmentsWithEmployeeCount = async (req, res) => {
   }
 };
 
-export { addDepartment, getDepartments, deleteDepartment,getDepartmentsWithEmployeeCount };
+const getSubDepartments = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const department = await Department.findById(id).select("sub_departments");
+
+    if (!department) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    res.json({ subDepartments: department.sub_departments });
+  } catch (error) {
+    console.error("Error fetching sub-departments:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+const getDepartmentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const department = await Department.findById(id);
+
+    if (!department) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    res.status(200).json({ department });
+  } catch (error) {
+    console.error("Error fetching department:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export {
+  addDepartment,
+  getDepartments,
+  deleteDepartment,
+  getDepartmentsWithEmployeeCount,
+  getSubDepartments,
+  getDepartmentById,
+};

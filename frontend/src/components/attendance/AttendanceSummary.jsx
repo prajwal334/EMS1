@@ -27,6 +27,7 @@ const AttendanceSummary = ({ userId }) => {
   const [error, setError] = useState("");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState("");
+  const [currentDate, setCurrentDate] = useState(new Date().toDateString());
 
   const monthNames = [
     "January",
@@ -43,35 +44,88 @@ const AttendanceSummary = ({ userId }) => {
     "December",
   ];
 
+  const fetchAttendance = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:3000/api/login-history/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const rawData = response.data?.data || [];
+      console.log("📦 Raw attendance data from API:", rawData);
+
+      const normalizedData = rawData.map((entry) => ({
+        ...entry,
+        status: entry.status?.trim().toLowerCase(),
+      }));
+
+      setAttendanceArray(normalizedData);
+    } catch (err) {
+      console.error("❌ Error fetching attendance data:", err);
+      setError("Failed to fetch attendance summary");
+    }
+  };
+
   useEffect(() => {
-    const fetchAttendance = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(
-          `http://localhost:3000/api/attendance/${userId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setAttendanceArray(response.data?.attendance || []);
-        const data = response.data?.attendance || [];
-        console.log("Fetched attendance data:", data);
-      } catch (err) {
-        setError("Failed to fetch attendance summary");
+    if (!userId) return;
+    fetchAttendance();
+
+    const interval = setInterval(() => {
+      const newDate = new Date().toDateString();
+      if (newDate !== currentDate) {
+        setCurrentDate(newDate);
       }
+      fetchAttendance();
+    }, 30 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [userId, currentDate]);
+
+  useEffect(() => {
+    const validStatuses = [
+      "on time",
+      "late",
+      "late login",
+      "half day",
+      "absent",
+    ];
+    const statusPriority = {
+      "on time": 1,
+      late: 2,
+      "late login": 2,
+      "half day": 3,
+      absent: 4,
     };
 
-    if (userId) fetchAttendance();
-  }, [userId]);
-
-  useEffect(() => {
     const filtered = attendanceArray.filter((entry) => {
-      if (!entry.date) return false;
+      if (!entry.date || !entry.status) return false;
       const date = new Date(entry.date);
       const yearMatch = date.getFullYear() === selectedYear;
       const monthMatch = selectedMonth
         ? date.getMonth() + 1 === parseInt(selectedMonth)
         : true;
-      return yearMatch && monthMatch;
+
+      const isValid = validStatuses.includes(entry.status);
+      if (!isValid) console.warn("❗ Unknown status ignored:", entry.status);
+
+      return yearMatch && monthMatch && isValid;
     });
+
+    const normalizedByDate = {};
+    filtered.forEach((entry) => {
+      const dateKey = new Date(entry.date).toDateString();
+      const current = normalizedByDate[dateKey];
+      if (
+        !current ||
+        statusPriority[entry.status] < statusPriority[current.status]
+      ) {
+        normalizedByDate[dateKey] = entry;
+      }
+    });
+
+    const uniqueEntries = Object.values(normalizedByDate);
+    console.log("🎯 Normalized attendance entries:", uniqueEntries);
 
     let onTime = 0,
       halfDays = 0,
@@ -79,23 +133,26 @@ const AttendanceSummary = ({ userId }) => {
       lateLogin = 0,
       presentDays = 0;
 
-    filtered.forEach((entry) => {
-      const status = entry.status?.trim();
+    uniqueEntries.forEach((entry) => {
+      const status = entry.status;
       switch (status) {
-        case "On Time":
+        case "on time":
           onTime++;
           presentDays++;
           break;
-        case "Half Day":
-          halfDays++;
-          presentDays++;
-          break;
-        case "Late Login":
+        case "late":
+        case "late login":
           lateLogin++;
           presentDays++;
           break;
-        case "Absent":
+        case "half day":
+          halfDays++;
+          presentDays++;
+          break;
+        case "absent":
           absent++;
+          break;
+        default:
           break;
       }
     });
@@ -110,18 +167,8 @@ const AttendanceSummary = ({ userId }) => {
     summary.absent,
     summary.lateLogin,
   ];
-  const chartColors = [
-    "#16a34a", // green
-    "#ec4899", // pink
-    "#dc2626", // red
-    "#f97316", // orange
-  ];
-
+  const chartColors = ["#16a34a", "#ec4899", "#dc2626", "#f97316"];
   const total = chartData.reduce((acc, val) => acc + val, 0);
-  const percentages = chartData.map((val) =>
-    total === 0 ? 0 : ((val / total) * 100).toFixed(1)
-  );
-
   const safeChartData = chartData.map((val) => (val === 0 ? 0.00001 : val));
 
   if (error) return <p className="text-red-500">{error}</p>;
@@ -216,7 +263,6 @@ const AttendanceSummary = ({ userId }) => {
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
-
                 plugins: {
                   legend: {
                     position: "top",
@@ -229,18 +275,21 @@ const AttendanceSummary = ({ userId }) => {
                   },
                   datalabels: {
                     color: "#000",
-                    formatter: (_, context) => {
-                      const percent = percentages[context.dataIndex];
-                      return percent === "0.0" ? null : `${percent}%`;
+                    formatter: (value, context) => {
+                      const total = context.chart.data.datasets[0].data.reduce(
+                        (a, b) => a + b,
+                        0
+                      );
+                      const percent = (value / total) * 100;
+                      return percent > 0.5 ? `${percent.toFixed(1)}%` : "";
                     },
-                    anchor: "end",
-                    align: "end",
-                    offset: 10,
-                    clamp: true,
                     font: {
                       size: 14,
                       weight: "bold",
                     },
+                    anchor: "center",
+                    align: "center",
+                    clamp: true,
                   },
                 },
               }}
