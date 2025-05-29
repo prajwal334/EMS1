@@ -39,7 +39,13 @@ const getLeave = async (req, res) => {
     // Check if the ID is a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ success: false, message: "Invalid ID" });
+
     }
+
+    };
+  
+    const leaves = await Leave.find({ employeeId: id });
+return res.status(200).json({ success: true, leaves: leaves || [] });
 
     const leaves = await Leave.find({ employeeId: id });
     return res.status(200).json({ success: true, leaves: leaves || [] });

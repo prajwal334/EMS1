@@ -9,6 +9,7 @@ import {
   FaRegCalendarCheck,
   FaHandHoldingUsd,
   FaClock,
+  FaComments,
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -43,7 +44,7 @@ const Sidebar = () => {
 
         <NavLink to="/employee-dashboard/leads" className={navLinkClass}>
           <FaBullhorn className="text-lg text-white" />
-          <span className="text-white font-medium">Leads</span>
+          <span className="text-white font-medium">Task</span>
         </NavLink>
 
         <NavLink
@@ -52,6 +53,14 @@ const Sidebar = () => {
         >
           <FaUmbrellaBeach className="text-lg text-white" />
           <span className="text-white font-medium">Leaves</span>
+        </NavLink>
+
+        <NavLink
+          to={`/employee-dashboard/groups/${user?._id}`}
+          className={navLinkClass}
+        >
+          <FaComments className="text-white" />
+          <span className="text-white font-medium ml-2">Group Chat</span>
         </NavLink>
 
         <NavLink

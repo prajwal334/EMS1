@@ -10,6 +10,7 @@ import {
   FaClock,
   FaUserShield,
   FaUsers,
+  FaComments,
 } from "react-icons/fa";
 
 const AdminSidebar = () => {
@@ -38,6 +39,11 @@ const AdminSidebar = () => {
       label: "Salary",
     },
     {
+      to: "/admin-dashboard/groups",
+      icon: <FaComments />,
+      label: "Chat",
+    },
+    {
       to: "/admin-dashboard/attendance",
       icon: <FaClock />,
       label: "Attendance",
@@ -48,11 +54,20 @@ const AdminSidebar = () => {
       icon: <FaCogs />,
       label: "Change Password",
     },
+
     {
       to: "/admin-dashboard/tasks",
       icon: <FaCogs />,
       label: "Task",
     },
+
+
+    {
+      to: "/admin-reset-password",
+      icon: <FaCogs />,
+      label: "Employee Password Change"
+    }
+
   ];
 
   return (
