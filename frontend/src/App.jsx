@@ -22,10 +22,11 @@ import DeleteDepartment from "./components/department/DeleteDepartment";
 // Chat
 import ChatLayout from "./pages/ChatLayout";
 import ChatRoom from "./components/groupChat/ChatRoom";
-import GroupChatAdd from "./components/groupChat/AddGroup";
+import SettingChat from "./components/groupChat/Setting";
 import HomePlaceholder from "./pages/HomePlaceholder";
 import DirectChat from "./components/groupChat/DirectChat";
 import NewChat from "./pages/NewChat";
+import AddGroup from "./components/groupChat/AddGroup";
 
 // HR Department
 import DepartmentList1 from "./components/HrDepartment/DepartmentList";
@@ -121,7 +122,8 @@ function App() {
           {/* ✅ Group & Direct Chat under "groups" route */}
           <Route path="groups" element={<ChatLayout />}>
             <Route index element={<HomePlaceholder />} />
-            <Route path="chat/add" element={<GroupChatAdd />} />
+            <Route path="setting" element={<SettingChat />} />
+            <Route path="addgroup" element={<AddGroup />} />
             <Route path="new-chat" element={<NewChat />} />
             <Route path="direct/:id" element={<DirectChat />} />
             <Route path=":id" element={<ChatRoom />} />
@@ -179,6 +181,14 @@ function App() {
           <Route path="login-history/:userId" element={<View5 />} />
           <Route path="teams/user/:UseId" element={<EmTeam />} />
           <Route path="teams/team/:id" element={<EmView />} />
+          <Route path="groups/:id" element={<ChatLayout />}>
+            <Route index element={<HomePlaceholder />} />
+            <Route path="setting" element={<SettingChat />} />
+            <Route path="addgroup" element={<AddGroup />} />
+            <Route path="new-chat" element={<NewChat />} />
+            <Route path="direct/:id" element={<DirectChat />} />
+            <Route path=":id" element={<ChatRoom />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,4 +1,7 @@
+// models/DirectMessage.js
 import mongoose from "mongoose";
+import { Schema } from "mongoose";
+
 
 const directMessageSchema = new mongoose.Schema(
   {
@@ -9,7 +12,7 @@ const directMessageSchema = new mongoose.Schema(
     },
     sender: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "User", // ✅ Updated to "User"
       required: true,
     },
     message: {
@@ -20,6 +23,10 @@ const directMessageSchema = new mongoose.Schema(
       type: String,
     },
     isRead: {
+      type: Boolean,
+      default: false,
+    },
+    isDelivered: {
       type: Boolean,
       default: false,
     },

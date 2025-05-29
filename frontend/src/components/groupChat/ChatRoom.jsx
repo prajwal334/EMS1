@@ -250,9 +250,21 @@ const ChatRoom = () => {
                     )}
                   </div>
                 )}
-                <div className="text-xs text-right text-gray-500 mt-1">
-                  {formatTime(msg.createdAt)}
-                </div>
+                <div className="text-xs text-right text-gray-500 mt-1 flex items-center gap-1">
+  {formatTime(msg.createdAt)}
+  {msg.sender._id === user._id && (
+    <>
+      {msg.isRead ? (
+        <span className="text-blue-500">✔✔</span>
+      ) : msg.isDelivered ? (
+        <span>✔✔</span>
+      ) : (
+        <span>✔</span>
+      )}
+    </>
+  )}
+</div>
+
               </div>
             </div>
           );

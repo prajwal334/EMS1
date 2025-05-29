@@ -3,7 +3,7 @@ import axios from "axios";
 import { FaCog } from "react-icons/fa";
 import { FiUpload, FiUserPlus, FiUserX } from "react-icons/fi";
 
-const SettingsPanel = () => {
+const AddGroup = () => {
   const [activeTab, setActiveTab] = useState("groups");
   const [employees, setEmployees] = useState([]);
 
@@ -78,40 +78,7 @@ const SettingsPanel = () => {
 
   return (
     <div className="flex h-full w-full bg-[url('/assets/chat-bg.jpg')] bg-cover bg-center">
-      {/* Settings Sidebar */}
-      <div className="w-64 p-6 border-r bg-white bg-opacity-70">
-        <h2 className="text-xl font-semibold flex items-center gap-2 mb-6">
-          <FaCog /> Setting
-        </h2>
-        <ul className="space-y-4 text-gray-700">
-          <li
-            className={`cursor-pointer hover:underline ${
-              activeTab === "groups" ? "font-bold text-blue-600" : ""
-            }`}
-            onClick={() => setActiveTab("groups")}
-          >
-            Groups
-          </li>
-          <li
-            className={`cursor-pointer hover:underline ${
-              activeTab === "notifications" ? "font-bold text-blue-600" : ""
-            }`}
-            onClick={() => setActiveTab("notifications")}
-          >
-            Notification
-          </li>
-          <li
-            className={`cursor-pointer hover:underline ${
-              activeTab === "privacy" ? "font-bold text-blue-600" : ""
-            }`}
-            onClick={() => setActiveTab("privacy")}
-          >
-            Privacy
-          </li>
-        </ul>
-      </div>
-
-      {/* Main Content Area */}
+            {/* Main Content Area */}
       <div className="flex-1 p-8 bg-white bg-opacity-50 overflow-y-auto">
         {activeTab === "groups" && (
           <div className="w-full max-w-md bg-white bg-opacity-70 p-6 rounded-lg shadow-lg">
@@ -207,4 +174,4 @@ const SettingsPanel = () => {
   );
 };
 
-export default SettingsPanel;
+export default AddGroup;

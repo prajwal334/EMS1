@@ -56,7 +56,7 @@ const Sidebar = () => {
         </NavLink>
 
         <NavLink
-          to={`/employee-dashboard/leaves/${user?._id}`}
+          to={`/employee-dashboard/groups/${user?._id}`}
           className={navLinkClass}
         >
           <FaComments className="text-white" />

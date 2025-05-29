@@ -25,14 +25,20 @@ const DirectChat = () => {
     const fetchChatData = async () => {
       const token = localStorage.getItem("token");
 
-      const chatRes = await axios.get(`http://localhost:3000/api/direct-chats/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const chatRes = await axios.get(
+        `http://localhost:3000/api/direct-chats/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (chatRes.data.success) setChat(chatRes.data.chat);
 
-      const msgRes = await axios.get(`http://localhost:3000/api/messages/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const msgRes = await axios.get(
+        `http://localhost:3000/api/messages/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (msgRes.data.success) setMessages(msgRes.data.messages);
     };
 
@@ -63,7 +69,9 @@ const DirectChat = () => {
   };
 
   const getFileURL = (filePath) =>
-    `http://localhost:3000/${filePath?.replace(/^public[\\/]/, "").replace(/\\/g, "/")}`;
+    `http://localhost:3000/${filePath
+      ?.replace(/^public[\\/]/, "")
+      .replace(/\\/g, "/")}`;
 
   const handleSend = async () => {
     if (!message.trim() && !file) return;
@@ -74,12 +82,16 @@ const DirectChat = () => {
       formData.append("message", message);
       if (file) formData.append("file", file);
 
-      const res = await axios.post("http://localhost:3000/api/messages", formData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await axios.post(
+        "http://localhost:3000/api/messages",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       if (res.data.success) {
         socket.emit("send-message", res.data.message);
@@ -118,7 +130,9 @@ const DirectChat = () => {
             }`}
           >
             <div className="max-w-xs bg-white rounded-xl p-3 shadow relative">
-              <div className="text-sm text-gray-800 break-words">{msg.message}</div>
+              <div className="text-sm text-gray-800 break-words">
+                {msg.message}
+              </div>
 
               {msg.file && (
                 <div className="mt-2">
@@ -141,8 +155,19 @@ const DirectChat = () => {
                 </div>
               )}
 
-              <div className="text-xs text-right text-gray-500 mt-1">
+              <div className="text-xs text-right text-gray-500 mt-1 flex items-center gap-1">
                 {formatTime(msg.createdAt)}
+                {msg.sender._id === user._id && (
+                  <>
+                    {msg.isRead ? (
+                      <span className="text-blue-500">✔✔</span>
+                    ) : msg.isDelivered ? (
+                      <span>✔✔</span>
+                    ) : (
+                      <span>✔</span>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>

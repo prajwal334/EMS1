@@ -1,3 +1,4 @@
+// controllers/DirectMessageController.js
 import DirectMessage from "../models/DirectMessage.js";
 
 export const sendDirectMessage = async (req, res) => {
@@ -10,10 +11,12 @@ export const sendDirectMessage = async (req, res) => {
       sender: req.user._id,
       message,
       file,
+      isDelivered: false,
+      isRead: false,
     });
 
     await msg.save();
-    await msg.populate("sender", "name");
+    await msg.populate("sender", "name profileImage");
 
     res.status(201).json({ success: true, message: msg });
   } catch (err) {
@@ -25,12 +28,17 @@ export const sendDirectMessage = async (req, res) => {
 export const getDirectMessages = async (req, res) => {
   try {
     const messages = await DirectMessage.find({ chatId: req.params.chatId })
-      .populate("sender", "name")
+      .populate("sender", "name profileImage")
       .sort({ createdAt: 1 });
 
+    // Update read and delivered status
     await DirectMessage.updateMany(
-      { chatId: req.params.chatId, sender: { $ne: req.user._id } },
-      { isRead: true }
+      {
+        chatId: req.params.chatId,
+        sender: { $ne: req.user._id },
+        isRead: false,
+      },
+      { isRead: true, isDelivered: true }
     );
 
     res.json({ success: true, messages });

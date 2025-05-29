@@ -1,12 +1,14 @@
 // models/DirectChat.js
 import mongoose from "mongoose";
+import { Schema } from "mongoose";
+
 
 const directChatSchema = new mongoose.Schema(
   {
-    users: [ // ✅ Rename from "participants" to "users"
+    users: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "User", // ✅ Switch from "Employee" to "User"
       },
     ],
   },

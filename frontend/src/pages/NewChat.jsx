@@ -13,7 +13,7 @@ const NewChat = () => {
 
   const fetchEmployees = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/employee", {
+      const res = await axios.get("http://localhost:3000/api/user/employees", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -45,23 +45,31 @@ const NewChat = () => {
     <div className="p-6">
       <h2 className="text-lg font-semibold mb-4">Start a New Chat</h2>
       <div className="grid grid-cols-1 gap-3 max-w-md">
-        {employees.map((emp) => (
-          <div
-            key={emp.userId._id}
-            onClick={() => startChat(emp._id)}
-            className="flex items-center justify-between p-3 bg-white rounded shadow hover:bg-blue-50 cursor-pointer"
-          >
-            <div>
-              <p className="font-medium">{emp.userId.name}</p>
-              <p className="text-sm text-gray-500">{emp.department?.dep_name || "No Dept"}</p>
+        {employees.map((emp) => {
+          const imageUrl = emp.profileImage
+            ? `http://localhost:3000/uploads/${emp.profileImage}`
+            : "http://localhost:3000/uploads/default-user.png";
+
+          return (
+            <div
+              key={emp._id}
+              onClick={() => startChat(emp._id)}
+              className="flex items-center justify-between p-3 bg-white rounded shadow hover:bg-blue-50 cursor-pointer"
+            >
+              <div>
+                <p className="font-medium">{emp.name || "Unnamed"}</p>
+                <p className="text-sm text-gray-500">
+                  {emp.department?.dep_name || "No Department"}
+                </p>
+              </div>
+              <img
+                src={imageUrl}
+                alt={emp.name}
+                className="w-10 h-10 rounded-full object-cover"
+              />
             </div>
-            <img
-              src={`http://localhost:3000/${emp.avatar?.replace("public/", "")}`}
-              className="w-10 h-10 rounded-full object-cover"
-              alt={emp.userId.name}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
