@@ -12,7 +12,7 @@ const directMessageSchema = new mongoose.Schema(
     },
     sender: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // ✅ Updated to "User"
+      ref: "Employee", // ✅ Updated to "User"
       required: true,
     },
     message: {

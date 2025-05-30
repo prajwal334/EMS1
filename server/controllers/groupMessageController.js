@@ -63,3 +63,54 @@ export const deleteGroupMessage = async (req, res) => {
     res.status(500).json({ success: false, error: "Failed to delete message" });
   }
 };
+
+// controllers/groupMessageController.js
+export const reactToMessage = async (req, res) => {
+  const { emoji } = req.body;
+  const { id } = req.params;
+
+  try {
+    const message = await Message.findById(id);
+    if (!message) {
+      return res.status(404).json({ success: false, message: "Message not found" });
+    }
+
+    // Initialize reactions array if missing
+    if (!message.reactions) {
+      message.reactions = [];
+    }
+
+    message.reactions.push(emoji);
+    await message.save();
+
+    res.json({ success: true, message });
+  } catch (err) {
+    console.error("Error reacting to message:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+export const forwardMessage = async (req, res) => {
+  try {
+    const { originalMessageId, targetGroupId } = req.body;
+    const originalMessage = await GroupMessage.findById(originalMessageId);
+    if (!originalMessage) return res.status(404).json({ success: false, error: "Original message not found" });
+
+    const newMessage = new GroupMessage({
+      groupId: targetGroupId,
+      sender: req.user._id,
+      message: originalMessage.message,
+      file: originalMessage.file,
+    });
+
+    await newMessage.save();
+    await newMessage.populate("sender", "name");
+
+    res.status(201).json({ success: true, message: newMessage });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Failed to forward message" });
+  }
+};
+

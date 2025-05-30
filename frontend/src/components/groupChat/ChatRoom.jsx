@@ -13,6 +13,7 @@ const ChatRoom = () => {
   const socket = useSocket();
 
   const [group, setGroup] = useState(null);
+  const [groups, setGroups] = useState([]);
   const [message, setMessage] = useState("");
   const [file, setFile] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -20,6 +21,9 @@ const ChatRoom = () => {
   const [showMembers, setShowMembers] = useState(false);
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editedText, setEditedText] = useState("");
+  const [activeMessageId, setActiveMessageId] = useState(null);
+  const [forwardModalMsg, setForwardModalMsg] = useState(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(null);
 
   const scrollRef = useRef();
 
@@ -36,6 +40,11 @@ const ChatRoom = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (msgRes.data.success) setMessages(msgRes.data.messages);
+
+      const groupsRes = await axios.get("http://localhost:3000/api/group", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (groupsRes.data.success) setGroups(groupsRes.data.groups);
     };
     fetchChat();
   }, [id]);
@@ -46,9 +55,26 @@ const ChatRoom = () => {
     socket.on("receive-message", (msg) => {
       setMessages((prev) => [...prev, msg]);
     });
+    socket.on("receive-reaction", (data) => {
+      const { messageId, emoji, userId } = data;
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg._id === messageId) {
+            const exists = msg.reactions?.find((r) => r.userId === userId && r.emoji === emoji);
+            if (exists) return msg;
+            return {
+              ...msg,
+              reactions: [...(msg.reactions || []), { emoji, userId }],
+            };
+          }
+          return msg;
+        })
+      );
+    });
     return () => {
       socket.emit("leave-group", id);
       socket.off("receive-message");
+      socket.off("receive-reaction");
     };
   }, [socket, id]);
 
@@ -140,6 +166,38 @@ const ChatRoom = () => {
     }
   };
 
+  const handleForward = async (targetGroupId, msg) => {
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/api/messages/forward",
+        {
+          messageId: msg._id,
+          toGroupId: targetGroupId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (res.data.success) {
+        socket.emit("send-message", res.data.message);
+        setForwardModalMsg(null);
+      }
+    } catch (err) {
+      console.error("Forward error", err);
+    }
+  };
+
+  const handleReaction = (emoji, messageId) => {
+    socket.emit("send-reaction", {
+      messageId,
+      emoji,
+      userId: user._id,
+    });
+    setShowReactionPicker(null);
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-100">
       {/* Header */}
@@ -173,34 +231,15 @@ const ChatRoom = () => {
       {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto">
         {messages.map((msg) => {
-          const canEdit =
-            msg.sender._id === user._id || user.role === "admin";
+          const isOwn = msg.sender._id === user._id;
+          const canEdit = isOwn || user.role === "admin";
           return (
             <div
               key={msg._id}
-              className={`mb-2 flex ${
-                msg.sender._id === user._id ? "justify-end" : "justify-start"
-              } group relative`}
+              className={`mb-3 flex ${isOwn ? "justify-end" : "justify-start"} relative`}
+              onClick={() => setActiveMessageId(msg._id === activeMessageId ? null : msg._id)}
             >
               <div className="max-w-xs bg-white rounded-xl p-3 shadow relative">
-                {/* Hover Buttons */}
-                {canEdit && (
-                  <div className="absolute top-1 right-1 hidden group-hover:flex gap-1 z-10">
-                    <button
-                      onClick={() => handleEdit(msg)}
-                      className="text-xs text-blue-500 hover:underline"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(msg._id)}
-                      className="text-xs text-red-500 hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-
                 {editingMsgId === msg._id ? (
                   <div className="flex flex-col gap-1">
                     <input
@@ -225,9 +264,7 @@ const ChatRoom = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-gray-800 break-words">
-                    {msg.message}
-                  </div>
+                  <div className="text-sm text-gray-800 break-words">{msg.message}</div>
                 )}
 
                 {msg.file && (
@@ -250,21 +287,54 @@ const ChatRoom = () => {
                     )}
                   </div>
                 )}
-                <div className="text-xs text-right text-gray-500 mt-1 flex items-center gap-1">
-  {formatTime(msg.createdAt)}
-  {msg.sender._id === user._id && (
-    <>
-      {msg.isRead ? (
-        <span className="text-blue-500">✔✔</span>
-      ) : msg.isDelivered ? (
-        <span>✔✔</span>
-      ) : (
-        <span>✔</span>
-      )}
-    </>
-  )}
-</div>
 
+                {/* Reactions */}
+                {msg.reactions && msg.reactions.length > 0 && (
+                  <div className="text-xs mt-2 flex flex-wrap gap-1">
+                    {msg.reactions.map((r, index) => (
+                      <span key={index} className="bg-gray-200 px-1.5 py-0.5 rounded-full">
+                        {r.emoji}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="text-xs text-right text-gray-500 mt-1 flex items-center gap-1">
+                  {formatTime(msg.createdAt)}
+                  {isOwn && (
+                    <>
+                      {msg.isRead ? (
+                        <span className="text-blue-500">✔✔</span>
+                      ) : msg.isDelivered ? (
+                        <span>✔✔</span>
+                      ) : (
+                        <span>✔</span>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {activeMessageId === msg._id && (
+                  <div className="mt-2 flex gap-3 text-xs bg-gray-100 p-1 rounded shadow-inner">
+                    {canEdit && (
+                      <>
+                        <button onClick={() => handleEdit(msg)} className="text-blue-600 hover:underline">Edit</button>
+                        <button onClick={() => handleDelete(msg._id)} className="text-red-500 hover:underline">Delete</button>
+                      </>
+                    )}
+                    <button onClick={() => alert("Reply not implemented")} className="text-yellow-600 hover:underline">Reply</button>
+                    <button onClick={() => setForwardModalMsg(msg)} className="text-green-600 hover:underline">Forward</button>
+                    <button onClick={() => setShowReactionPicker(msg._id)} className="text-pink-600 hover:underline">😊</button>
+                  </div>
+                )}
+
+                {showReactionPicker === msg._id && (
+                  <div className="absolute left-0 bottom-full z-50">
+                    <EmojiPicker
+                      onEmojiClick={(e) => handleReaction(e.emoji, msg._id)}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -272,15 +342,39 @@ const ChatRoom = () => {
         <div ref={scrollRef}></div>
       </div>
 
+      {/* Forward Modal */}
+      {forwardModalMsg && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+          <div className="bg-white p-4 rounded shadow-md w-80">
+            <h3 className="font-semibold text-lg mb-2">Forward to Group</h3>
+            <ul className="space-y-2 max-h-48 overflow-y-auto">
+              {groups
+                .filter((g) => g._id !== id)
+                .map((g) => (
+                  <li
+                    key={g._id}
+                    onClick={() => handleForward(g._id, forwardModalMsg)}
+                    className="cursor-pointer hover:bg-gray-100 p-2 rounded"
+                  >
+                    📤 {g.group_name}
+                  </li>
+                ))}
+            </ul>
+            <button
+              onClick={() => setForwardModalMsg(null)}
+              className="mt-4 text-sm text-gray-600 hover:underline"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* File Preview */}
       {file && (
         <div className="px-4 pb-2 relative">
           {file.type.startsWith("image/") ? (
-            <img
-              src={URL.createObjectURL(file)}
-              alt="preview"
-              className="w-32 h-auto rounded"
-            />
+            <img src={URL.createObjectURL(file)} alt="preview" className="w-32 h-auto rounded" />
           ) : (
             <div className="text-sm text-gray-700 bg-gray-200 px-3 py-1 rounded inline-block">
               📎 {file.name}
@@ -296,7 +390,7 @@ const ChatRoom = () => {
         </div>
       )}
 
-      {/* Input Box */}
+      {/* Input */}
       <div className="bg-white px-4 py-3 flex items-center gap-2 border-t relative">
         <div className="relative flex-1">
           <input
@@ -307,42 +401,20 @@ const ChatRoom = () => {
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
           />
-
-          {/* File Upload Icon */}
-          <label
-            htmlFor="file"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
-          >
+          <label htmlFor="file" className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500">
             <FiPaperclip />
           </label>
-          <input
-            id="file"
-            type="file"
-            className="hidden"
-            onChange={(e) => setFile(e.target.files[0])}
-          />
-
-          {/* Emoji Picker */}
-          <button
-            onClick={() => setShowEmojiPicker((prev) => !prev)}
-            className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-500"
-          >
+          <input id="file" type="file" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
+          <button onClick={() => setShowEmojiPicker((prev) => !prev)} className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-500">
             😊
           </button>
-
           {showEmojiPicker && (
             <div className="absolute bottom-14 left-0 z-50">
-              <EmojiPicker
-                onEmojiClick={(e) => setMessage((prev) => prev + e.emoji)}
-              />
+              <EmojiPicker onEmojiClick={(e) => setMessage((prev) => prev + e.emoji)} />
             </div>
           )}
         </div>
-
-        <button
-          onClick={handleSend}
-          className="text-white bg-blue-600 rounded-full p-2 hover:bg-blue-700"
-        >
+        <button onClick={handleSend} className="text-white bg-blue-600 rounded-full p-2 hover:bg-blue-700">
           <FiSend className="text-lg" />
         </button>
       </div>

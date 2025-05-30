@@ -13,6 +13,15 @@ const groupMessageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    reactions: [
+  {
+    emoji: String,
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
+  }
+],
     message: {
       type: String,
       default: "",

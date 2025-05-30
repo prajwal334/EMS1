@@ -8,6 +8,8 @@ import {
   getGroupMessages,
   updateGroupMessage,
   deleteGroupMessage,
+  reactToMessage,
+  forwardMessage,
 } from "../controllers/groupMessageController.js";
 
 const router = express.Router();
@@ -35,7 +37,7 @@ router.put("/:id", authMiddleware, updateGroupMessage);
 // Delete message
 router.delete("/:id", authMiddleware, deleteGroupMessage);
 
-// Optional upload route (if needed)
+// Upload file route
 router.post("/upload", authMiddleware, upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, error: "No file uploaded" });
@@ -45,5 +47,11 @@ router.post("/upload", authMiddleware, upload.single("file"), (req, res) => {
     url: `/uploads/messages/${req.file.filename}`,
   });
 });
+
+// ✅ FIXED: React to a specific message by ID
+router.post("/:id", authMiddleware, reactToMessage);
+
+// Forward message to another group
+router.post("/forward", authMiddleware, forwardMessage);
 
 export default router;

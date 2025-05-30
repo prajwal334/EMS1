@@ -46,25 +46,22 @@ const NewChat = () => {
       <h2 className="text-lg font-semibold mb-4">Start a New Chat</h2>
       <div className="grid grid-cols-1 gap-3 max-w-md">
         {employees.map((emp) => {
-          const imageUrl = emp.profileImage
-            ? `http://localhost:3000/uploads/${emp.profileImage}`
-            : "http://localhost:3000/uploads/default-user.png";
 
           return (
             <div
-              key={emp._id}
-              onClick={() => startChat(emp._id)}
+              key={emp.userId._id}
+              onClick={() => startChat(emp.userId._id)}
               className="flex items-center justify-between p-3 bg-white rounded shadow hover:bg-blue-50 cursor-pointer"
             >
               <div>
-                <p className="font-medium">{emp.name || "Unnamed"}</p>
+                <p className="font-medium">{emp.userId.name || "Unnamed"}</p>
                 <p className="text-sm text-gray-500">
                   {emp.department?.dep_name || "No Department"}
                 </p>
               </div>
               <img
-                src={imageUrl}
-                alt={emp.name}
+                src={`http://localhost:3000/${emp.userId.avatar?.replace("public/", "")}`}
+                alt={emp.userId.name}
                 className="w-10 h-10 rounded-full object-cover"
               />
             </div>

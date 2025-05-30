@@ -34,7 +34,7 @@ const DirectChat = () => {
       if (chatRes.data.success) setChat(chatRes.data.chat);
 
       const msgRes = await axios.get(
-        `http://localhost:3000/api/messages/${id}`,
+        `http://localhost:3000/api/direct-messages/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -83,7 +83,7 @@ const DirectChat = () => {
       if (file) formData.append("file", file);
 
       const res = await axios.post(
-        "http://localhost:3000/api/messages",
+        "http://localhost:3000/api/direct-messages",
         formData,
         {
           headers: {
