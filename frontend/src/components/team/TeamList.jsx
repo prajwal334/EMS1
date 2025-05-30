@@ -24,7 +24,6 @@ const TeamList = () => {
           acc[depName].push(team);
           return acc;
         }, {});
-
         setGroupedTeams(grouped);
       }
     } catch (error) {

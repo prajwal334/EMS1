@@ -121,7 +121,6 @@ const getEmployees = async (req, res) => {
   }
 };
 
-
 // Get employee by id
 const getEmployee = async (req, res) => {
   const { id } = req.params;
@@ -230,6 +229,97 @@ const getDepartmentByUserId = async (req, res) => {
   }
 };
 
+// Fetch users by role
+const fetchUsersGroupedByRoleInDepartment = async (req, res) => {
+  const { departmentId } = req.params;
+
+  try {
+    // Find all employees in the department
+    const employees = await Employee.find({
+      department: departmentId,
+    }).populate("userId");
+
+    // Group users by their roles
+    const roleMap = {};
+
+    for (const emp of employees) {
+      const user = emp.userId;
+      if (user && user.role) {
+        if (!roleMap[user.role]) {
+          roleMap[user.role] = [];
+        }
+        roleMap[user.role].push({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          username: user.username,
+          role: user.role,
+          profileImage: user.profileImage,
+          employeeId: emp._id,
+        });
+      }
+    }
+
+    return res.status(200).json({ success: true, roles: roleMap });
+  } catch (error) {
+    console.error("Error in fetchUsersGroupedByRoleInDepartment:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Server error in fetching users grouped by role",
+    });
+  }
+};
+
+const fetchUsersGroupedByDesignationInDepartment = async (req, res) => {
+  const { departmentId } = req.params;
+  const { role } = req.query; // get role from query string
+
+  try {
+    // Find all employees in the department
+    const employees = await Employee.find({
+      department: departmentId,
+    }).populate("userId");
+
+    // Group users by their designation
+    const designationMap = {};
+
+    for (const emp of employees) {
+      const user = emp.userId;
+
+      // Skip if user not found or role doesn't match (if role filter is provided)
+      if (!user || (role && user.role !== role)) continue;
+
+      const designation = emp.designation || "Unknown";
+      if (!designationMap[designation]) {
+        designationMap[designation] = [];
+      }
+
+      designationMap[designation].push({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        profileImage: user.profileImage,
+        employeeId: emp._id,
+      });
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, designations: designationMap });
+  } catch (error) {
+    console.error(
+      "Error in fetchUsersGroupedByDesignationInDepartment:",
+      error
+    );
+    return res.status(500).json({
+      success: false,
+      error: "Server error in fetching users grouped by designation",
+    });
+  }
+};
+
 export {
   addEmployee,
   upload,
@@ -238,4 +328,6 @@ export {
   updateEmployee,
   fetchEmployeesByDepId,
   getDepartmentByUserId,
+  fetchUsersGroupedByRoleInDepartment,
+  fetchUsersGroupedByDesignationInDepartment,
 };

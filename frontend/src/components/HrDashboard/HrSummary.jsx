@@ -7,6 +7,7 @@ import { useAuth } from "../../context/authContext";
 
 const HrSummary = () => {
   const { user } = useAuth();
+  console.log("user details ", user);
   const [summary, setSummary] = useState({
     totalEmployees: 0,
     totalDepartments: 0,

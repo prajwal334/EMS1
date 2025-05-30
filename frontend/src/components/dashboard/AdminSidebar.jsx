@@ -48,7 +48,7 @@ const AdminSidebar = () => {
       icon: <FaClock />,
       label: "Attendance",
     },
-    
+
     {
       to: "/admin-dashboard/settings",
       icon: <FaCogs />,
@@ -56,10 +56,18 @@ const AdminSidebar = () => {
     },
 
     {
+      to: "/admin-dashboard/tasks",
+      icon: <FaCogs />,
+      label: "Task",
+    },
+
+
+    {
       to: "/admin-reset-password",
       icon: <FaCogs />,
       label: "Employee Password Change"
     }
+
   ];
 
   return (

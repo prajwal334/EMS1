@@ -47,21 +47,54 @@ const getAllTeams = async (req, res) => {
     const teams = await Team.find()
       .populate("departmentId", "dep_name")
       .populate("leaderUserId", "name")
-      .select("team_name team_dp departmentId leaderUserId");
+      .populate("memberUserIds", "name");
 
-    const formattedTeams = teams.map((team) => ({
+    const formatted = teams.map((team) => ({
       _id: team._id,
       team_name: team.team_name,
       team_dp: team.team_dp,
       department: team.departmentId,
-      team_leader: team.leaderUserId,
+      leaderUserId: team.leaderUserId,
+      memberUserIds: team.memberUserIds,
     }));
 
-    res.status(200).json({ success: true, teams: formattedTeams });
+    res.status(200).json({ success: true, teams: formatted });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: "Failed to fetch teams",
+      details: error.message,
+    });
+  }
+};
+
+// Get a team by ID
+const getTeamById = async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.id)
+      .populate("departmentId", "dep_name")
+      .populate("leaderUserId", "name")
+      .populate("memberUserIds", "name");
+
+    if (!team) {
+      return res.status(404).json({ success: false, error: "Team not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      team: {
+        _id: team._id,
+        team_name: team.team_name,
+        team_dp: team.team_dp,
+        department: team.departmentId,
+        leaderUserId: team.leaderUserId,
+        memberUserIds: team.memberUserIds,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch team",
       details: error.message,
     });
   }
@@ -86,41 +119,6 @@ const deleteTeam = async (req, res) => {
   }
 };
 
-// Get a team by ID
-const getTeamById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const team = await Team.findById(id)
-      .populate("departmentId", "dep_name")
-      .populate("leaderUserId", "name")
-      .populate("memberUserIds", "name email") 
-      .select("team_name team_dp departmentId leaderUserId memberUserIds");
-
-    if (!team) {
-      return res.status(404).json({ success: false, error: "Team not found" });
-    }
-
-    const formattedTeam = {
-      _id: team._id,
-      team_name: team.team_name,
-      team_dp: team.team_dp,
-      department: team.departmentId,
-      team_leader: team.leaderUserId,
-      team_members: team.memberUserIds,
-    };
-
-    res.status(200).json({ success: true, team: formattedTeam });
-  } catch (error) {
-    console.error("❌ Error fetching team by ID:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to fetch team",
-      details: error.message,
-    });
-  }
-};
-
 const getTeamsByUserId = async (req, res) => {
   const { userId } = req.params;
 
@@ -136,6 +134,8 @@ const getTeamsByUserId = async (req, res) => {
   }
 };
 
+
+
 export {
   upload,
   createTeam,
@@ -143,4 +143,5 @@ export {
   deleteTeam,
   getTeamById,
   getTeamsByUserId,
+  
 };
