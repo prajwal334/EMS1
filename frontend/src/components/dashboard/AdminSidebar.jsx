@@ -1,103 +1,106 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import {
-  FaBuilding,
-  FaCalendarCheck,
-  FaCogs,
-  FaMoneyBillWave,
-  FaTachometerAlt,
-  FaUser,
-  FaClock,
-  FaUserShield,
-  FaUsers,
-  FaComments,
-} from "react-icons/fa";
+import { useAuth } from "../../context/authContext";
+import { FaSignOutAlt } from "react-icons/fa";
+
+import Logo from "../../assets/images/erplogo.png";
 
 const AdminSidebar = () => {
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:3000/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   const navItems = [
     {
       to: "/admin-dashboard",
-      icon: <FaTachometerAlt />,
       label: "Dashboard",
       exact: true,
     },
-    { to: "/admin-dashboard/employees", icon: <FaUsers />, label: "Employees" },
+    { to: "/admin-dashboard/employees", label: "Employees" },
     {
       to: "/admin-dashboard/departments",
-      icon: <FaBuilding />,
       label: "Departments",
     },
-    { to: "/admin-dashboard/teams", icon: <FaUser />, label: "Teams" },
+    { to: "/admin-dashboard/teams", label: "Teams" },
+
+    {
+      to: "/admin-dashboard/tasks",
+      label: "Task",
+    },
     {
       to: "/admin-dashboard/leaves",
-      icon: <FaCalendarCheck />,
       label: "Leaves",
     },
     {
       to: "/admin-dashboard/salary/add",
-      icon: <FaMoneyBillWave />,
       label: "Salary",
     },
     {
       to: "/admin-dashboard/groups",
-      icon: <FaComments />,
       label: "Chat",
     },
     {
       to: "/admin-dashboard/attendance",
-      icon: <FaClock />,
       label: "Attendance",
     },
-
-    {
-      to: "/admin-dashboard/settings",
-      icon: <FaCogs />,
-      label: "Change Password",
-    },
-
-    {
-      to: "/admin-dashboard/tasks",
-      icon: <FaCogs />,
-      label: "Task",
-    },
-
-
-    {
-      to: "/admin-reset-password",
-      icon: <FaCogs />,
-      label: "Employee Password Change"
-    }
 
   ];
 
   return (
-    <aside className="bg-white text-black h-screen fixed left-0 top-0 w-64 shadow-md flex flex-col">
-      {/* Sidebar Header */}
-      <div className="bg-blue-700 h-14 flex items-center justify-center shadow-sm">
-        <h3 className="text-xl text-white font-bold flex items-center gap-2">
-          <FaUserShield className="text-2xl" />
-          Employee N-Dash
-        </h3>
+    <aside className="bg-white text-black h-screen fixed left-0 top-0 w-64 shadow-md flex flex-col justify-between">
+      {/* Logo + Name (Side by side) */}
+      <div className="flex items-center justify-center gap-3 py-6 px-4">
+        <img src={Logo} alt="Logo" className="w-28 h-28 object-contain" />
+        <h1 className="text-xl font-semibold tracking-wide text-blue-900">
+          NAVHIVE
+        </h1>
       </div>
 
-      {/* Sidebar Links */}
-      <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+      {/* Nav Items */}
+      <nav className="flex-1 flex flex-col items-center space-y-1 px-2">
         {navItems.map(({ to, icon, label, exact }) => (
           <NavLink
             to={to}
             key={label}
             end={exact}
             className={({ isActive }) =>
-              `${
-                isActive ? "bg-blue-600 text-white" : "text-gray-700"
-              } flex items-center gap-3 py-2 px-4 rounded hover:bg-blue-100 hover:text-blue-700 transition duration-200`
+              `w-full flex items-center gap-3 py-2 px-6 rounded font-medium justify-center text-sm tracking-wide 
+              ${
+                isActive
+                  ? "bg-blue-100 text-blue-900 border-r-4 border-blue-700"
+                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+              } transition duration-200`
             }
           >
-            <span className="text-lg">{icon}</span>
-            <span className="text-sm font-medium">{label}</span>
+            {icon}
+            <span className="uppercase">{label}</span>
           </NavLink>
         ))}
       </nav>
+
+      {/* Logout */}
+      <div className="flex justify-center pb-6">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-sm text-gray-700 hover:text-red-600 transition"
+        >
+          <FaSignOutAlt className="text-lg" />
+          <span className="uppercase font-medium">Logout</span>
+        </button>
+      </div>
     </aside>
   );
 };

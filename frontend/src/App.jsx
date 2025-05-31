@@ -85,7 +85,6 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/set-new-password" element={<SetNewPassword />} />
-        <Route path="/admin-reset-password" element={<AdminResetPassword />} />
 
         {/* Admin Dashboard */}
         <Route
@@ -117,7 +116,7 @@ function App() {
           <Route path="salary/add" element={<AddSalary />} />
 
           <Route path="settings" element={<Setting />} />
-
+          <Route path="adminResetPassword" element={<AdminResetPassword />} />
           <Route path="leaves" element={<Leavetable />} />
           <Route path="leaves/:id" element={<LeaveDetail />} />
           <Route path="employees/leaves/:id" element={<LeaveList />} />
@@ -131,7 +130,6 @@ function App() {
           <Route path="tasks" element={<DptTaskList />} />
           <Route path="tasks/department/:id" element={<RoleList />} />
           <Route path="tasks/subDepartment/:id" element={<TaskList />} />
-        
 
           {/* ✅ Group & Direct Chat under "groups" route */}
           <Route path="groups" element={<ChatLayout />}>
