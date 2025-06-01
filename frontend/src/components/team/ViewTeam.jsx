@@ -23,8 +23,15 @@ const ViewTeam = () => {
             },
           }
         );
+
         if (response.data.success) {
-          setTeam(response.data.team);
+          const fetchedTeam = response.data.team;
+          // Normalize the team object to match frontend expectations
+          setTeam({
+            ...fetchedTeam,
+            team_leader: fetchedTeam.leaderUserId || null,
+            team_members: fetchedTeam.memberUserIds || [],
+          });
         }
       } catch (error) {
         console.error("Failed to fetch team:", error);
@@ -65,10 +72,11 @@ const ViewTeam = () => {
           },
         }
       );
+      const newLeader =
+        employees.find((e) => e.userId._id === leaderUserId)?.userId || null;
       setTeam((prev) => ({
         ...prev,
-        team_leader:
-          employees.find((e) => e.userId._id === leaderUserId)?.userId || null,
+        team_leader: newLeader,
       }));
       setShowEditLeader(false);
     } catch (error) {
@@ -80,6 +88,7 @@ const ViewTeam = () => {
     const isAlreadyMember = team.team_members.some(
       (m) => m._id === memberUserId
     );
+
     const newMembers = isAlreadyMember
       ? team.team_members.filter((m) => m._id !== memberUserId)
       : [
@@ -134,8 +143,8 @@ const ViewTeam = () => {
 
       <h2 className="text-3xl font-bold text-center mb-6">{team.team_name}</h2>
 
-      {/* Leader Section */}
-      <div className="relative border p-6 rounded mb-6 flex items-center gap-6">
+      {/* Team Leader Section */}
+      <div className="relative border p-6 rounded mb-6 flex items-center gap-6 bg-white shadow">
         <button
           onClick={() => setShowEditLeader(true)}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -157,11 +166,8 @@ const ViewTeam = () => {
         </div>
       </div>
 
-      {/* Divider Line */}
-      <hr className="my-6 border-gray-300" />
-
-      {/* Members Section */}
-      <div className="relative border p-6 rounded">
+      {/* Team Members Section */}
+      <div className="relative border p-6 rounded bg-white shadow">
         <button
           onClick={() => setShowAddMember(true)}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -185,7 +191,7 @@ const ViewTeam = () => {
         </div>
       </div>
 
-      {/* Delete Button */}
+      {/* Delete Team */}
       <div className="mt-8 text-center">
         <button
           onClick={() => handleDelete(team._id)}
@@ -195,7 +201,7 @@ const ViewTeam = () => {
         </button>
       </div>
 
-      {/* Modal for Editing Leader */}
+      {/* Modal: Select Leader */}
       <Modal isOpen={showEditLeader} onClose={() => setShowEditLeader(false)}>
         <h3 className="text-lg font-bold mb-4">Select Team Leader</h3>
         <ul className="space-y-2 pr-2 max-h-64 overflow-y-auto">
@@ -216,12 +222,12 @@ const ViewTeam = () => {
         </ul>
       </Modal>
 
-      {/* Modal for Adding/Removing Members */}
+      {/* Modal: Manage Members */}
       <Modal isOpen={showAddMember} onClose={() => setShowAddMember(false)}>
         <h3 className="text-lg font-bold mb-4">Manage Team Members</h3>
         <ul className="space-y-2 pr-2 max-h-64 overflow-y-auto">
           {employees.map((emp) => {
-            const isMember = team.team_members.some(
+            const isMember = team.team_members?.some(
               (m) => m._id === emp.userId._id
             );
             return (

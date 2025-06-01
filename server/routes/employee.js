@@ -7,6 +7,7 @@ import {
   getEmployee,
   updateEmployee,
   fetchEmployeesByDepId,
+  fetchEmployeesByUserId,
   getDepartmentByUserId,
   fetchUsersGroupedByRoleInDepartment,
   fetchUsersGroupedByDesignationInDepartment,
@@ -20,6 +21,8 @@ router.post("/add", authMiddleware, upload.single("image"), addEmployee);
 
 // :id route
 router.get("/department/:id", authMiddleware, fetchEmployeesByDepId);
+
+router.get("/user/:userId", fetchEmployeesByUserId);
 
 router.get("/:id", authMiddleware, getEmployee);
 

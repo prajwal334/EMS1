@@ -4,6 +4,7 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import path from "path";
 import Department from "../models/Department.js";
+import mongoose from "mongoose";
 
 // Multer storage setup
 const storage = multer.diskStorage({
@@ -93,6 +94,7 @@ const addEmployee = async (req, res) => {
       designation,
       department,
       salary,
+      role,
     });
 
     await newEmployee.save();
@@ -320,6 +322,34 @@ const fetchUsersGroupedByDesignationInDepartment = async (req, res) => {
   }
 };
 
+const fetchEmployeesByUserId = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // Convert to ObjectId
+    const objectUserId = new mongoose.Types.ObjectId(userId);
+
+    // Query employees where userId matches
+    const employees = await Employee.find({ userId: objectUserId })
+      .populate("userId", { password: 0 })
+      .populate("department");
+
+    if (!employees || employees.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No employees found for this userId",
+      });
+    }
+
+    return res.status(200).json({ success: true, employees });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: "Server error fetching employees by userId",
+    });
+  }
+};
+
 export {
   addEmployee,
   upload,
@@ -327,6 +357,7 @@ export {
   getEmployee,
   updateEmployee,
   fetchEmployeesByDepId,
+  fetchEmployeesByUserId,
   getDepartmentByUserId,
   fetchUsersGroupedByRoleInDepartment,
   fetchUsersGroupedByDesignationInDepartment,

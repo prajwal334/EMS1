@@ -47,32 +47,32 @@ const Add = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const formDataObj = new FormData();
-  
+
     // Append all fields except 'designation'
     for (const key in formData) {
       if (key !== "designation") {
         formDataObj.append(key, formData[key]);
       }
     }
-  
+
     // Convert sub-department _id to its name for the 'designation' field
     const selectedSubDep = subDepartments.find(
       (subDep) => subDep._id === formData.designation
     );
-  
+
     if (selectedSubDep) {
       formDataObj.append("designation", selectedSubDep.name);
     } else {
       formDataObj.append("designation", formData.designation);
     }
-  
+
     // Append image if available
     if (imageFile) {
       formDataObj.append("image", imageFile);
     }
-  
+
     try {
       const response = await axios.post(
         "http://localhost:3000/api/employee/add",
@@ -84,7 +84,7 @@ const Add = () => {
           },
         }
       );
-  
+
       if (response.data.success) {
         navigate("/admin-dashboard/employees");
       }
@@ -93,7 +93,6 @@ const Add = () => {
       alert(error?.response?.data?.error || "Server error");
     }
   };
-  
 
   return (
     <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">

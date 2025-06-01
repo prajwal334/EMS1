@@ -19,7 +19,13 @@ const upload = multer({
 // Create a new team
 const createTeam = async (req, res) => {
   try {
-    const { team_name, departmentId, leaderUserId, memberUserIds } = req.body;
+    const {
+      team_name,
+      departmentId,
+      designation,
+      leaderUserId,
+      memberUserIds,
+    } = req.body;
 
     const team_dp = req.file?.path || null;
 
@@ -27,6 +33,7 @@ const createTeam = async (req, res) => {
       team_name,
       team_dp,
       departmentId,
+      designation,
       leaderUserId,
       memberUserIds,
     });
@@ -54,6 +61,7 @@ const getAllTeams = async (req, res) => {
       team_name: team.team_name,
       team_dp: team.team_dp,
       department: team.departmentId,
+      designation: team.designation,
       leaderUserId: team.leaderUserId,
       memberUserIds: team.memberUserIds,
     }));
@@ -87,6 +95,7 @@ const getTeamById = async (req, res) => {
         team_name: team.team_name,
         team_dp: team.team_dp,
         department: team.departmentId,
+        designation: team.designation,
         leaderUserId: team.leaderUserId,
         memberUserIds: team.memberUserIds,
       },
@@ -119,22 +128,49 @@ const deleteTeam = async (req, res) => {
   }
 };
 
+// Get teams by user ID
 const getTeamsByUserId = async (req, res) => {
   const { userId } = req.params;
 
   try {
     const teams = await Team.find({
-      memberUserIds: userId, // Mongoose can match ObjectId as string
-    }).populate("departmentId leaderUserId memberUserIds");
+      memberUserIds: userId,
+    })
+      .populate("departmentId", "dep_name")
+      .populate("leaderUserId", "name")
+      .populate("memberUserIds", "name");
 
-    res.json({ teams });
+    const formatted = teams.map((team) => ({
+      _id: team._id,
+      team_name: team.team_name,
+      team_dp: team.team_dp,
+      department: team.departmentId,
+      designation: team.designation,
+      leaderUserId: team.leaderUserId,
+      memberUserIds: team.memberUserIds,
+    }));
+
+    res.status(200).json({ success: true, teams: formatted });
   } catch (error) {
     console.error("Error fetching teams for user:", error);
     res.status(500).json({ error: "Failed to fetch teams" });
   }
 };
 
+//getTeamsByDesignation
+const getTeamsByDesignation = async (req, res) => {
+  const { designation } = req.params;
+  try {
+    const teams = await Team.find({ designation: designation })
+      .populate("leaderUserId", "name")
+      .populate("memberUserIds", "name");
 
+    res.json({ teams });
+  } catch (error) {
+    console.error("Error fetching teams by designation:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
 export {
   upload,
@@ -143,5 +179,5 @@ export {
   deleteTeam,
   getTeamById,
   getTeamsByUserId,
-  
+  getTeamsByDesignation,
 };

@@ -6,93 +6,99 @@ const AddTeam = () => {
   const [team, setTeam] = useState({
     team_name: "",
     departmentId: "",
-    designationId: "",
+    designation: "",
     leaderUserId: "",
     memberUserIds: [],
     team_dp: null,
   });
 
   const [departments, setDepartments] = useState([]);
-  const [employees, setEmployees] = useState([]);
-  const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [subdepartments, setSubdepartments] = useState([]);
+  const [leaders, setLeaders] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDepartments = async () => {
       try {
-        const [deptRes, empRes] = await Promise.all([
-          axios.get("http://localhost:3000/api/department", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
-          axios.get("http://localhost:3000/api/employee", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
-        ]);
-
-        setDepartments(deptRes.data.departments || []);
-        setEmployees(empRes.data.employees || []);
+        const res = await axios.get("http://localhost:3000/api/department", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setDepartments(res.data.departments || []);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching departments:", error);
       }
     };
-    fetchData();
+    fetchDepartments();
   }, []);
 
   useEffect(() => {
-    if (team.departmentId) {
-      const filtered = employees
-        .filter(
-          (emp) => String(emp.department?._id) === String(team.departmentId)
-        )
-        .sort((a, b) => a.userId.name.localeCompare(b.userId.name));
+    const fetchRelatedData = async () => {
+      if (!team.departmentId) {
+        setSubdepartments([]);
+        setLeaders([]);
+        setMembers([]);
+        return;
+      }
 
-      setFilteredEmployees(filtered);
+      const headers = {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      };
 
-      // Fetch subdepartments (designations)
-      axios
-        .get(
+      try {
+        const subRes = await axios.get(
           `http://localhost:3000/api/department/${team.departmentId}/subdepartments`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        )
-        .then((res) => {
-          setSubdepartments(res.data.subdepartments || []);
-        })
-        .catch((err) => {
-          console.error("Failed to fetch subdepartments:", err);
-          setSubdepartments([]);
-        });
-    } else {
-      setFilteredEmployees([]);
-      setSubdepartments([]);
-    }
+          { headers }
+        );
+        setSubdepartments(subRes.data.subDepartments || []);
 
-    setTeam((prev) => ({
-      ...prev,
-      leaderUserId: "",
-      memberUserIds: [],
-      designationId: "",
-    }));
-  }, [team.departmentId, employees]);
+        const [leaderRes, employeeRes] = await Promise.all([
+          axios.get(
+            `http://localhost:3000/api/employee/users/designations/${team.departmentId}?role=leader`,
+            { headers }
+          ),
+          axios.get(
+            `http://localhost:3000/api/employee/users/designations/${team.departmentId}?role=employee`,
+            { headers }
+          ),
+        ]);
+
+        const flattenUsers = (userMap) => Object.values(userMap || {}).flat();
+        setLeaders(flattenUsers(leaderRes.data.designations));
+        setMembers(flattenUsers(employeeRes.data.designations));
+      } catch (error) {
+        console.error("Error fetching related data:", error);
+        setSubdepartments([]);
+        setLeaders([]);
+        setMembers([]);
+      }
+
+      setTeam((prev) => ({
+        ...prev,
+        leaderUserId: "",
+        memberUserIds: [],
+        designation: "",
+      }));
+    };
+
+    fetchRelatedData();
+  }, [team.departmentId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setTeam({ ...team, [name]: value });
+    setTeam((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e) => {
-    setTeam({ ...team, team_dp: e.target.files[0] });
+    const file = e.target.files[0];
+    setTeam((prev) => ({ ...prev, team_dp: file }));
+    setPreviewImage(file ? URL.createObjectURL(file) : null);
   };
 
   const handleMemberSelect = (e) => {
@@ -121,12 +127,19 @@ const AddTeam = () => {
       const formData = new FormData();
       formData.append("team_name", team.team_name);
       formData.append("departmentId", team.departmentId);
-      formData.append("designationId", team.designationId);
+
+      // Convert designation ID to name
+      const selectedDesignation = subdepartments.find(
+        (sub) => sub._id === team.designation
+      );
+      const designationName = selectedDesignation
+        ? selectedDesignation.name
+        : team.designation;
+      formData.append("designation", designationName);
+
       formData.append("leaderUserId", team.leaderUserId);
       team.memberUserIds.forEach((id) => formData.append("memberUserIds", id));
-      if (team.team_dp) {
-        formData.append("team_dp", team.team_dp);
-      }
+      if (team.team_dp) formData.append("team_dp", team.team_dp);
 
       const res = await axios.post(
         "http://localhost:3000/api/team/add",
@@ -160,23 +173,25 @@ const AddTeam = () => {
       <h2 className="text-2xl font-bold mb-6">Add Team</h2>
 
       {errorMessage && (
-        <div className="mb-4 text-red-600 bg-red-100 border border-red-300 p-3 rounded">
+        <div className="mb-4 text-red-700 bg-red-100 border border-red-300 p-3 rounded">
           {errorMessage}
         </div>
       )}
 
       {successMessage && (
-        <div className="mb-4 text-green-600 bg-green-100 border border-green-300 p-3 rounded">
+        <div className="mb-4 text-green-700 bg-green-100 border border-green-300 p-3 rounded">
           {successMessage}
         </div>
       )}
 
       <form onSubmit={handleSubmit}>
+        {/* Team Name */}
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">Team Name</label>
           <input
             type="text"
             name="team_name"
+            value={team.team_name}
             onChange={handleChange}
             placeholder="Enter Team Name"
             className="mt-1 w-full p-2 border border-gray-300 rounded-md"
@@ -184,6 +199,7 @@ const AddTeam = () => {
           />
         </div>
 
+        {/* Team Image */}
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">
             Team Image
@@ -194,8 +210,16 @@ const AddTeam = () => {
             onChange={handleFileChange}
             className="mt-1 w-full p-2 border border-gray-300 rounded-md"
           />
+          {previewImage && (
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="mt-2 h-20 w-20 object-cover rounded"
+            />
+          )}
         </div>
 
+        {/* Department */}
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">
             Department
@@ -216,15 +240,17 @@ const AddTeam = () => {
           </select>
         </div>
 
+        {/* Subdepartment/Designation */}
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">
-            Designation
+            Sub-department (Designation)
           </label>
           <select
-            name="designationId"
+            name="designation"
             onChange={handleChange}
-            value={team.designationId}
+            value={team.designation}
             className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+            required
           >
             <option value="">Select Designation</option>
             {subdepartments.map((sub) => (
@@ -235,6 +261,7 @@ const AddTeam = () => {
           </select>
         </div>
 
+        {/* Team Leader */}
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">
             Team Leader
@@ -247,20 +274,20 @@ const AddTeam = () => {
             required
           >
             <option value="">Select Leader</option>
-            {filteredEmployees.map((emp) => (
-              <option key={emp.userId._id} value={emp.userId._id}>
-                {emp.userId.name}
+            {leaders.map((emp) => (
+              <option key={emp._id} value={emp._id}>
+                {emp.name}
               </option>
             ))}
           </select>
         </div>
 
+        {/* Members */}
         <div className="mb-6">
           <label className="text-sm font-medium text-gray-700">
             Team Members
           </label>
           <select
-            name="memberUserIds"
             onChange={handleMemberSelect}
             value=""
             className="mt-1 w-full p-2 border border-gray-300 rounded-md"
@@ -268,30 +295,28 @@ const AddTeam = () => {
             <option value="" disabled>
               Select a member to add
             </option>
-            {filteredEmployees
-              .filter((emp) => !team.memberUserIds.includes(emp.userId._id))
+            {members
+              .filter((emp) => !team.memberUserIds.includes(emp._id))
               .map((emp) => (
-                <option key={emp.userId._id} value={emp.userId._id}>
-                  {emp.userId.name}
+                <option key={emp._id} value={emp._id}>
+                  {emp.name}
                 </option>
               ))}
           </select>
 
           <div className="flex flex-wrap gap-2 mt-2">
             {team.memberUserIds.map((id) => {
-              const member = filteredEmployees.find(
-                (emp) => emp.userId._id === id
-              );
+              const member = members.find((emp) => emp._id === id);
               return (
                 <span
                   key={id}
                   className="flex items-center bg-teal-100 text-teal-800 text-sm px-2 py-1 rounded-full"
                 >
-                  ✔ {member?.userId.name}
+                  ✔ {member?.name}
                   <button
                     type="button"
                     onClick={() => handleRemoveMember(id)}
-                    className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold"
+                    className="ml-2 text-red-500 hover:text-red-700 font-bold"
                     title="Remove Member"
                   >
                     ×
