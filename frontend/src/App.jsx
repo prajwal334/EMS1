@@ -12,7 +12,7 @@ import RoleBaseRoutes from "./utils/RoleBaseRoutes";
 // Dashboard components
 import AdminSummary from "./components/dashboard/AdminSummary";
 import HrSummary from "./components/HrDashboard/HrSummary";
-import EmployeeSummary from "./components/EmployeeDashboard/EmployeeDashboard";
+import EmployeeSummary from "./pages/EmployeeNavDashboard";
 
 // Admin Department
 import DepartmentList from "./components/department/DepartmentList";
@@ -36,7 +36,7 @@ import DeleteDepartment1 from "./components/HrDepartment/DeleteDepartement";
 // Employee
 import List from "./components/employee/List";
 import Add from "./components/employee/Add";
-import View from "./components/employee/View";
+import View from "./pages/EmployeeProfile";
 import Edit from "./components/employee/Edit";
 import HrList from "./components/employee/HrList";
 
