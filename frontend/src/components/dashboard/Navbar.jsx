@@ -15,20 +15,7 @@ const Navbar = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await fetch("http://localhost:3000/api/auth/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
+ 
 
   const dashboardTitle =
     user?.role === "admin"
@@ -59,13 +46,7 @@ const Navbar = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded text-sm font-medium"
-        >
-          <FaSignOutAlt />
-          Logout
-        </button>
+        
       </div>
     </header>
   );

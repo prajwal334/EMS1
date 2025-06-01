@@ -176,40 +176,9 @@ const AttendanceSummary = ({ userId }) => {
   return (
     <div className="w-full h-full min-h-screen px-3 sm:px-4 bg-gray-100">
       <div className="max-w-[100%] mx-auto">
-        <h3 className="text-xl sm:text-2xl font-bold mb-6">
-          Attendance Summary
-        </h3>
-
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 justify-center mb-6">
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="p-2 border rounded-md shadow-sm"
-          >
-            {[2025, 2024, 2023, 2022].map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="p-2 border rounded-md shadow-sm"
-          >
-            <option value="">All Months</option>
-            {monthNames.map((month, i) => (
-              <option key={i + 1} value={i + 1}>
-                {month}
-              </option>
-            ))}
-          </select>
-        </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-16">
           <SummaryCard
             icon={<FaCheckCircle />}
             text="Present Days"
@@ -242,12 +211,39 @@ const AttendanceSummary = ({ userId }) => {
           />
         </div>
 
+        
+        {/* Filters */}
+        <div className="flex flex-wrap gap-4 justify-center mb-2">
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+            className="p-2 border rounded-md shadow-sm"
+          >
+            {[2025, 2024, 2023, 2022].map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="p-2 border rounded-md shadow-sm"
+          >
+            <option value="">All Months</option>
+            {monthNames.map((month, i) => (
+              <option key={i + 1} value={i + 1}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Doughnut Chart */}
-        <h3 className="text-xl sm:text-2xl font-bold mt-12 mb-4">
-          Attendance Distribution
-        </h3>
-        <div className="bg-white rounded-lg p-4 shadow-md w-full flex flex-col items-center gap-6">
-          <div className="w-full max-w-md h-[350px]">
+       
+        <div className="bg-white rounded-lg p-6 shadow-md w-full h-[480px] flex flex-col items-center gap-12">
+          <div className="w-full max-w-md h-[410px]">
             <Doughnut
               data={{
                 labels: chartLabels,

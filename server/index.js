@@ -1,7 +1,10 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import http from "http";
+import { Server } from "socket.io";
 import connectToDatabase from "./db/db.js";
+import GroupMessage from "./models/GroupMessage.js"; // ✅ import model
 
 // Import routers
 import authRouter from "./routes/auth.js";
@@ -17,6 +20,12 @@ import loginHistoryRoutes from "./routes/loginhistory.js";
 import dashboardRouter from "./routes/dashboard.js";
 import attendanceRoutes from "./routes/attendance.js";
 import taskRoutes from "./routes/task.js";
+import adminRouter from "./routes/admin.js";
+import groupRouter from "./routes/groupChat.js";
+import groupMessageRouter from "./routes/groupMessage.js"; // ✅ Add this route
+import directChatRoutes from "./routes/directChat.js";
+import directMessageRoutes from "./routes/directMessage.js";
+
 
 // Load environment variables
 dotenv.config();
@@ -24,15 +33,24 @@ dotenv.config();
 // Connect to MongoDB
 connectToDatabase();
 
-// Initialize Express app
+// Initialize Express
 const app = express();
+const server = http.createServer(app);
 
-// Middleware
+// Setup Socket.io
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Or set your frontend URL here
+    methods: ["GET", "POST"],
+  },
+});
+
+// Setup Middleware
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("public/uploads"));
 
-// Routes
+// Use Routes
 app.use("/api/auth", authRouter);
 app.use("/api/department", departmentRouter);
 app.use("/api/employee", employeeRouter);
@@ -45,10 +63,70 @@ app.use("/api/summary", summaryRoutes);
 app.use("/api/pf", pfRouter);
 app.use("/api/login-history", loginHistoryRoutes);
 app.use("/api/attendance", attendanceRoutes);
+
 app.use("/api/task", taskRoutes);
 
-// Start the server
+app.use("/api/admin", adminRouter);
+app.use("/api/group", groupRouter);
+app.use("/api/messages", groupMessageRouter); // ✅ Mount route
+app.use("/uploads", express.static("public/uploads"));
+app.use("/api/direct-chats", directChatRoutes);
+app.use("/api/direct-messages", directMessageRoutes);
+
+
+// ✅ Socket.io Logic
+io.on("connection", (socket) => {
+  console.log("🟢 Socket connected:", socket.id);
+
+  // ✅ JOIN GROUP
+  socket.on("joinGroup", (groupId) => {
+    socket.join(groupId);
+    console.log(`Socket ${socket.id} joined group ${groupId}`);
+  });
+
+  // ✅ LEAVE GROUP (optional but good)
+  socket.on("leaveGroup", (groupId) => {
+    socket.leave(groupId);
+    console.log(`Socket ${socket.id} left group ${groupId}`);
+  });
+
+  // ✅ SEND MESSAGE
+  socket.on("sendMessage", async ({ groupId, message, sender }) => {
+    try {
+      const savedMessage = await GroupMessage.create({
+        groupId,
+        message,
+        sender,
+      });
+
+      const populatedMessage = await savedMessage.populate("sender", "name");
+      io.to(groupId).emit("receiveMessage", populatedMessage);
+    } catch (error) {
+      console.error("Socket message error:", error.message);
+    }
+  });
+
+  // User starts typing
+socket.on("typing", ({ groupId, user }) => {
+  socket.to(groupId).emit("typing", { user });
+});
+
+// User stops typing
+socket.on("stopTyping", ({ groupId }) => {
+  socket.to(groupId).emit("stopTyping");
+});
+
+
+  // ✅ Disconnect
+  socket.on("disconnect", () => {
+    console.log("🔴 Socket disconnected:", socket.id);
+  });
+});
+
+
+
+// Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });

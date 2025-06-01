@@ -80,6 +80,12 @@ const employeeSchema = new Schema({
   gender: {
     type: String,
   },
+  nationality: {
+    type: String,
+  },
+  hire: {
+    type: String,
+  },
   maritalStatus: {
     type: String,
   },

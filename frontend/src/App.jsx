@@ -3,6 +3,8 @@ import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboad";
 import EmployeeDashboard from "./pages/EmployeeDashboad";
 import HrDashboard from "./pages/HrDashboard";
+import SetNewPassword from "./pages/SetNewPassword";
+import AdminResetPassword from "./pages/EmployeePassword";
 
 import PrivateRoutes from "./utils/PrivateRoutes";
 import RoleBaseRoutes from "./utils/RoleBaseRoutes";
@@ -10,12 +12,21 @@ import RoleBaseRoutes from "./utils/RoleBaseRoutes";
 // Dashboard components
 import AdminSummary from "./components/dashboard/AdminSummary";
 import HrSummary from "./components/HrDashboard/HrSummary";
-import EmployeeSummary from "./components/EmployeeDashboard/EmployeeDashboard";
+import EmployeeSummary from "./pages/EmployeeNavDashboard";
 
 // Admin Department
 import DepartmentList from "./components/department/DepartmentList";
 import AddDepartment from "./components/department/AddDepartment";
 import DeleteDepartment from "./components/department/DeleteDepartment";
+
+// Chat
+import ChatLayout from "./pages/ChatLayout";
+import ChatRoom from "./components/groupChat/ChatRoom";
+import SettingChat from "./components/groupChat/Setting";
+import HomePlaceholder from "./pages/HomePlaceholder";
+import DirectChat from "./components/groupChat/DirectChat";
+import NewChat from "./pages/NewChat";
+import AddGroup from "./components/groupChat/AddGroup";
 
 // HR Department
 import DepartmentList1 from "./components/HrDepartment/DepartmentList";
@@ -25,7 +36,7 @@ import DeleteDepartment1 from "./components/HrDepartment/DeleteDepartement";
 // Employee
 import List from "./components/employee/List";
 import Add from "./components/employee/Add";
-import View from "./components/employee/View";
+import View from "./pages/EmployeeProfile";
 import Edit from "./components/employee/Edit";
 import HrList from "./components/employee/HrList";
 
@@ -75,6 +86,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/set-new-password" element={<SetNewPassword />} />
 
         {/* Admin Dashboard */}
         <Route
@@ -106,7 +118,7 @@ function App() {
           <Route path="salary/add" element={<AddSalary />} />
 
           <Route path="settings" element={<Setting />} />
-
+          <Route path="adminResetPassword" element={<AdminResetPassword />} />
           <Route path="leaves" element={<Leavetable />} />
           <Route path="leaves/:id" element={<LeaveDetail />} />
           <Route path="employees/leaves/:id" element={<LeaveList />} />
@@ -120,6 +132,18 @@ function App() {
           <Route path="tasks" element={<DptTaskList />} />
           <Route path="tasks/department/:id" element={<RoleList />} />
           <Route path="tasks/subDepartment/:id" element={<TaskList />} />
+
+          {/* ✅ Group & Direct Chat under "groups" route */}
+          <Route path="groups" element={<ChatLayout />}>
+            <Route index element={<HomePlaceholder />} />
+            <Route path="setting" element={<SettingChat />} />
+            <Route path="addgroup" element={<AddGroup />} />
+            <Route path="new-chat" element={<NewChat />} />
+            <Route path="direct/:id" element={<DirectChat />} />
+            <Route path=":id" element={<ChatRoom />} />
+          </Route>
+
+          {/* ✅ Optional: allow direct chat at /admin-dashboard/direct/:id */}
         </Route>
 
         {/* HR Dashboard */}
@@ -172,8 +196,19 @@ function App() {
           <Route path="teams/user/:UseId" element={<EmTeam />} />
           <Route path="teams/team/:id" element={<EmView />} />
 
+
           <Route path="task/user/:userId" element={<EmDepartmentView />} />
           <Route path="tasks/department/:id" element={<EmTasklist />} />
+
+          <Route path="groups/:id" element={<ChatLayout />}>
+            <Route index element={<HomePlaceholder />} />
+            <Route path="setting" element={<SettingChat />} />
+            <Route path="addgroup" element={<AddGroup />} />
+            <Route path="new-chat" element={<NewChat />} />
+            <Route path="direct/:id" element={<DirectChat />} />
+            <Route path=":id" element={<ChatRoom />} />
+          </Route>
+
         </Route>
       </Routes>
     </BrowserRouter>

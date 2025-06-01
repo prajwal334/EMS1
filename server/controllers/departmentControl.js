@@ -92,6 +92,11 @@ const getSubDepartments = async (req, res) => {
 const getDepartmentById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid Department ID" });
+    }
+
     const department = await Department.findById(id);
 
     if (!department) {

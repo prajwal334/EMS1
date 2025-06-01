@@ -269,6 +269,26 @@ const Add = () => {
             />
           </div>
 
+          {/*NATIONALITY Field*/}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              NATIONALITY
+            </label>
+            <select
+              name="nationality"
+              onChange={handleChange}
+              placeholder="Select"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            >
+              <option value="">Select Nationality </option>
+              <option value="indian">Indian</option>
+              <option value="nepal">Nepal</option>
+              <option value="bhutan">Bhutan</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
           {/* Gender */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -363,6 +383,25 @@ const Add = () => {
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
+          </div>
+
+          {/*Type of Hire Field*/}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Type of Hire
+            </label>
+            <select
+              name="hire"
+              onChange={handleChange}
+              placeholder="Select Hire Type"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            >
+              <option value="">Select Type of Hire </option>
+              <option value="fullTime">Full Time</option>
+              <option value="Internship">Internship</option>
+              <option value="provision">Provision</option>
+            </select>
           </div>
 
           <div>
@@ -498,6 +537,7 @@ const Add = () => {
               <option value="admin">Admin</option>
               <option value="employee">Employee</option>
               <option value="hr">HR</option>
+              <option value="leader">Team Leader</option>
               <option value="manager">Manager</option>
               <option value="leader">Leader</option>
             </select>

@@ -8,7 +8,6 @@ const EmployeeDashboard = () => {
          <div className='flex'>
       <EmployeeSideBar />
       <div className='flex-1 ml-64 bg-gray-100 h-screen'>
-        <Navbar />
         <Outlet />
       </div>
     </div>

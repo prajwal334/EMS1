@@ -1,0 +1,425 @@
+import React, { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import { useSocket } from "../../context/SocketContext";
+import { useAuth } from "../../context/authContext";
+import EmojiPicker from "emoji-picker-react";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { FiSend, FiPaperclip } from "react-icons/fi";
+
+const ChatRoom = () => {
+  const { id } = useParams();
+  const { user } = useAuth();
+  const socket = useSocket();
+
+  const [group, setGroup] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [message, setMessage] = useState("");
+  const [file, setFile] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
+  const [editingMsgId, setEditingMsgId] = useState(null);
+  const [editedText, setEditedText] = useState("");
+  const [activeMessageId, setActiveMessageId] = useState(null);
+  const [forwardModalMsg, setForwardModalMsg] = useState(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(null);
+
+  const scrollRef = useRef();
+
+  useEffect(() => {
+    const fetchChat = async () => {
+      const token = localStorage.getItem("token");
+
+      const groupRes = await axios.get(`http://localhost:3000/api/group/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (groupRes.data.success) setGroup(groupRes.data.group);
+
+      const msgRes = await axios.get(`http://localhost:3000/api/messages/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (msgRes.data.success) setMessages(msgRes.data.messages);
+
+      const groupsRes = await axios.get("http://localhost:3000/api/group", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (groupsRes.data.success) setGroups(groupsRes.data.groups);
+    };
+    fetchChat();
+  }, [id]);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.emit("join-group", id);
+    socket.on("receive-message", (msg) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+    socket.on("receive-reaction", (data) => {
+      const { messageId, emoji, userId } = data;
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg._id === messageId) {
+            const exists = msg.reactions?.find((r) => r.userId === userId && r.emoji === emoji);
+            if (exists) return msg;
+            return {
+              ...msg,
+              reactions: [...(msg.reactions || []), { emoji, userId }],
+            };
+          }
+          return msg;
+        })
+      );
+    });
+    return () => {
+      socket.emit("leave-group", id);
+      socket.off("receive-message");
+      socket.off("receive-reaction");
+    };
+  }, [socket, id]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const getFileURL = (filePath) => {
+    if (!filePath) return "https://via.placeholder.com/100";
+    const cleanedPath = filePath.replace(/^public[\\/]/, "").replace(/\\/g, "/");
+    return `http://localhost:3000/${cleanedPath}`;
+  };
+
+  const handleSend = async () => {
+    if (!message.trim() && !file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("groupId", id);
+      formData.append("message", message);
+      if (file) formData.append("file", file);
+
+      const res = await axios.post("http://localhost:3000/api/messages", formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (res.data.success) {
+        socket.emit("send-message", res.data.message);
+        setMessages((prev) => [...prev, res.data.message]);
+      }
+
+      setMessage("");
+      setFile(null);
+    } catch (err) {
+      console.error("Send error", err);
+    }
+  };
+
+  const handleEdit = (msg) => {
+    setEditingMsgId(msg._id);
+    setEditedText(msg.message);
+  };
+
+  const saveEditedMessage = async () => {
+    try {
+      const res = await axios.put(
+        `http://localhost:3000/api/messages/${editingMsgId}`,
+        { message: editedText },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg._id === editingMsgId ? { ...msg, message: editedText } : msg
+          )
+        );
+        setEditingMsgId(null);
+        setEditedText("");
+      }
+    } catch (err) {
+      console.error("Edit error", err);
+    }
+  };
+
+  const handleDelete = async (msgId) => {
+    if (!window.confirm("Are you sure you want to delete this message?")) return;
+    try {
+      const res = await axios.delete(`http://localhost:3000/api/messages/${msgId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (res.data.success) {
+        setMessages((prev) => prev.filter((msg) => msg._id !== msgId));
+      }
+    } catch (err) {
+      console.error("Delete error", err);
+    }
+  };
+
+  const handleForward = async (targetGroupId, msg) => {
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/api/messages/forward",
+        {
+          messageId: msg._id,
+          toGroupId: targetGroupId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (res.data.success) {
+        socket.emit("send-message", res.data.message);
+        setForwardModalMsg(null);
+      }
+    } catch (err) {
+      console.error("Forward error", err);
+    }
+  };
+
+  const handleReaction = (emoji, messageId) => {
+    socket.emit("send-reaction", {
+      messageId,
+      emoji,
+      userId: user._id,
+    });
+    setShowReactionPicker(null);
+  };
+
+  return (
+    <div className="h-screen flex flex-col bg-gray-100">
+      {/* Header */}
+      <div className="bg-white flex items-center justify-between px-4 py-2 shadow-md">
+        <div className="flex items-center gap-3">
+          <img
+            src={group?.group_dp ? getFileURL(group.group_dp) : "https://via.placeholder.com/100"}
+            className="w-10 h-10 rounded-full object-cover"
+            alt="group"
+          />
+          <h2 className="text-lg font-semibold">{group?.group_name}</h2>
+        </div>
+        <div className="relative">
+          <BsThreeDotsVertical
+            className="text-xl cursor-pointer"
+            onClick={() => setShowMembers(!showMembers)}
+          />
+          {showMembers && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border shadow-lg rounded z-50 p-2">
+              <h4 className="font-semibold text-sm mb-1">Group Members</h4>
+              <ul className="text-sm text-gray-800 space-y-1 max-h-40 overflow-y-auto">
+                {group?.members?.map((m) => (
+                  <li key={m._id}>👤 {m.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 p-4 overflow-y-auto">
+        {messages.map((msg) => {
+          const isOwn = msg.sender._id === user._id;
+          const canEdit = isOwn || user.role === "admin";
+          return (
+            <div
+              key={msg._id}
+              className={`mb-3 flex ${isOwn ? "justify-end" : "justify-start"} relative`}
+              onClick={() => setActiveMessageId(msg._id === activeMessageId ? null : msg._id)}
+            >
+              <div className="max-w-xs bg-white rounded-xl p-3 shadow relative">
+                {editingMsgId === msg._id ? (
+                  <div className="flex flex-col gap-1">
+                    <input
+                      type="text"
+                      value={editedText}
+                      onChange={(e) => setEditedText(e.target.value)}
+                      className="border px-2 py-1 rounded text-sm"
+                    />
+                    <div className="flex gap-2 text-xs text-right">
+                      <button
+                        onClick={saveEditedMessage}
+                        className="text-green-600 hover:underline"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingMsgId(null)}
+                        className="text-gray-500 hover:underline"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-800 break-words">{msg.message}</div>
+                )}
+
+                {msg.file && (
+                  <div className="mt-2">
+                    {msg.file.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                      <img
+                        src={getFileURL(msg.file)}
+                        alt="attachment"
+                        className="rounded max-h-48"
+                      />
+                    ) : (
+                      <a
+                        href={getFileURL(msg.file)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        📎 Download file
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Reactions */}
+                {msg.reactions && msg.reactions.length > 0 && (
+                  <div className="text-xs mt-2 flex flex-wrap gap-1">
+                    {msg.reactions.map((r, index) => (
+                      <span key={index} className="bg-gray-200 px-1.5 py-0.5 rounded-full">
+                        {r.emoji}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="text-xs text-right text-gray-500 mt-1 flex items-center gap-1">
+                  {formatTime(msg.createdAt)}
+                  {isOwn && (
+                    <>
+                      {msg.isRead ? (
+                        <span className="text-blue-500">✔✔</span>
+                      ) : msg.isDelivered ? (
+                        <span>✔✔</span>
+                      ) : (
+                        <span>✔</span>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {activeMessageId === msg._id && (
+                  <div className="mt-2 flex gap-3 text-xs bg-gray-100 p-1 rounded shadow-inner">
+                    {canEdit && (
+                      <>
+                        <button onClick={() => handleEdit(msg)} className="text-blue-600 hover:underline">Edit</button>
+                        <button onClick={() => handleDelete(msg._id)} className="text-red-500 hover:underline">Delete</button>
+                      </>
+                    )}
+                    <button onClick={() => alert("Reply not implemented")} className="text-yellow-600 hover:underline">Reply</button>
+                    <button onClick={() => setForwardModalMsg(msg)} className="text-green-600 hover:underline">Forward</button>
+                    <button onClick={() => setShowReactionPicker(msg._id)} className="text-pink-600 hover:underline">😊</button>
+                  </div>
+                )}
+
+                {showReactionPicker === msg._id && (
+                  <div className="absolute left-0 bottom-full z-50">
+                    <EmojiPicker
+                      onEmojiClick={(e) => handleReaction(e.emoji, msg._id)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        <div ref={scrollRef}></div>
+      </div>
+
+      {/* Forward Modal */}
+      {forwardModalMsg && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+          <div className="bg-white p-4 rounded shadow-md w-80">
+            <h3 className="font-semibold text-lg mb-2">Forward to Group</h3>
+            <ul className="space-y-2 max-h-48 overflow-y-auto">
+              {groups
+                .filter((g) => g._id !== id)
+                .map((g) => (
+                  <li
+                    key={g._id}
+                    onClick={() => handleForward(g._id, forwardModalMsg)}
+                    className="cursor-pointer hover:bg-gray-100 p-2 rounded"
+                  >
+                    📤 {g.group_name}
+                  </li>
+                ))}
+            </ul>
+            <button
+              onClick={() => setForwardModalMsg(null)}
+              className="mt-4 text-sm text-gray-600 hover:underline"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* File Preview */}
+      {file && (
+        <div className="px-4 pb-2 relative">
+          {file.type.startsWith("image/") ? (
+            <img src={URL.createObjectURL(file)} alt="preview" className="w-32 h-auto rounded" />
+          ) : (
+            <div className="text-sm text-gray-700 bg-gray-200 px-3 py-1 rounded inline-block">
+              📎 {file.name}
+            </div>
+          )}
+          <button
+            onClick={() => setFile(null)}
+            className="absolute top-0 right-4 text-red-500 hover:text-red-700 text-xl"
+            title="Remove File"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Input */}
+      <div className="bg-white px-4 py-3 flex items-center gap-2 border-t relative">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            placeholder="Type a message"
+            className="w-full pl-10 pr-20 py-2 border rounded-full focus:outline-none"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          />
+          <label htmlFor="file" className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500">
+            <FiPaperclip />
+          </label>
+          <input id="file" type="file" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
+          <button onClick={() => setShowEmojiPicker((prev) => !prev)} className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-500">
+            😊
+          </button>
+          {showEmojiPicker && (
+            <div className="absolute bottom-14 left-0 z-50">
+              <EmojiPicker onEmojiClick={(e) => setMessage((prev) => prev + e.emoji)} />
+            </div>
+          )}
+        </div>
+        <button onClick={handleSend} className="text-white bg-blue-600 rounded-full p-2 hover:bg-blue-700">
+          <FiSend className="text-lg" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ChatRoom;

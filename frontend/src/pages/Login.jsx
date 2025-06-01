@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import axios from "axios";
-import Logo from "../assets/HRLOGO.png";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+
+// ✅ Import assets
+import Logo from "../assets/images/Logo.png";
+import Illustration from "../assets/images/imagelog.png";
+import TopRightShape from "../assets/images/Tpimg.png";
+import BottomLeftShape from "../assets/images/Bottomimg.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,27 +19,23 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
-        {
-          email,
-          password,
-        }
-      );
+      const response = await axios.post("http://localhost:3000/api/auth/login", {
+        email,
+        password,
+      });
 
       if (response.data.success) {
-        // Save token and user
-        localStorage.setItem("token", response.data.token);
-        login(response.data.user);
+        const user = response.data.user;
+        const token = response.data.token;
 
-        // Role-based redirection
-        const role = response.data.user.role;
-        if (role === "admin") {
-          navigate("/admin-dashboard");
-        } else if (role === "hr") {
-          navigate("/hr-dashboard");
-        } else if (role === "employee") {
-          navigate("/employee-dashboard");
+        localStorage.setItem("token", token);
+        login(user);
+
+        if (user.role === "admin") navigate("/admin-dashboard");
+        else if (user.role === "hr") navigate("/hr-dashboard");
+        else if (user.role === "employee") {
+          if (user.firstLogin) navigate("/set-new-password");
+          else navigate("/employee-dashboard");
         } else {
           setError("Unauthorized role. Please contact support.");
         }
@@ -49,60 +50,80 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center h-screen justify-center bg-gradient-to-b from-blue-500 from-50% to-blue-100 to-50% text-white space-y-4">
-      <img src={Logo} alt="Logo" className="w-52 h-52" />
-      <div className="border shadow p-6 w-80 bg-white text-black rounded-lg">
-        <h2 className="text-center text-2xl font-bold mb-4">Login</h2>
-        {error && <p className="text-red-500 text-center">{error}</p>}
-        <p className="text-center text-sm">Please enter your credentials</p>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-gray-700">
-              Email
-            </label>
+    <div className="relative h-screen w-screen bg-white overflow-hidden flex flex-col items-center justify-start">
+      {/* Logo */}
+      <div className="flex items-center justify-center gap-3 py-6 px-4">
+              <img src={Logo} alt="Logo" className="w-16 h-16 object-contain" />
+              <h1 className="text-xl font-bold tracking-wide text-blue-950">
+                Navikshaa Technologies LLP
+              </h1>
+            </div>
+
+      {/* Decorative background shapes */}
+<img
+ src={BottomLeftShape}
+  alt=""
+  className="absolute top-[40px] right-[-20px] w-[300px] z-0"
+/>      <img   src={TopRightShape}
+ alt="" className="absolute bottom-[5px] left-[-10px] w-72 z-0" />
+
+      {/* Login Box */}
+      <div className="relative z-10 flex rounded-lg overflow-hidden max-w-7xl w-full min-h-[520px] shadow-[0_0_60px_rgba(59,130,246,0.7)] bg-white  ">
+        
+        {/* "Welc" on Left */}
+        <div className="absolute left-[50%] top-4 transform -translate-x-full text-blue-800 text-4xl font-bold z-20">
+          Welc
+        </div>
+
+        {/* "ome!" on Right */}
+        <div className="absolute left-[50%] top-4 text-white text-4xl font-bold z-20">
+          ome!
+        </div>
+
+        {/* Left Panel: Illustration */}
+        <div className="w-1/2 bg-white flex items-center justify-center p-6">
+          <img src={Illustration} alt="Login Illustration" className="max-h-[400px]" />
+        </div>
+
+        {/* Right Panel: Login Form */}
+        <div className="w-1/2 bg-blue-800 text-white p-10 flex flex-col justify-center">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <p className="text-red-300 text-center">{error}</p>}
+
             <input
               type="email"
-              className="w-full px-3 py-2 border"
-              placeholder="Enter Email"
+              placeholder="Username/Email Address"
+              className="w-full px-4 py-2 rounded bg-white placeholder-blue-300 text-blue-800 focus:outline-none"
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-gray-700">
-              Password
-            </label>
+
             <input
               type="password"
-              className="w-full px-3 py-2 border"
-              placeholder="***********"
+              placeholder="Password"
+              className="w-full px-4 py-2 rounded bg-white placeholder-blue-300 text-blue-800 focus:outline-none"
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-          </div>
-          <div className="flex items-center justify-between mt-4">
-            <label className="inline-flex items-center">
-              <input
-                type="checkbox"
-                id="remember"
-                className="mr-2 form-checkbox"
-              />
-              <span className="text-sm">Remember me</span>
-            </label>
-            <a href="#" className="text-sm text-blue-500 hover:underline">
-              Forgot password?
-            </a>
-          </div>
-          <div className="mt-4">
+
+            <div className="text-right">
+              <a href="#" className="text-sm text-white underline">
+                Forget Password
+              </a>
+            </div>
+
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2"
+              className="w-full bg-white text-blue-800 py-2 font-semibold rounded hover:bg-gray-100 transition"
             >
-              Login
+              LOGIN
             </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
+      <div className="mt-4 font-bold text-center text-gray-400 text-sm z-10">
+  © Devloped by Navikshaa Technologies LLP. All Rights Reserved
+</div>
     </div>
   );
 };

@@ -11,8 +11,10 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   profileImage: { type: String },
+  firstLogin: { type: Boolean, default: true },
   createAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+
 });
 
 const User = mongoose.model("User", userSchema);
