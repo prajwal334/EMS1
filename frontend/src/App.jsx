@@ -77,6 +77,8 @@ import Setting from "./components/EmployeeDashboard/Setting";
 import DptTaskList from "./components/task/DptTaskList";
 import RoleList from "./components/task/Rolelist";
 import TaskList from "./components/task/TaskList";
+import EmDepartmentView from "./components/task/EmDepartmentView";
+import EmTasklist from "./components/task/EmTaskList";
 
 function App() {
   return (
@@ -193,6 +195,11 @@ function App() {
           <Route path="login-history/:userId" element={<View5 />} />
           <Route path="teams/user/:UseId" element={<EmTeam />} />
           <Route path="teams/team/:id" element={<EmView />} />
+
+
+          <Route path="task/user/:userId" element={<EmDepartmentView />} />
+          <Route path="tasks/department/:id" element={<EmTasklist />} />
+
           <Route path="groups/:id" element={<ChatLayout />}>
             <Route index element={<HomePlaceholder />} />
             <Route path="setting" element={<SettingChat />} />
@@ -201,6 +208,7 @@ function App() {
             <Route path="direct/:id" element={<DirectChat />} />
             <Route path=":id" element={<ChatRoom />} />
           </Route>
+
         </Route>
       </Routes>
     </BrowserRouter>

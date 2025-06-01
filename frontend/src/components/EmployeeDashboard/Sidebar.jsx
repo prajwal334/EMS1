@@ -86,9 +86,21 @@ const Sidebar = () => {
           onClick={handleLogout}
           className="flex items-center gap-2 text-sm text-gray-700 hover:text-red-600 transition"
         >
+          <FaClock className="text-lg text-white" />
+          <span className="text-white font-medium">Team</span>
+        </NavLink>
+
+        <NavLink
+          to={`/employee-dashboard/task/user/${user?._id}`}
+          className={navLinkClass}
+        >
+          <FaClock className="text-lg text-white" />
+          <span className="text-white font-medium">Task</span>
+        </NavLink>
           <FaSignOutAlt className="text-lg" />
           <span className="uppercase font-medium">Logout</span>
         </button>
+
       </div>
     </aside>
   );

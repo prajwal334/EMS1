@@ -11,11 +11,12 @@ import {
 
 const router = express.Router();
 
-router.get("/with-count", authMiddleware, getDepartmentsWithEmployeeCount); 
-router.get("/", getDepartments); 
+
+router.get("/with-count", authMiddleware, getDepartmentsWithEmployeeCount);
+router.get("/", getDepartments);
+router.get("/:id", getDepartmentById);
 router.post("/add", authMiddleware, addDepartment); 
 router.get("/:id/subdepartments", getSubDepartments);
-router.get("/:id", getDepartmentById); 
 router.delete("/:id", authMiddleware, deleteDepartment);
 
 export default router;

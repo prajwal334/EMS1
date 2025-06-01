@@ -17,11 +17,16 @@ const TeamList = () => {
       if (response.data.success) {
         const teams = response.data.teams;
 
-        // Group by department name
+        // Normalize teams and group by department
         const grouped = teams.reduce((acc, team) => {
-          const depName = team.department?.dep_name || "Unassigned";
-          if (!acc[depName]) acc[depName] = [];
-          acc[depName].push(team);
+          const departmentName = team.department?.dep_name || "Unassigned";
+          const normalizedTeam = {
+            ...team,
+            team_leader: team.leaderUserId || null,
+          };
+
+          if (!acc[departmentName]) acc[departmentName] = [];
+          acc[departmentName].push(normalizedTeam);
           return acc;
         }, {});
         setGroupedTeams(grouped);
@@ -82,7 +87,6 @@ const TeamList = () => {
                       </div>
                       <br />
                       <div>
-                        {" "}
                         Leader - {team.team_leader?.name || "No Leader"}
                       </div>
                       <br />
