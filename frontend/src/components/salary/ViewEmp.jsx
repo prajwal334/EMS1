@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import logo from "../../assets/images/logo1.png"
 import axios from "axios";
 import jsPDF from "jspdf";
+import Leave from "../../assets/images/leave.png"
 import autoTable from "jspdf-autotable";
 
 const View = () => {
@@ -269,7 +270,16 @@ y += 22;
   }
 
   return (
-    <div className="overflow-x-auto p-6">
+    <div className="bg-gray-100 min-h-screen">
+          {/* Full-width header image */}
+          <div className="w-full">
+            <img
+              src= {Leave}
+              alt="Header"
+              className="w-full h-45 object-cover"
+            />
+          </div>
+
       <h2 className="text-2xl font-bold text-center mb-6">Salary Details</h2>
 
       <div className="flex justify-end mb-4">
@@ -281,49 +291,34 @@ y += 22;
         />
       </div>
 
-      {filteredSalaries.length > 0 ? (
-        <table className="w-full text-sm text-left border border-gray-300 rounded-md shadow-md">
-          <thead className="text-sm text-gray-700 uppercase bg-gray-50 border border-gray-300">
-            <tr>
-              <th className="px-6 py-3">SNo</th>
-              <th className="px-6 py-3">Emp ID</th>
-              <th className="px-6 py-3">Basic Salary</th>
-              <th className="px-6 py-3">Total Allowance</th>
-              <th className="px-6 py-3">Total Deduction</th>
-              <th className="px-6 py-3">Net Salary</th>
-              <th className="px-6 py-3">Pay Date</th>
-              <th className="px-6 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredSalaries.map((salary) => {
-              const totalAllowance = Object.values(salary.allowances || {}).reduce((a, b) => a + b, 0);
-              const totalDeduction = Object.values(salary.deductions || {}).reduce((a, b) => a + b, 0);
-              return (
-                <tr key={salary._id} className="bg-white border-b hover:bg-gray-50">
-                  <td className="px-6 py-3">{sno++}</td>
-                  <td className="px-6 py-3">{salary.employeeId?.employeeId || "N/A"}</td>
-                  <td className="px-6 py-3">₹ {salary.basicSalary.toFixed(2)}</td>
-                  <td className="px-6 py-3">₹ {totalAllowance.toFixed(2)}</td>
-                  <td className="px-6 py-3">₹ {totalDeduction.toFixed(2)}</td>
-                  <td className="px-6 py-3">₹ {salary.netSalary.toFixed(2)}</td>
-                  <td className="px-6 py-3">{new Date(salary.payDate).toLocaleDateString()}</td>
-                  <td className="px-6 py-3">
-                    <button
-                      onClick={() => handleDownloadPDF(salary)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
-                    >
-                      Download PDF
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      ) : (
-        <div className="text-center text-gray-600 mt-10">No salary records found.</div>
-      )}
+      {/* Salary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+        {filteredSalaries.map((salary) => {
+          const totalAllowance = Object.values(salary.allowances || {}).reduce((a, b) => a + b, 0);
+          const totalDeduction = Object.values(salary.deductions || {}).reduce((a, b) => a + b, 0);
+          const netSalary = salary.netSalary || (salary.basicSalary + totalAllowance - totalDeduction);
+
+          return (
+            <div key={salary._id} className="bg-white shadow-md rounded-lg p-4 border">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                Employee ID: {salary.employeeId?.employeeId || "N/A"}
+              </h3>
+              <p><strong>Basic Salary:</strong> ₹ {salary.basicSalary.toFixed(2)}</p>
+              <p><strong>Total Allowance:</strong> ₹ {totalAllowance.toFixed(2)}</p>
+              <p><strong>Total Deduction:</strong> ₹ {totalDeduction.toFixed(2)}</p>
+              <p><strong>Net Salary:</strong> ₹ {netSalary.toFixed(2)}</p>
+              <p><strong>Pay Date:</strong> {new Date(salary.payDate).toLocaleDateString()}</p>
+
+              <button
+                onClick={() => handleDownloadPDF(salary)}
+                className="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+              >
+                Download PDF
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

@@ -32,8 +32,20 @@ const EmDptTaskList = ({ departmentId }) => {
   };
 
   return (
-    <div className="w-full px-6 md:px-12 lg:px-20 py-8">
-      <h2 className="text-2xl font-bold text-center mb-8">Departments</h2>
+    <div className="w-full px-6 md:px-12 lg:px-20 py-2 bg-gray-50 min-h-screen">
+      {/* Top Banner Image */}
+      <div className="w-full h-80 rounded-xl overflow-hidden shadow-lg mb-10">
+        <img
+          src="https://d3njjcbhbojbot.cloudfront.net/api/utilities/v1/imageproxy/https://images.ctfassets.net/wp1lcwdav1p1/6XgheC4PDL8GGnAAVYJ2ab/01c613d21fe5b79bf7311c68456af2e2/iStock-926151548.jpg?w=1500&h=680&q=60&fit=fill&f=faces&fm=jpg&fl=progressive&auto=format%2Ccompress&dpr=1&w=1000"
+          alt="Departments"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Title */}
+      <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">Departments</h2>
+
+      {/* Department Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {departments.map((dep) => {
           const isActive = dep._id === departmentId;
@@ -42,14 +54,17 @@ const EmDptTaskList = ({ departmentId }) => {
             <div
               key={dep._id}
               onClick={() => handleCardClick(dep._id, isActive)}
-              className={`rounded-xl p-4 text-center transition-all duration-300 bg-white
+              className={`
+                rounded-xl p-6 text-center font-semibold text-lg transition-all duration-300
+                shadow-md border 
                 ${
                   isActive
-                    ? "cursor-pointer hover:bg-blue-100 hover:scale-105 shadow-md"
-                    : "cursor-not-allowed hover:bg-red-100 opacity-80"
-                }`}
+                    ? "bg-blue-100 text-blue-900 hover:shadow-xl cursor-pointer scale-105"
+                    : "bg-white text-gray-700 opacity-80 cursor-not-allowed hover:bg-red-100"
+                }
+              `}
             >
-              <h3 className="text-lg font-semibold">{dep.dep_name}</h3>
+              {dep.dep_name}
             </div>
           );
         })}

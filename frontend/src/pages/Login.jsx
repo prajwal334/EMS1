@@ -50,43 +50,48 @@ const Login = () => {
   };
 
   return (
-    <div className="relative h-screen w-screen bg-white overflow-hidden flex flex-col items-center justify-start">
+    <div className="relative min-h-screen w-full bg-white overflow-hidden flex flex-col items-center">
       {/* Logo */}
       <div className="flex items-center justify-center gap-3 py-6 px-4">
-              <img src={Logo} alt="Logo" className="w-16 h-16 object-contain" />
-              <h1 className="text-xl font-bold tracking-wide text-blue-950">
-                Navikshaa Technologies LLP
-              </h1>
-            </div>
+        <img src={Logo} alt="Logo" className="w-14 h-14 object-contain" />
+        <h1 className="text-lg md:text-xl font-bold tracking-wide text-blue-950 text-center">
+          Navikshaa Technologies LLP
+        </h1>
+      </div>
 
-      {/* Decorative background shapes */}
-<img
- src={BottomLeftShape}
-  alt=""
-  className="absolute top-[40px] right-[-20px] w-[300px] z-0"
-/>      <img   src={TopRightShape}
- alt="" className="absolute bottom-[5px] left-[-10px] w-72 z-0" />
+      {/* Background decorations */}
+      <img
+        src={BottomLeftShape}
+        alt=""
+        className="absolute top-[20px] right-[-40px] w-[200px] md:w-[300px] z-0"
+      />
+      <img
+        src={TopRightShape}
+        alt=""
+        className="absolute bottom-[5px] left-[-20px] w-48 md:w-72 z-0"
+      />
 
-      {/* Login Box */}
-      <div className="relative z-10 flex rounded-lg overflow-hidden max-w-7xl w-full min-h-[520px] shadow-[0_0_60px_rgba(59,130,246,0.7)] bg-white  ">
-        
-        {/* "Welc" on Left */}
-        <div className="absolute left-[50%] top-4 transform -translate-x-full text-blue-800 text-4xl font-bold z-20">
+      {/* Login Card */}
+      <div className="relative z-10 flex flex-col md:flex-row rounded-lg overflow-hidden w-[90%] md:w-4/5 lg:w-3/4 min-h-[520px] shadow-[0_0_60px_rgba(59,130,246,0.7)] bg-white">
+        {/* Split Text "Welcome" */}
+        <div className="absolute left-[50%] top-4 transform -translate-x-full text-blue-800 text-3xl md:text-4xl font-bold z-20">
           Welc
         </div>
-
-        {/* "ome!" on Right */}
-        <div className="absolute left-[50%] top-4 text-white text-4xl font-bold z-20">
+        <div className="absolute left-[50%] top-4 text-white text-3xl md:text-4xl font-bold z-20">
           ome!
         </div>
 
-        {/* Left Panel: Illustration */}
-        <div className="w-1/2 bg-white flex items-center justify-center p-6">
-          <img src={Illustration} alt="Login Illustration" className="max-h-[400px]" />
+        {/* Illustration */}
+        <div className="w-full md:w-1/2 bg-white flex items-center justify-center p-6">
+          <img
+            src={Illustration}
+            alt="Login Illustration"
+            className="max-h-[300px] md:max-h-[400px] w-auto"
+          />
         </div>
 
-        {/* Right Panel: Login Form */}
-        <div className="w-1/2 bg-blue-800 text-white p-10 flex flex-col justify-center">
+        {/* Login Form */}
+        <div className="w-full md:w-1/2 bg-blue-800 text-white p-6 md:p-10 flex flex-col justify-center">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && <p className="text-red-300 text-center">{error}</p>}
 
@@ -108,7 +113,7 @@ const Login = () => {
 
             <div className="text-right">
               <a href="#" className="text-sm text-white underline">
-                Forget Password
+                Forget Password?
               </a>
             </div>
 
@@ -121,9 +126,11 @@ const Login = () => {
           </form>
         </div>
       </div>
-      <div className="mt-4 font-bold text-center text-gray-400 text-sm z-10">
-  © Devloped by Navikshaa Technologies LLP. All Rights Reserved
-</div>
+
+      {/* Footer */}
+      <div className="mt-4 font-bold text-center text-gray-400 text-sm z-10 px-4 text-wrap">
+        © Developed by Navikshaa Technologies LLP. All Rights Reserved
+      </div>
     </div>
   );
 };

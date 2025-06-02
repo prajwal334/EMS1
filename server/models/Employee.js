@@ -105,6 +105,9 @@ const employeeSchema = new Schema({
     type: String,
     default: null,
   },
+  role: {
+    type:String
+  },
   createdAt: {
     type: Date,
     default: Date.now,

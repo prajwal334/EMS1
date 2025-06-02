@@ -37,7 +37,7 @@ const Sidebar = () => {
   const navItems = [
     { to: "/employee-dashboard", label: "Dashboard",       exact: true, },
     { to: `/employee-dashboard/profile/${user?._id}`, label: "My Profile" },
-    { to: "/employee-dashboard/leads", label: "Task" },
+    { to: `/employee-dashboard/task/user/${user?._id}`, label: "Task" },
     { to: `/employee-dashboard/leaves/${user?._id}`, label: "Leaves" },
     { to: `/employee-dashboard/groups/${user?._id}`, label: "Group Chat" },
     { to: `/employee-dashboard/salary/${user?._id}`, label: "Salary" },
@@ -86,17 +86,6 @@ const Sidebar = () => {
           onClick={handleLogout}
           className="flex items-center gap-2 text-sm text-gray-700 hover:text-red-600 transition"
         >
-          <FaClock className="text-lg text-white" />
-          <span className="text-white font-medium">Team</span>
-        </NavLink>
-
-        <NavLink
-          to={`/employee-dashboard/task/user/${user?._id}`}
-          className={navLinkClass}
-        >
-          <FaClock className="text-lg text-white" />
-          <span className="text-white font-medium">Task</span>
-        </NavLink>
           <FaSignOutAlt className="text-lg" />
           <span className="uppercase font-medium">Logout</span>
         </button>

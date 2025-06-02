@@ -1,5 +1,6 @@
 import Department from "../models/Department.js";
 import Employee from "../models/Employee.js";
+import mongoose from "mongoose";
 
 const getDepartments = async (req, res) => {
   try {

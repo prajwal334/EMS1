@@ -66,7 +66,7 @@ import LeaveDetail from "./components/leave/DetailLeave";
 
 // Attendance
 import View4 from "./components/attendance/View";
-import View5 from "./components/attendance/View";
+import View5 from "./pages/Attendanceem";
 import AdminView from "./components/attendance/AdminView";
 import AttendanceEditView from "./components/attendance/AdminEditView";
 
@@ -76,7 +76,7 @@ import Setting from "./components/EmployeeDashboard/Setting";
 //tasks
 import DptTaskList from "./components/task/DptTaskList";
 import RoleList from "./components/task/Rolelist";
-import TaskList from "./components/task/TaskList";
+import TaskList from "./components/task/Tasklist";
 import EmDepartmentView from "./components/task/EmDepartmentView";
 import EmTasklist from "./components/task/EmTaskList";
 
@@ -192,10 +192,9 @@ function App() {
           <Route path="add-leave" element={<LeaveAdd />} />
           <Route path="salary/:id" element={<ViewSalaryEmp />} />
           <Route path="pf/:employeeId" element={<PfView1 />} />
-          <Route path="login-history/:userId" element={<View5 />} />
+          <Route path="login-history/:id" element={<View5 />} />
           <Route path="teams/user/:UseId" element={<EmTeam />} />
           <Route path="teams/team/:id" element={<EmView />} />
-
 
           <Route path="task/user/:userId" element={<EmDepartmentView />} />
           <Route path="tasks/department/:id" element={<EmTasklist />} />
@@ -208,7 +207,6 @@ function App() {
             <Route path="direct/:id" element={<DirectChat />} />
             <Route path=":id" element={<ChatRoom />} />
           </Route>
-
         </Route>
       </Routes>
     </BrowserRouter>
