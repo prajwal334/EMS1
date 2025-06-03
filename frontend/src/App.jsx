@@ -27,6 +27,8 @@ import HomePlaceholder from "./pages/HomePlaceholder";
 import DirectChat from "./components/groupChat/DirectChat";
 import NewChat from "./pages/NewChat";
 import AddGroup from "./components/groupChat/AddGroup";
+import MyGroups from "./components/groupChat/MyGroups";
+
 
 // HR Department
 import DepartmentList1 from "./components/HrDepartment/DepartmentList";
@@ -199,14 +201,12 @@ function App() {
           <Route path="task/user/:userId" element={<EmDepartmentView />} />
           <Route path="tasks/department/:id" element={<EmTasklist />} />
 
-          <Route path="groups/:id" element={<ChatLayout />}>
-            <Route index element={<HomePlaceholder />} />
-            <Route path="setting" element={<SettingChat />} />
-            <Route path="addgroup" element={<AddGroup />} />
-            <Route path="new-chat" element={<NewChat />} />
-            <Route path="direct/:id" element={<DirectChat />} />
-            <Route path=":id" element={<ChatRoom />} />
-          </Route>
+          <Route path="groups" element={<MyGroups />} />
+<Route path="groups/:id" element={<ChatLayout />}>
+  <Route index element={<HomePlaceholder />} />
+  <Route path=":id" element={<ChatRoom />} />
+</Route>
+
         </Route>
       </Routes>
     </BrowserRouter>

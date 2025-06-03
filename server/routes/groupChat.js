@@ -6,6 +6,8 @@ import {
   createGroup,
   getAllGroups,
   getGroupById,
+  getMyGroups,
+  addGroupMembers,
 } from "../controllers/groupChatController.js";
 
 const router = express.Router();
@@ -26,6 +28,10 @@ router.post("/add", authMiddleware, upload.single("group_dp"), createGroup);
 
 // Get all groups
 router.get("/", authMiddleware, getAllGroups);
+router.get("/my-groups", authMiddleware, getMyGroups);
+
+router.put("/:id/add-members", authMiddleware, addGroupMembers);
+
 
 // Get single group
 router.get("/:id", authMiddleware, getGroupById);
