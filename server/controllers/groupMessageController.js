@@ -97,35 +97,25 @@ export const deleteGroupMessage = async (req, res) => {
   }
 };
 
-// controllers/groupMessageController.js
-export const reactToMessage = async (req, res) => {
+// React to a message with emoji
+const reactToMessage = async (req, res) => {
+  const { messageId } = req.params;
   const { emoji } = req.body;
-  const { id } = req.params;
+  const userId = req.user.id;
 
   try {
-    const message = await GroupMessage.findById(id); // Correct model
-    if (!message) {
-      return res.status(404).json({ success: false, message: "Message not found" });
-    }
+    const message = await Message.findById(messageId);
+    if (!message) return res.status(404).json({ message: 'Message not found' });
 
-    if (!message.reactions) {
-      message.reactions = [];
-    }
+    // Remove previous reaction by same user (optional)
+    message.reactions = message.reactions.filter(r => r.userId.toString() !== userId);
 
-    // Prevent duplicate reaction from same user
-    const alreadyReacted = message.reactions.find(
-      (r) => r.user.toString() === req.user._id.toString() && r.emoji === emoji
-    );
+    message.reactions.push({ userId, emoji });
+    await message.save();
 
-    if (!alreadyReacted) {
-      message.reactions.push({ emoji, user: req.user._id });
-      await message.save();
-    }
-
-    res.json({ success: true, message });
+    res.json(message);
   } catch (err) {
-    console.error("Error reacting to message:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ message: 'Failed to react to message', error: err.message });
   }
 };
 
