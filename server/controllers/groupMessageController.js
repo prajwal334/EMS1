@@ -103,18 +103,24 @@ export const reactToMessage = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const message = await Message.findById(id);
+    const message = await GroupMessage.findById(id); // Correct model
     if (!message) {
       return res.status(404).json({ success: false, message: "Message not found" });
     }
 
-    // Initialize reactions array if missing
     if (!message.reactions) {
       message.reactions = [];
     }
 
-    message.reactions.push(emoji);
-    await message.save();
+    // Prevent duplicate reaction from same user
+    const alreadyReacted = message.reactions.find(
+      (r) => r.user.toString() === req.user._id.toString() && r.emoji === emoji
+    );
+
+    if (!alreadyReacted) {
+      message.reactions.push({ emoji, user: req.user._id });
+      await message.save();
+    }
 
     res.json({ success: true, message });
   } catch (err) {

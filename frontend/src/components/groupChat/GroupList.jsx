@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaCog, FaBell, FaComments } from "react-icons/fa";
 import logo1 from "../../assets/images/logo1.png";
 import { useSocket } from "../../context/SocketContext";
+import { useAuth } from "../../context/authContext";
 
 const GroupList = () => {
   const [groups, setGroups] = useState([]);
@@ -14,15 +15,21 @@ const GroupList = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const socket = useSocket();
+  const { user } = useAuth();
 
-  // Fetch group chats
   const fetchGroups = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/group", {
+      const endpoint =
+        user?.role === "admin"
+          ? "http://localhost:3000/api/group"
+          : "http://localhost:3000/api/group/my-groups";
+
+      const res = await axios.get(endpoint, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
+
       if (res.data.success) {
         setGroups(res.data.groups || []);
       }
@@ -31,7 +38,6 @@ const GroupList = () => {
     }
   };
 
-  // Fetch direct (1-on-1) chats
   const fetchDirectChats = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/direct-chats", {
@@ -45,10 +51,11 @@ const GroupList = () => {
 
   useEffect(() => {
     fetchGroups();
-    fetchDirectChats();
-  }, []);
+    if (user?.role === "admin") {
+      fetchDirectChats();
+    }
+  }, [user?.role]);
 
-  // Socket message listener
   useEffect(() => {
     if (!socket) return;
 
@@ -73,21 +80,27 @@ const GroupList = () => {
     };
   }, [socket, location.pathname]);
 
-  // Handle opening a chat
   const handleOpenChat = (type, id) => {
-    const path =
-      type === "group"
-        ? `/admin-dashboard/groups/${id}`
-        : `/admin-dashboard/groups/direct/${id}`;
-    navigate(path);
+  const dashboardPrefix =
+    user?.role === "admin"
+      ? "/admin-dashboard"
+      : user?.role === "hr"
+      ? "/hr-dashboard"
+      : "/employee-dashboard";
 
-    // Reset unread count for this chat
-    setUnreadCounts((prev) => {
-      const updated = { ...prev };
-      delete updated[id];
-      return updated;
-    });
-  };
+  const path =
+    type === "group"
+      ? `${dashboardPrefix}/groups/${id}`
+      : `${dashboardPrefix}/groups/direct/${id}`;
+
+  navigate(path);
+
+  setUnreadCounts((prev) => {
+    const updated = { ...prev };
+    delete updated[id];
+    return updated;
+  });
+};
 
   const getImageUrl = (path) => {
     if (!path || typeof path !== "string") {
@@ -113,7 +126,7 @@ const GroupList = () => {
         </div>
       </div>
 
-      {/* Scrollable content */}
+      {/* Scrollable Content */}
       <div className="mt-12 px-2 overflow-y-auto flex-1">
         {/* Group Chats */}
         <div className="mt-2">
@@ -144,42 +157,44 @@ const GroupList = () => {
           ))}
         </div>
 
-        {/* Direct Chats */}
-        <div className="mt-4 border-t pt-2">
-          <p className="text-xs text-gray-500 pl-4 mb-1">Chats</p>
-          {directChats.map((chat) => {
-            const name = chat.recipient?.name || "Unnamed";
-            const profileImage = chat.recipient?.profileImage
-              ? `http://localhost:3000/uploads/${chat.recipient.profileImage}`
-              : "http://localhost:3000/uploads/default-user.png";
+        {/* Direct Chats (Only for admin) */}
+        {user?.role === "admin" && (
+          <div className="mt-4 border-t pt-2">
+            <p className="text-xs text-gray-500 pl-4 mb-1">Chats</p>
+            {directChats.map((chat) => {
+              const name = chat.recipient?.name || "Unnamed";
+              const profileImage = chat.recipient?.profileImage
+                ? `http://localhost:3000/uploads/${chat.recipient.profileImage}`
+                : "http://localhost:3000/uploads/default-user.png";
 
-            return (
-              <div
-                key={chat._id}
-                onClick={() => handleOpenChat("direct", chat._id)}
-                className={`flex items-center justify-between px-4 py-2 cursor-pointer rounded-full transition-all mb-1 ${
-                  location.pathname === `/admin-dashboard/groups/direct/${chat._id}`
-                    ? "bg-blue-100 shadow-inner"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-800 truncate">
-                  {name}
-                  {unreadCounts[chat._id] > 0 && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                      {unreadCounts[chat._id]}
-                    </span>
-                  )}
+              return (
+                <div
+                  key={chat._id}
+                  onClick={() => handleOpenChat("direct", chat._id)}
+                  className={`flex items-center justify-between px-4 py-2 cursor-pointer rounded-full transition-all mb-1 ${
+                    location.pathname === `/admin-dashboard/groups/direct/${chat._id}`
+                      ? "bg-blue-100 shadow-inner"
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-800 truncate">
+                    {name}
+                    {unreadCounts[chat._id] > 0 && (
+                      <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {unreadCounts[chat._id]}
+                      </span>
+                    )}
+                  </div>
+                  <img
+                    src={profileImage}
+                    alt={name}
+                    className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                  />
                 </div>
-                <img
-                  src={profileImage}
-                  alt={name}
-                  className="w-10 h-10 rounded-full object-cover border border-gray-300"
-                />
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Bottom Bar */}

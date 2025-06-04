@@ -201,11 +201,11 @@ function App() {
           <Route path="task/user/:userId" element={<EmDepartmentView />} />
           <Route path="tasks/department/:id" element={<EmTasklist />} />
 
-          <Route path="groups" element={<MyGroups />} />
-<Route path="groups/:id" element={<ChatLayout />}>
+          <Route path="groups" element={<ChatLayout />} >
   <Route index element={<HomePlaceholder />} />
-  <Route path=":id" element={<ChatRoom />} />
+  <Route path=":id" element={<ChatRoom />} />  {/* ✅ FIXED */}
 </Route>
+
 
         </Route>
       </Routes>

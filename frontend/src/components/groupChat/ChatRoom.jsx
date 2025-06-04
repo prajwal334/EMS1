@@ -25,87 +25,86 @@ const ChatRoom = () => {
   const [forwardModalMsg, setForwardModalMsg] = useState(null);
   const [showReactionPicker, setShowReactionPicker] = useState(null);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
-const [allEmployees, setAllEmployees] = useState([]);
-const [selectedMembers, setSelectedMembers] = useState([]);
-
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [selectedMembers, setSelectedMembers] = useState([]);
 
   const scrollRef = useRef();
 
   useEffect(() => {
-  const fetchChat = async () => {
-    const token = localStorage.getItem("token");
+    const fetchChat = async () => {
+      const token = localStorage.getItem("token");
 
-    try {
-      // ✅ 1. Get Group Details
-      const groupRes = await axios.get(
-        `http://localhost:3000/api/group/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (groupRes.data.success) {
-        setGroup(groupRes.data.group);
-      }
-    } catch (err) {
-      if (err.response?.status === 403) {
-        alert("❌ You are not a member of this group.");
-        return; // Don't proceed further
-      }
-      console.error("Group fetch failed:", err);
-      return;
-    }
-
-    try {
-      // ✅ 2. Get Group Messages
-      const msgRes = await axios.get(
-        `http://localhost:3000/api/messages/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (msgRes.data.success) {
-        setMessages(msgRes.data.messages);
-      }
-    } catch (err) {
-      console.error("Message fetch failed:", err);
-    }
-
-    try {
-      // ✅ 3. Get all groups (for forwarding)
-      const groupsRes = await axios.get(
-        "http://localhost:3000/api/group/my-groups",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (groupsRes.data.success) {
-        setGroups(groupsRes.data.groups);
-      }
-    } catch (err) {
-      console.error("Group list fetch failed", err);
-    }
-
-    try {
-      // ✅ 4. If Admin, Fetch all employees for Add Member modal
-      if (user?.role === "admin") {
-        const empRes = await axios.get(
-          "http://localhost:3000/api/employee",
+      try {
+        // ✅ 1. Get Group Details
+        const groupRes = await axios.get(
+          `http://localhost:3000/api/group/${id}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        if (empRes.data.employees) {
-          setAllEmployees(empRes.data.employees);
+        if (groupRes.data.success) {
+          setGroup(groupRes.data.group);
         }
+      } catch (err) {
+        if (err.response?.status === 403) {
+          alert("❌ You are not a member of this group.");
+          return; // Don't proceed further
+        }
+        console.error("Group fetch failed:", err);
+        return;
       }
-    } catch (err) {
-      console.error("Employee fetch failed", err);
-    }
-  };
 
-  fetchChat();
-}, [id]);
+      try {
+        // ✅ 2. Get Group Messages
+        const msgRes = await axios.get(
+          `http://localhost:3000/api/messages/${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (msgRes.data.success) {
+          const msgsWithReactions = msgRes.data.messages.map((msg) => ({
+            ...msg,
+            reactions: msg.reactions || [],
+          }));
+          setMessages(msgsWithReactions);
+        }
+      } catch (err) {
+        console.error("Message fetch failed:", err);
+      }
 
+      try {
+        // ✅ 3. Get all groups (for forwarding)
+        const groupsRes = await axios.get(
+          "http://localhost:3000/api/group/my-groups",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (groupsRes.data.success) {
+          setGroups(groupsRes.data.groups);
+        }
+      } catch (err) {
+        console.error("Group list fetch failed", err);
+      }
+
+      try {
+        // ✅ 4. If Admin, Fetch all employees for Add Member modal
+        if (user?.role === "admin") {
+          const empRes = await axios.get("http://localhost:3000/api/employee", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (empRes.data.employees) {
+            setAllEmployees(empRes.data.employees);
+          }
+        }
+      } catch (err) {
+        console.error("Employee fetch failed", err);
+      }
+    };
+
+    fetchChat();
+  }, [id]);
 
   useEffect(() => {
     if (!socket) return;
@@ -113,24 +112,26 @@ const [selectedMembers, setSelectedMembers] = useState([]);
     socket.on("receive-message", (msg) => {
       setMessages((prev) => [...prev, msg]);
     });
-    socket.on("receive-reaction", (data) => {
-      const { messageId, emoji, userId } = data;
-      setMessages((prev) =>
-        prev.map((msg) => {
-          if (msg._id === messageId) {
-            const exists = msg.reactions?.find(
-              (r) => r.userId === userId && r.emoji === emoji
-            );
-            if (exists) return msg;
-            return {
-              ...msg,
-              reactions: [...(msg.reactions || []), { emoji, userId }],
-            };
-          }
-          return msg;
-        })
-      );
-    });
+    socket.on("receive-reaction", ({ messageId, emoji, userId }) => {
+  setMessages((prevMessages) =>
+    prevMessages.map((msg) => {
+      if (msg._id === messageId) {
+        // Avoid duplicate reactions
+        const alreadyReacted = msg.reactions?.some(
+          (r) => r.user === userId && r.emoji === emoji
+        );
+        if (alreadyReacted) return msg;
+
+        return {
+          ...msg,
+          reactions: [...(msg.reactions || []), { emoji, user: userId }],
+        };
+      }
+      return msg;
+    })
+  );
+});
+
     return () => {
       socket.emit("leave-group", id);
       socket.off("receive-message");
@@ -219,27 +220,26 @@ const [selectedMembers, setSelectedMembers] = useState([]);
   };
 
   const handleAddMembers = async () => {
-  try {
-    const res = await axios.put(
-      `http://localhost:3000/api/group/${group._id}/add-members`,
-      { members: selectedMembers },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+    try {
+      const res = await axios.put(
+        `http://localhost:3000/api/group/${group._id}/add-members`,
+        { members: selectedMembers },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        setGroup(res.data.group); // update group with new members
+        setShowAddMemberModal(false);
+        setSelectedMembers([]);
       }
-    );
-
-    if (res.data.success) {
-      setGroup(res.data.group); // update group with new members
-      setShowAddMemberModal(false);
-      setSelectedMembers([]);
+    } catch (err) {
+      console.error("Failed to add members", err);
     }
-  } catch (err) {
-    console.error("Failed to add members", err);
-  }
-};
-
+  };
 
   const handleDelete = async (msgId) => {
     if (!window.confirm("Are you sure you want to delete this message?"))
@@ -312,30 +312,31 @@ const [selectedMembers, setSelectedMembers] = useState([]);
             className="text-xl cursor-pointer"
             onClick={() => setShowMembers(!showMembers)}
           />
-          <div className="absolute right-0 mt-2 w-64 bg-white border shadow-lg rounded z-50 p-3 space-y-2">
-  <h4 className="font-semibold text-sm mb-1">Group Members</h4>
-  <ul className="text-sm text-gray-800 space-y-1 max-h-40 overflow-y-auto">
-    {group?.members?.map((m) => (
-      <li key={m._id}>👤 {m.name}</li>
-    ))}
-  </ul>
+          {showMembers && (
+            <div className="absolute right-0 mt-2 w-64 bg-white border shadow-lg rounded z-50 p-3 space-y-2">
+              <h4 className="font-semibold text-sm mb-1">Group Members</h4>
+              <ul className="text-sm text-gray-800 space-y-1 max-h-40 overflow-y-auto">
+                {group?.members?.map((m) => (
+                  <li key={m._id}>👤 {m.name}</li>
+                ))}
+              </ul>
 
-  {group?.createdBy && (
-    <p className="text-xs text-gray-600 mt-2">
-      Created by: <strong>{group.createdBy.name}</strong>
-    </p>
-  )}
+              {group?.createdBy && (
+                <p className="text-xs text-gray-600 mt-2">
+                  Created by: <strong>{group.createdBy.name}</strong>
+                </p>
+              )}
 
-  {user?.role === "admin" && (
-    <button
-      className="w-full mt-2 bg-blue-600 text-white py-1 rounded text-sm hover:bg-blue-700"
-      onClick={() => setShowAddMemberModal(true)}
-    >
-      ➕ Add Members
-    </button>
-  )}
-</div>
-
+              {user?.role === "admin" && (
+                <button
+                  className="w-full mt-2 bg-blue-600 text-white py-1 rounded text-sm hover:bg-blue-700"
+                  onClick={() => setShowAddMemberModal(true)}
+                >
+                  ➕ Add Members
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -344,6 +345,7 @@ const [selectedMembers, setSelectedMembers] = useState([]);
         {messages.map((msg) => {
           const isOwn = msg.sender._id === user._id;
           const canEdit = isOwn || user.role === "admin";
+
           return (
             <div
               key={msg._id}
@@ -355,6 +357,14 @@ const [selectedMembers, setSelectedMembers] = useState([]);
               }
             >
               <div className="max-w-xs bg-white rounded-xl p-3 shadow relative">
+                {/* Sender Name (only for non-own messages) */}
+                {!isOwn && (
+                  <p className="text-xs text-gray-600 font-medium mb-1">
+                    {msg.sender?.name || "Unknown"}
+                  </p>
+                )}
+
+                {/* Message content (edit or normal view) */}
                 {editingMsgId === msg._id ? (
                   <div className="flex flex-col gap-1">
                     <input
@@ -384,6 +394,7 @@ const [selectedMembers, setSelectedMembers] = useState([]);
                   </div>
                 )}
 
+                {/* File Attachments */}
                 {msg.file && (
                   <div className="mt-2">
                     {msg.file.match(/\.(jpg|jpeg|png|gif)$/i) ? (
@@ -407,18 +418,20 @@ const [selectedMembers, setSelectedMembers] = useState([]);
 
                 {/* Reactions */}
                 {msg.reactions && msg.reactions.length > 0 && (
-                  <div className="text-xs mt-2 flex flex-wrap gap-1">
-                    {msg.reactions.map((r, index) => (
-                      <span
-                        key={index}
-                        className="bg-gray-200 px-1.5 py-0.5 rounded-full"
-                      >
-                        {r.emoji}
-                      </span>
-                    ))}
-                  </div>
-                )}
+  <div className="text-xs mt-2 flex flex-wrap gap-1">
+    {msg.reactions.map((r, index) => (
+      <span
+        key={index}
+        className="bg-gray-200 px-1.5 py-0.5 rounded-full"
+      >
+        {r.emoji}
+      </span>
+    ))}
+  </div>
+)}
 
+
+                {/* Timestamp & Status */}
                 <div className="text-xs text-right text-gray-500 mt-1 flex items-center gap-1">
                   {formatTime(msg.createdAt)}
                   {isOwn && (
@@ -434,6 +447,7 @@ const [selectedMembers, setSelectedMembers] = useState([]);
                   )}
                 </div>
 
+                {/* Action buttons */}
                 {activeMessageId === msg._id && (
                   <div className="mt-2 flex gap-3 text-xs bg-gray-100 p-1 rounded shadow-inner">
                     {canEdit && (
@@ -473,6 +487,7 @@ const [selectedMembers, setSelectedMembers] = useState([]);
                   </div>
                 )}
 
+                {/* Emoji picker */}
                 {showReactionPicker === msg._id && (
                   <div className="absolute left-0 bottom-full z-50">
                     <EmojiPicker
@@ -484,6 +499,7 @@ const [selectedMembers, setSelectedMembers] = useState([]);
             </div>
           );
         })}
+
         <div ref={scrollRef}></div>
       </div>
 
@@ -585,62 +601,66 @@ const [selectedMembers, setSelectedMembers] = useState([]);
       </div>
 
       {/* Add Members Modal */}
-{showAddMemberModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-    <div className="bg-white rounded-lg shadow-lg w-96 max-h-[80vh] p-4 overflow-y-auto">
-      <h3 className="text-lg font-semibold mb-2">Add Members</h3>
+      {showAddMemberModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-white rounded-lg shadow-lg w-96 max-h-[80vh] p-4 overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-2">Add Members</h3>
 
-      <div className="space-y-2">
-        {allEmployees
-          .filter((emp) => !group.members.some((m) => m._id === emp.userId._id))
-          .map((emp) => (
-            <div
-              key={emp.userId._id}
-              className="flex justify-between items-center border p-2 rounded"
-            >
-              <div className="flex items-center gap-2">
-                <img
-                  src={`http://localhost:3000/${emp.userId.avatar?.replace("public/", "")}`}
-                  alt={emp.userId.name}
-                  className="w-8 h-8 rounded-full object-cover border"
-                />
-                <span>{emp.userId.name}</span>
-              </div>
-              <input
-                type="checkbox"
-                value={emp.userId._id}
-                checked={selectedMembers.includes(emp.userId._id)}
-                onChange={(e) => {
-                  const id = e.target.value;
-                  setSelectedMembers((prev) =>
-                    prev.includes(id)
-                      ? prev.filter((x) => x !== id)
-                      : [...prev, id]
-                  );
-                }}
-              />
+            <div className="space-y-2">
+              {allEmployees
+                .filter(
+                  (emp) => !group.members.some((m) => m._id === emp.userId._id)
+                )
+                .map((emp) => (
+                  <div
+                    key={emp.userId._id}
+                    className="flex justify-between items-center border p-2 rounded"
+                  >
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={`http://localhost:3000/${emp.userId.avatar?.replace(
+                          "public/",
+                          ""
+                        )}`}
+                        alt={emp.userId.name}
+                        className="w-8 h-8 rounded-full object-cover border"
+                      />
+                      <span>{emp.userId.name}</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      value={emp.userId._id}
+                      checked={selectedMembers.includes(emp.userId._id)}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        setSelectedMembers((prev) =>
+                          prev.includes(id)
+                            ? prev.filter((x) => x !== id)
+                            : [...prev, id]
+                        );
+                      }}
+                    />
+                  </div>
+                ))}
             </div>
-          ))}
-      </div>
 
-      <div className="flex justify-end gap-2 mt-4">
-        <button
-          className="text-gray-600 hover:underline"
-          onClick={() => setShowAddMemberModal(false)}
-        >
-          Cancel
-        </button>
-        <button
-          className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-          onClick={handleAddMembers}
-        >
-          Add
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                className="text-gray-600 hover:underline"
+                onClick={() => setShowAddMemberModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+                onClick={handleAddMembers}
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
