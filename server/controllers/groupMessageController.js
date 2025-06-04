@@ -98,7 +98,7 @@ export const deleteGroupMessage = async (req, res) => {
 };
 
 // React to a message with emoji
-const reactToMessage = async (req, res) => {
+export const reactToMessage = async (req, res) => {
   const { messageId } = req.params;
   const { emoji } = req.body;
   const userId = req.user.id;
