@@ -101,21 +101,29 @@ export const deleteGroupMessage = async (req, res) => {
 export const reactToMessage = async (req, res) => {
   const { messageId } = req.params;
   const { emoji } = req.body;
-  const userId = req.user.id;
+  const userId = req.user._id; // Corrected from req.user.id
 
   try {
-    const message = await Message.findById(messageId);
-    if (!message) return res.status(404).json({ message: 'Message not found' });
+    const message = await GroupMessage.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, error: "Message not found" });
+    }
 
-    // Remove previous reaction by same user (optional)
-    message.reactions = message.reactions.filter(r => r.userId.toString() !== userId);
+    // Remove previous reaction from the same user (optional behavior)
+    message.reactions = message.reactions.filter(
+      (reaction) => reaction.userId.toString() !== userId.toString()
+    );
 
+    // Add new reaction
     message.reactions.push({ userId, emoji });
-    await message.save();
 
-    res.json(message);
+    await message.save();
+    await message.populate("reactions.userId", "name"); // Optional: enrich response
+
+    res.json({ success: true, message });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to react to message', error: err.message });
+    console.error("React error:", err);
+    res.status(500).json({ success: false, error: "Failed to react to message" });
   }
 };
 

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Message = require('../models/GroupMessage');
+const Message = require('../models/GroupMessage'); // This is GroupMessage.js
 const connectedUsers = new Map(); // userId -> socketId
 
 function broadcastOnlineUsers(io) {
@@ -11,70 +11,73 @@ function setupSocket(io) {
   io.on('connection', (socket) => {
     console.log('New socket connected:', socket.id);
 
-    socket.on('register', (userId) => {
+    // Register user and map socket
+    socket.on('register', ({ userId, groupIds }) => {
       connectedUsers.set(userId, socket.id);
       console.log('User registered:', userId);
+
+      // Join all group rooms the user belongs to
+      if (Array.isArray(groupIds)) {
+        groupIds.forEach((groupId) => {
+          socket.join(groupId.toString());
+        });
+      }
+
       broadcastOnlineUsers(io);
     });
 
-   socket.on('send_message', async ({ senderId, receiverId, text, tempId }) => {
-  try {
-    const newMessage = new Message({
-      senderId,
-      receiverId,
-      text,
-      reactions: [],
+    // Send group message
+    socket.on('send_message', async ({ senderId, groupId, text, tempId }) => {
+      try {
+        const newMessage = new Message({
+          sender: senderId,
+          groupId,
+          message: text,
+        });
+
+        const savedMessage = await newMessage.save();
+        const messageToSend = savedMessage.toObject();
+        if (tempId) messageToSend.tempId = tempId;
+
+        io.to(groupId.toString()).emit('receive_message', messageToSend);
+      } catch (err) {
+        console.error('Error saving group message:', err);
+      }
     });
 
-    const savedMessage = await newMessage.save();
-    const messageToSend = savedMessage.toObject();
-    if (tempId) messageToSend.tempId = tempId; // <-- FIX: attach tempId to the outgoing message
-
-    const receiverSocketId = connectedUsers.get(receiverId);
-
-    if (receiverSocketId && receiverId !== senderId) {
-      io.to(receiverSocketId).emit('receive_message', messageToSend);
-    }
-    socket.emit('receive_message', messageToSend);
-  } catch (err) {
-    console.error('Error saving message:', err);
-  }
-});
-
+    // React to a message
     socket.on('react_message', async ({ messageId, userId, emoji }) => {
       try {
         if (!mongoose.Types.ObjectId.isValid(messageId)) {
           console.error('Invalid messageId for reaction:', messageId);
           return;
         }
+
         const message = await Message.findById(messageId);
         if (!message) return;
 
-        message.reactions = message.reactions.filter(r => r.userId.toString() !== userId);
+        // Remove previous reaction from the same user
+        message.reactions = message.reactions.filter(
+          (r) => r.userId.toString() !== userId.toString()
+        );
+
         message.reactions.push({ userId, emoji });
-
         await message.save();
+        await message.populate("reactions.userId", "name");
 
-        const participants = [message.senderId.toString(), message.receiverId.toString()];
-        participants.forEach(pid => {
-          const sid = connectedUsers.get(pid);
-          if (sid) {
-            io.to(sid).emit('message_reacted', message);
-          }
-        });
+        // Broadcast updated message to the group
+        io.to(message.groupId.toString()).emit('message_reacted', message);
       } catch (err) {
-        console.error('Error reacting message:', err);
+        console.error('Error reacting to message:', err);
       }
     });
 
-    socket.on('typing', ({ senderId, receiverId }) => {
-  // Emit to the receiver only
-  const receiverSocketId = onlineUsers.get(receiverId);
-  if (receiverSocketId) {
-    io.to(receiverSocketId).emit('typing', { senderId });
-  }
-});
+    // Typing indicator
+    socket.on('typing', ({ senderId, groupId }) => {
+      io.to(groupId.toString()).emit('typing', { senderId });
+    });
 
+    // Handle disconnect
     socket.on('disconnect', () => {
       for (const [userId, socketId] of connectedUsers.entries()) {
         if (socketId === socket.id) {
