@@ -354,6 +354,22 @@ const fetchEmployeesByUserId = async (req, res) => {
   }
 };
 
+const fetchEmployeesByDesignationName = async (req, res) => {
+  try {
+    const { name } = req.params;
+
+    // Case-insensitive search for designation name
+    const employees = await Employee.find({
+      designation: { $regex: new RegExp(name, "i") },
+    });
+
+    res.status(200).json(employees);
+  } catch (error) {
+    console.error("Error fetching employees by designation name:", error);
+    res.status(500).json({ message: "Failed to fetch employees" });
+  }
+};
+
 export {
   addEmployee,
   upload,
@@ -365,4 +381,5 @@ export {
   getDepartmentByUserId,
   fetchUsersGroupedByRoleInDepartment,
   fetchUsersGroupedByDesignationInDepartment,
+  fetchEmployeesByDesignationName,
 };

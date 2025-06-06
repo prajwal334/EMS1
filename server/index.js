@@ -20,12 +20,13 @@ import loginHistoryRoutes from "./routes/loginhistory.js";
 import dashboardRouter from "./routes/dashboard.js";
 import attendanceRoutes from "./routes/attendance.js";
 import taskRoutes from "./routes/task.js";
+import salesRoutes from "./routes/saleTask.js";
+import targetRoutes from "./routes/target.js";
 import adminRouter from "./routes/admin.js";
 import groupRouter from "./routes/groupChat.js";
 import groupMessageRouter from "./routes/groupMessage.js"; // ✅ Add this route
 import directChatRoutes from "./routes/directChat.js";
 import directMessageRoutes from "./routes/directMessage.js";
-
 
 // Load environment variables
 dotenv.config();
@@ -65,6 +66,8 @@ app.use("/api/login-history", loginHistoryRoutes);
 app.use("/api/attendance", attendanceRoutes);
 
 app.use("/api/task", taskRoutes);
+app.use("/api/salestask", salesRoutes);
+app.use("/api/targets", targetRoutes);
 
 app.use("/api/admin", adminRouter);
 app.use("/api/group", groupRouter);
@@ -72,7 +75,6 @@ app.use("/api/messages", groupMessageRouter); // ✅ Mount route
 app.use("/uploads", express.static("public/uploads"));
 app.use("/api/direct-chats", directChatRoutes);
 app.use("/api/direct-messages", directMessageRoutes);
-
 
 // ✅ Socket.io Logic
 io.on("connection", (socket) => {
@@ -107,23 +109,20 @@ io.on("connection", (socket) => {
   });
 
   // User starts typing
-socket.on("typing", ({ groupId, user }) => {
-  socket.to(groupId).emit("typing", { user });
-});
+  socket.on("typing", ({ groupId, user }) => {
+    socket.to(groupId).emit("typing", { user });
+  });
 
-// User stops typing
-socket.on("stopTyping", ({ groupId }) => {
-  socket.to(groupId).emit("stopTyping");
-});
-
+  // User stops typing
+  socket.on("stopTyping", ({ groupId }) => {
+    socket.to(groupId).emit("stopTyping");
+  });
 
   // ✅ Disconnect
   socket.on("disconnect", () => {
     console.log("🔴 Socket disconnected:", socket.id);
   });
 });
-
-
 
 // Start Server
 const PORT = process.env.PORT || 5000;

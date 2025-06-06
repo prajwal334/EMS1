@@ -47,7 +47,6 @@ const createTask = async (req, res) => {
       status: status || "pending",
     };
 
-    // Save initial_image if uploaded
     if (req.file) {
       taskData.initial_image = req.file.filename;
     }
@@ -88,11 +87,14 @@ const updateTask = async (req, res) => {
       update,
       startDate,
       endDate,
+      update_start_date,
+      update_end_date,
     } = req.body;
 
     const task = await Task.findById(id);
-    if (!task)
+    if (!task) {
       return res.status(404).json({ success: false, error: "Task not found" });
+    }
 
     // Update fields if provided
     task.task_title = task_title || task.task_title;
@@ -105,12 +107,16 @@ const updateTask = async (req, res) => {
     task.update = update ?? task.update;
     task.startDate = startDate || task.startDate;
     task.endDate = endDate || task.endDate;
+    task.update_start_date = update_start_date || task.update_start_date;
+    task.update_end_date = update_end_date || task.update_end_date;
 
-    // Update update_image if file uploaded
+    // If Multer stored an "update_image", delete old and assign new filename
     if (req.file) {
       if (task.update_image) {
         const oldUpdateImgPath = path.join("public/uploads", task.update_image);
-        if (fs.existsSync(oldUpdateImgPath)) fs.unlinkSync(oldUpdateImgPath);
+        if (fs.existsSync(oldUpdateImgPath)) {
+          fs.unlinkSync(oldUpdateImgPath);
+        }
       }
       task.update_image = req.file.filename;
     }
@@ -129,18 +135,23 @@ const deleteTask = async (req, res) => {
     const { id } = req.params;
 
     const task = await Task.findById(id);
-    if (!task)
+    if (!task) {
       return res.status(404).json({ success: false, error: "Task not found" });
+    }
 
-    // Delete initial_image if exists
+    // Delete initial_image if it exists
     if (task.initial_image) {
       const imgPath = path.join("public/uploads", task.initial_image);
-      if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+      if (fs.existsSync(imgPath)) {
+        fs.unlinkSync(imgPath);
+      }
     }
-    // Delete update_image if exists
+    // Delete update_image if it exists
     if (task.update_image) {
       const updateImgPath = path.join("public/uploads", task.update_image);
-      if (fs.existsSync(updateImgPath)) fs.unlinkSync(updateImgPath);
+      if (fs.existsSync(updateImgPath)) {
+        fs.unlinkSync(updateImgPath);
+      }
     }
 
     await task.remove();

@@ -35,6 +35,14 @@ const taskSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  update_start_date: {
+    type: Date,
+    default: Date.now,
+  },
+  update_end_date: {
+    type: Date,
+    default: Date.now,
+  },
   query: {
     type: String,
     default: null,

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const EmDptTaskList = ({ departmentId }) => {
   const [departments, setDepartments] = useState([]);
+  const [salesDepId, setSalesDepId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,7 +17,12 @@ const EmDptTaskList = ({ departmentId }) => {
         });
 
         const data = await res.json();
-        setDepartments(data.departments || []);
+        const deps = data.departments || [];
+        setDepartments(deps);
+
+        // Find Sales department ID
+        const salesDep = deps.find((dep) => dep.dep_name === "Sales");
+        if (salesDep) setSalesDepId(salesDep._id);
       } catch (error) {
         console.error("Error fetching departments:", error);
       }
@@ -31,8 +37,14 @@ const EmDptTaskList = ({ departmentId }) => {
     }
   };
 
+  const isSalesSelected = departmentId === salesDepId;
+
   return (
-    <div className="w-full px-6 md:px-12 lg:px-20 py-8">
+    <div
+      className={`w-full ${
+        isSalesSelected ? "p-0 m-0" : "px-6 md:px-12 lg:px-20 py-8"
+      }`}
+    >
       <h2 className="text-2xl font-bold text-center mb-8">Departments</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {departments.map((dep) => {
