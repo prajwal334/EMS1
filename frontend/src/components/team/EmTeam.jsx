@@ -3,7 +3,7 @@ import { useAuth } from "../../context/authContext";
 import { Link } from "react-router-dom";
 import "./team.css";
 import Team from "../../assets/images/Team.jpg"
-import BottomTeam from "../../assets/images/teamlogo.png"
+import BottomTeam from "../../assets/images/TeamBottomlogo.png"
 
 // Clean image path
 const getCleanImageUrl = (team_dp) => {

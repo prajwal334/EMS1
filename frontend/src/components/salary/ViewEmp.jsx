@@ -280,16 +280,20 @@ y += 22;
         />
       </div>
 
-      <div className="max-w-3xl mx-auto text-center mt-40 px-4">
-        <p className="text-gray-700 text-lg leading-relaxed font-serif italic">
-          “Any additional deduction reflected under the Deductions column has been neutralized through a corresponding entry in the Earnings column, wherever applicable. All figures and entries mentioned in this payslip have been prepared and verified by the Finance Department. In case of any discrepancies or unusual entries, please contact the Finance Department at financedept@navikshaa.com for clarification. This is a computer-generated payslip and does not require a signature. For any queries, please reach out to the HR department.”
+      <div className="max-w-7xl mx-auto text-center mt-40 px-6">
+        <p className="text-black text-lg leading-relaxed ">
+          To view your <b>salary slip</b>, kindly <b>download the PDF</b> and keep it <b>safe for your records</b>.<br></br>
+          Note: Salary slips will be <b>automatically deleted from the server</b> after this <b>month ends</b>, so ensure you <b>download</b> it before the month concludes.<br></br>
+          The <b>PDF is password-protected</b> for your security.<br></br>
+          To open the file, please enter your <b>Navikshaa Unit Personal Number</b> (NUPN).
+
         </p>
 
         <button
           onClick={() => handleDownloadPDF(latestSalary)}
-          className="mt-8 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-sm"
+          className="mt-16 bg-blue-600 text-white px-16 py-2 rounded hover:bg-blue-700 text-sm"
         >
-          Download Salary Slip
+          DOWNLOAD YOUR PAYSLIP NOW
         </button>
       </div>
     </div>

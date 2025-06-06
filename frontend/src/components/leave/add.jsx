@@ -23,6 +23,7 @@ const ApplyLeave = () => {
   });
 
   const [selectedDays, setSelectedDays] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     fetchLeaves();
@@ -45,36 +46,34 @@ const ApplyLeave = () => {
   };
 
   const updateBalances = (leaves) => {
-  let casual = 24, medical = 12, earned = 12;
+    let casual = 24, medical = 12, earned = 12;
 
-  leaves.forEach((l) => {
-    // ✅ Skip REJECTED leaves
-    if (l.status === "Rejected") return;
+    leaves.forEach((l) => {
+      if (l.status === "Rejected") return;
 
-    const msPerDay = 1000 * 60 * 60 * 24;
-    const rawDays = (new Date(l.endDate) - new Date(l.startDate)) / msPerDay + 1;
-    const days = Math.round(rawDays);
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const rawDays = (new Date(l.endDate) - new Date(l.startDate)) / msPerDay + 1;
+      const days = Math.round(rawDays);
 
-    if (l.leaveType === "Casual Leave") {
-      if (casual >= days) {
-        casual -= days;
-      } else {
-        const remaining = days - casual;
-        casual = 0;
-        earned -= remaining;
+      if (l.leaveType === "Casual Leave") {
+        if (casual >= days) {
+          casual -= days;
+        } else {
+          const remaining = days - casual;
+          casual = 0;
+          earned -= remaining;
+        }
+      } else if (l.leaveType === "Medical Leave") {
+        medical -= days;
       }
-    } else if (l.leaveType === "Medical Leave") {
-      medical -= days;
-    }
-  });
+    });
 
-  setLeaveBalance({
-    casual: Math.max(casual, 0),
-    medical: Math.max(medical, 0),
-    earned: Math.max(earned, 0),
-  });
-};
-
+    setLeaveBalance({
+      casual: Math.max(casual, 0),
+      medical: Math.max(medical, 0),
+      earned: Math.max(earned, 0),
+    });
+  };
 
   const handleCalendarChange = (range) => {
     setDateRange(range);
@@ -119,113 +118,145 @@ const ApplyLeave = () => {
     }
   };
 
+  const handlePrev = () => {
+    if (currentIndex >= 3) {
+      setCurrentIndex(currentIndex - 3);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex + 3 < leaveHistory.length) {
+      setCurrentIndex(currentIndex + 3);
+    }
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen p-4">
-      {/* Leave Balances with Background */}
+      {/* Leave Balances */}
       <div
-  className="bg-cover bg-center py-10 px-4 mb-6"
-  style={{
-    backgroundImage:
-      "url('https://www.businessmanager.in/wp-content/uploads/2024/11/Concept-and-Need-for-Medical-Leave-Bank-Scheme.jpg')",
-  }}
->
-  <div className="max-w-5xl mx-auto flex justify-between gap-4">
-    {[
-      { type: "CASUAL LEAVE", value: leaveBalance.casual, color: "bg-yellow-300" },
-      { type: "MEDICAL LEAVE", value: leaveBalance.medical, color: "bg-yellow-300" },
-      { type: "EARNED LEAVE", value: leaveBalance.earned, color: "bg-yellow-300" },
-    ].map((item, index) => (
-      <div
-        key={index}
-        className="flex-1 bg-white rounded-xl shadow-md text-center py-6"
+        className="bg-cover bg-center py-10 px-4 mb-6"
+        style={{
+          backgroundImage:
+            "url('https://www.businessmanager.in/wp-content/uploads/2024/11/Concept-and-Need-for-Medical-Leave-Bank-Scheme.jpg')",
+        }}
       >
-        <div className="text-4xl font-bold">{item.value}</div>
-        <div
-          className={`mt-3 inline-block text-sm font-medium px-4 py-1 rounded-full ${item.color}`}
-        >
-          {item.type}
+        <div className="max-w-5xl mx-auto flex justify-between gap-4">
+          {[
+            { type: "CASUAL LEAVE", value: leaveBalance.casual, color: "bg-yellow-300" },
+            { type: "MEDICAL LEAVE", value: leaveBalance.medical, color: "bg-yellow-300" },
+            { type: "EARNED LEAVE", value: leaveBalance.earned, color: "bg-yellow-300" },
+          ].map((item, index) => (
+            <div
+              key={index}
+              className="flex-1 bg-white rounded-xl shadow-md text-center py-6"
+            >
+              <div className="text-4xl font-bold">{item.value}</div>
+              <div
+                className={`mt-3 inline-block text-sm font-medium px-4 py-1 rounded-full ${item.color}`}
+              >
+                {item.type}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    ))}
-  </div>
-</div>
 
-      {/* Leave History Cards */}
-      <div className="flex space-x-10 overflow-x-auto mb-6 px-2">
-        {leaveHistory.map((l, idx) => (
-          <div key={idx} className="min-w-[250px] bg-white rounded-xl shadow p-4">
-            <h4 className="font-semibold">{l.leaveType.toUpperCase()}</h4>
-            <p
-              className={`text-white px-3 py-1 mt-2 inline-block rounded-full text-sm ${
-                l.status === "Approved"
-                  ? "bg-green-500"
-                  : l.status === "Rejected"
-                  ? "bg-red-400"
-                  : "bg-yellow-400"
-              }`}
+      {/* Leave History Cards with Navigation */}
+      <div className="flex items-center justify-between mb-6 px-4">
+        <button
+          onClick={handlePrev}
+          className="bg-gray-300 px-3 py-2 rounded disabled:opacity-50"
+          disabled={currentIndex === 0}
+        >
+          ⬅️
+        </button>
+
+        <div className="flex space-x-16 overflow-hidden w-full justify-center px-8">
+          {leaveHistory.slice(currentIndex, currentIndex + 3).map((l, idx) => (
+            <div
+              key={idx}
+              className="min-w-[280px] bg-white rounded-xl shadow p-6"
             >
-              {l.status.toUpperCase()}
-            </p>
-            <p className="text-sm mt-2">
-              {new Date(l.startDate).toLocaleDateString()} -{" "}
-              {new Date(l.endDate).toLocaleDateString()}
-            </p>
-          </div>
-        ))}
+              <h4 className="font-semibold">{l.leaveType.toUpperCase()}</h4>
+              <p
+                className={`text-white px-3 py-1 mt-2 inline-block rounded-full text-sm ${
+                  l.status === "Approved"
+                    ? "bg-green-500"
+                    : l.status === "Rejected"
+                    ? "bg-red-400"
+                    : "bg-yellow-400"
+                }`}
+              >
+                {l.status.toUpperCase()}
+              </p>
+              <p className="text-sm mt-2">
+                {new Date(l.startDate).toLocaleDateString()} -{" "}
+                {new Date(l.endDate).toLocaleDateString()}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={handleNext}
+          className="bg-gray-300 px-3 py-2 rounded disabled:opacity-50"
+          disabled={currentIndex + 3 >= leaveHistory.length}
+        >
+          ➡️
+        </button>
       </div>
 
-      {/* Leave Form */}
+      {/* Leave Application Form */}
       <form
-  onSubmit={handleSubmit}
-  className="bg-white p-6 rounded-xl shadow max-w-3xl mx-auto"
->
-  <h2 className="text-xl font-bold mb-4">Apply Leave</h2>
-  
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {/* Left Side - Calendar */}
-    <div>
-      <label className="block mb-1 font-medium text-sm">Select Date Range</label>
-      <Calendar
-        selectRange
-        onChange={handleCalendarChange}
-        value={dateRange}
-        className="w-full rounded-lg border border-gray-600 p-4"
-      />
-      {selectedDays > 0 && (
-        <p className="mt-2 text-gray-600">You selected {selectedDays} days</p>
-      )}
-    </div>
-
-    {/* Right Side - Leave Type + Reason */}
-    <div className="flex flex-col gap-4">
-      <select
-        name="leaveType"
-        onChange={handleChange}
-        required
-        className="p-2 border border-gray-300 rounded h-[42px]"
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-xl shadow max-w-6xl mx-auto"
       >
-        <option value="">Select Leave Type</option>
-        <option value="Casual Leave">Casual Leave</option>
-        <option value="Medical Leave">Medical Leave</option>
-      </select>
-      <textarea
-        name="reason"
-        onChange={handleChange}
-        placeholder="Reason for leave"
-        required
-        className="p-2 border border-gray-300 rounded flex-1 min-h-[120px]"
-      />
-    </div>
-  </div>
+        <h2 className="text-xl font-bold mb-4">Apply Leave</h2>
 
-  <button
-    type="submit"
-    className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-  >
-    Apply
-  </button>
-</form>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Calendar */}
+          <div>
+            <label className="block mb-1 font-medium text-sm">Select Date Range</label>
+            <Calendar
+              selectRange
+              onChange={handleCalendarChange}
+              value={dateRange}
+              className="w-full rounded-lg border border-gray-600 p-4"
+            />
+            {selectedDays > 0 && (
+              <p className="mt-2 text-gray-600">You selected {selectedDays} days</p>
+            )}
+          </div>
 
+          {/* Leave Type + Reason */}
+          <div className="flex flex-col gap-4">
+            <select
+              name="leaveType"
+              onChange={handleChange}
+              required
+              className="p-2 border border-gray-300 rounded h-[42px]"
+            >
+              <option value="">Select Leave Type</option>
+              <option value="Casual Leave">Casual Leave</option>
+              <option value="Medical Leave">Medical Leave</option>
+            </select>
+            <textarea
+              name="reason"
+              onChange={handleChange}
+              placeholder="Reason for leave"
+              required
+              className="p-2 border border-gray-300 rounded flex-1 min-h-[120px]"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Apply
+        </button>
+      </form>
     </div>
   );
 };

@@ -41,11 +41,11 @@ const EmployeeDashboard = () => {
       </div>
 
       {/* Full-width Greeting Box */}
-      <div className="relative bg-blue-400 rounded-3xl p-4 w-full overflow mb-10 min-h-[240px] md:min-h-[280px] lg:min-h-[280px]">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">
+      <div className="relative bg-blue-500 rounded-3xl p-4 w-full overflow mb-10 min-h-[240px] md:min-h-[280px] lg:min-h-[280px]">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8 mt-8">
           {greeting}, {user.name}!
         </h2>
-        <p className="text-gray-700 text-lg mb-8">
+        <p className="text-gray-700 text-lg mb-12">
           There are several tasks currently pending completion.
         </p>
         <button className="bg-white font-semibold px-6 py-2 rounded-full text-blue-600 hover:bg-gray-100 transition">
