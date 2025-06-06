@@ -7,6 +7,25 @@ import EmojiPicker from "emoji-picker-react";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FiSend, FiPaperclip } from "react-icons/fi";
 
+const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "👏", "🔥"];
+
+const bubbleVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring", stiffness: 400, damping: 30 },
+  },
+  exit: { opacity: 0, y: -20, scale: 0.9, transition: { duration: 0.2 } },
+};
+
+const sendBtnVariants = {
+  rest: { scale: 1, boxShadow: "0 2px 8px #a5b4fc33" },
+  hover: { scale: 1.08, boxShadow: "0 4px 24px #818cf833" },
+  tap: { scale: 0.96 },
+};
+
 const ChatRoom = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -113,24 +132,24 @@ const ChatRoom = () => {
       setMessages((prev) => [...prev, msg]);
     });
     socket.on("receive-reaction", ({ messageId, emoji, userId }) => {
-  setMessages((prevMessages) =>
-    prevMessages.map((msg) => {
-      if (msg._id === messageId) {
-        // Avoid duplicate reactions
-        const alreadyReacted = msg.reactions?.some(
-          (r) => r.user === userId && r.emoji === emoji
-        );
-        if (alreadyReacted) return msg;
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) => {
+          if (msg._id === messageId) {
+            // Avoid duplicate reactions
+            const alreadyReacted = msg.reactions?.some(
+              (r) => r.user === userId && r.emoji === emoji
+            );
+            if (alreadyReacted) return msg;
 
-        return {
-          ...msg,
-          reactions: [...(msg.reactions || []), { emoji, user: userId }],
-        };
-      }
-      return msg;
-    })
-  );
-});
+            return {
+              ...msg,
+              reactions: [...(msg.reactions || []), { emoji, user: userId }],
+            };
+          }
+          return msg;
+        })
+      );
+    });
 
     return () => {
       socket.emit("leave-group", id);
@@ -418,18 +437,17 @@ const ChatRoom = () => {
 
                 {/* Reactions */}
                 {msg.reactions && msg.reactions.length > 0 && (
-  <div className="text-xs mt-2 flex flex-wrap gap-1">
-    {msg.reactions.map((r, index) => (
-      <span
-        key={index}
-        className="bg-gray-200 px-1.5 py-0.5 rounded-full"
-      >
-        {r.emoji}
-      </span>
-    ))}
-  </div>
-)}
-
+                  <div className="text-xs mt-2 flex flex-wrap gap-1">
+                    {msg.reactions.map((r, index) => (
+                      <span
+                        key={index}
+                        className="bg-gray-200 px-1.5 py-0.5 rounded-full"
+                      >
+                        {r.emoji}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Timestamp & Status */}
                 <div className="text-xs text-right text-gray-500 mt-1 flex items-center gap-1">

@@ -195,7 +195,7 @@ function App() {
           <Route path="salary/:id" element={<ViewSalaryEmp />} />
           <Route path="pf/:employeeId" element={<PfView1 />} />
           <Route path="login-history/:id" element={<View5 />} />
-          <Route path="teams/user/:UseId" element={<EmTeam />} />
+          <Route path="teams/user/:UserId" element={<EmTeam />} />
           <Route path="teams/team/:id" element={<EmView />} />
 
           <Route path="task/user/:userId" element={<EmDepartmentView />} />
@@ -203,7 +203,12 @@ function App() {
 
           <Route path="groups" element={<ChatLayout />} >
   <Route index element={<HomePlaceholder />} />
+  <Route path="setting" element={<SettingChat />} />
+  <Route path="addgroup" element={<AddGroup />} />
+  <Route path="new-chat" element={<NewChat />} />
   <Route path=":id" element={<ChatRoom />} />  {/* ✅ FIXED */}
+  <Route path="direct/:id" element={<DirectChat />} />
+
 </Route>
 
 

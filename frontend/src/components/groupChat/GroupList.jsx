@@ -51,17 +51,17 @@ const GroupList = () => {
 
   useEffect(() => {
     fetchGroups();
-    if (user?.role === "admin") {
-      fetchDirectChats();
-    }
+    fetchDirectChats();
   }, [user?.role]);
 
   useEffect(() => {
     if (!socket) return;
 
     socket.on("receive-message", (msg) => {
-      const isCurrentGroup = location.pathname === `/admin-dashboard/groups/${msg.groupId}`;
-      const isCurrentDirect = location.pathname === `/admin-dashboard/groups/direct/${msg.chatId}`;
+      const isCurrentGroup =
+        location.pathname === `/admin-dashboard/groups/${msg.groupId}`;
+      const isCurrentDirect =
+        location.pathname === `/admin-dashboard/groups/direct/${msg.chatId}`;
 
       if (!isCurrentGroup && !isCurrentDirect) {
         const key = msg.groupId || msg.chatId;
@@ -81,26 +81,33 @@ const GroupList = () => {
   }, [socket, location.pathname]);
 
   const handleOpenChat = (type, id) => {
+    const dashboardPrefix =
+      user?.role === "admin"
+        ? "/admin-dashboard"
+        : user?.role === "hr"
+        ? "/hr-dashboard"
+        : "/employee-dashboard";
+
+    const path =
+      type === "group"
+        ? `${dashboardPrefix}/groups/${id}`
+        : `${dashboardPrefix}/groups/direct/${id}`;
+
+    navigate(path);
+
+    setUnreadCounts((prev) => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+  };
+
   const dashboardPrefix =
     user?.role === "admin"
       ? "/admin-dashboard"
       : user?.role === "hr"
       ? "/hr-dashboard"
       : "/employee-dashboard";
-
-  const path =
-    type === "group"
-      ? `${dashboardPrefix}/groups/${id}`
-      : `${dashboardPrefix}/groups/direct/${id}`;
-
-  navigate(path);
-
-  setUnreadCounts((prev) => {
-    const updated = { ...prev };
-    delete updated[id];
-    return updated;
-  });
-};
 
   const getImageUrl = (path) => {
     if (!path || typeof path !== "string") {
@@ -118,11 +125,7 @@ const GroupList = () => {
         style={{ backgroundImage: `url(${logo1})` }}
       >
         <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-8 w-20 h-20 border-4 border-white rounded-full overflow-hidden shadow-lg bg-white">
-          <img
-            src={logo1}
-            alt="Logo"
-            className="w-full h-full object-cover"
-          />
+          <img src={logo1} alt="Logo" className="w-full h-full object-cover" />
         </div>
       </div>
 
@@ -158,7 +161,7 @@ const GroupList = () => {
         </div>
 
         {/* Direct Chats (Only for admin) */}
-        {user?.role === "admin" && (
+        {directChats.length > 0 && (
           <div className="mt-4 border-t pt-2">
             <p className="text-xs text-gray-500 pl-4 mb-1">Chats</p>
             {directChats.map((chat) => {
@@ -172,7 +175,8 @@ const GroupList = () => {
                   key={chat._id}
                   onClick={() => handleOpenChat("direct", chat._id)}
                   className={`flex items-center justify-between px-4 py-2 cursor-pointer rounded-full transition-all mb-1 ${
-                    location.pathname === `/admin-dashboard/groups/direct/${chat._id}`
+                    location.pathname ===
+                    `/admin-dashboard/groups/direct/${chat._id}`
                       ? "bg-blue-100 shadow-inner"
                       : "hover:bg-gray-100"
                   }`}
@@ -198,12 +202,15 @@ const GroupList = () => {
       </div>
 
       {/* Bottom Bar */}
+      {/* Bottom Bar */}
       <div className="flex items-center justify-between px-4 py-3 border-t bg-white">
         <div className="flex gap-4 items-center">
           <button
-            onClick={() => navigate("/admin-dashboard/groups/setting")}
+            onClick={() => navigate(`${dashboardPrefix}/groups/setting`)}
             className={`text-gray-500 hover:text-blue-600 ${
-              location.pathname.includes("/groups/setting") ? "text-blue-600" : ""
+              location.pathname.includes("/groups/setting")
+                ? "text-blue-600"
+                : ""
             }`}
             title="Settings"
           >
@@ -219,9 +226,11 @@ const GroupList = () => {
         </div>
 
         <button
-          onClick={() => navigate("/admin-dashboard/groups/new-chat")}
+          onClick={() => navigate(`${dashboardPrefix}/groups/new-chat`)}
           className={`bg-blue-100 hover:bg-blue-200 text-blue-600 p-2 rounded-full ${
-            location.pathname.includes("/groups/new-chat") ? "ring-2 ring-blue-400" : ""
+            location.pathname.includes("/groups/new-chat")
+              ? "ring-2 ring-blue-400"
+              : ""
           }`}
           title="Start New Chat"
         >

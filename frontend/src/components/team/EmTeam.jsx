@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/authContext";
 import { Link } from "react-router-dom";
 import "./team.css";
+import Team from "../../assets/images/Team.jpg"
+import BottomTeam from "../../assets/images/teamlogo.png"
 
 // Clean image path
 const getCleanImageUrl = (team_dp) => {
@@ -55,9 +57,9 @@ const MyTeams = () => {
       {/* Top banner image */}
       <div className="w-full">
         <img
-          src="/your-banner-image.png" // Replace with your banner image path
+          src= {Team} // Replace with your banner image path
           alt="Team Header"
-          className="w-full h-40 object-cover"
+          className="w-full h-45 object-cover"
         />
       </div>
 
@@ -110,10 +112,10 @@ const MyTeams = () => {
 
       {/* Bottom-right corner image */}
       <img
-        src="/team-corner.png" // Replace with your uploaded image
-        alt="Team Icon"
-        className="absolute bottom-4 right-4 w-28 h-auto"
-      />
+  src={BottomTeam}
+  alt="Team Icon"
+  className="absolute bottom-0 right-0 w-74 h-64 m-0 p-0"
+/>
     </div>
   );
 };

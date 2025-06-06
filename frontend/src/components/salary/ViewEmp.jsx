@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import logo from "../../assets/images/logo1.png"
 import axios from "axios";
 import jsPDF from "jspdf";
-import Leave from "../../assets/images/leave.png"
+import Leave from "../../assets/images/Salary.jpg"
 import autoTable from "jspdf-autotable";
 
 const View = () => {
@@ -270,54 +270,27 @@ y += 22;
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-          {/* Full-width header image */}
-          <div className="w-full">
-            <img
-              src= {Leave}
-              alt="Header"
-              className="w-full h-45 object-cover"
-            />
-          </div>
-
-      <h2 className="text-2xl font-bold text-center mb-6">Salary Details</h2>
-
-      <div className="flex justify-end mb-4">
-        <input
-          type="text"
-          placeholder="Search by Employee ID"
-          className="border border-gray-300 rounded-md px-3 py-1 text-sm"
-          onChange={filterSalaries}
+    <div className="bg-gray-100 min-h-screen pb-10">
+      {/* Full-width header image */}
+      <div className="w-full">
+        <img
+          src={Leave}
+          alt="Header"
+          className="w-full h-45 object-cover"
         />
       </div>
 
-      {/* Salary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-        {filteredSalaries.map((salary) => {
-          const totalAllowance = Object.values(salary.allowances || {}).reduce((a, b) => a + b, 0);
-          const totalDeduction = Object.values(salary.deductions || {}).reduce((a, b) => a + b, 0);
-          const netSalary = salary.netSalary || (salary.basicSalary + totalAllowance - totalDeduction);
+      <div className="max-w-3xl mx-auto text-center mt-40 px-4">
+        <p className="text-gray-700 text-lg leading-relaxed font-serif italic">
+          “Any additional deduction reflected under the Deductions column has been neutralized through a corresponding entry in the Earnings column, wherever applicable. All figures and entries mentioned in this payslip have been prepared and verified by the Finance Department. In case of any discrepancies or unusual entries, please contact the Finance Department at financedept@navikshaa.com for clarification. This is a computer-generated payslip and does not require a signature. For any queries, please reach out to the HR department.”
+        </p>
 
-          return (
-            <div key={salary._id} className="bg-white shadow-md rounded-lg p-4 border">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                Employee ID: {salary.employeeId?.employeeId || "N/A"}
-              </h3>
-              <p><strong>Basic Salary:</strong> ₹ {salary.basicSalary.toFixed(2)}</p>
-              <p><strong>Total Allowance:</strong> ₹ {totalAllowance.toFixed(2)}</p>
-              <p><strong>Total Deduction:</strong> ₹ {totalDeduction.toFixed(2)}</p>
-              <p><strong>Net Salary:</strong> ₹ {netSalary.toFixed(2)}</p>
-              <p><strong>Pay Date:</strong> {new Date(salary.payDate).toLocaleDateString()}</p>
-
-              <button
-                onClick={() => handleDownloadPDF(salary)}
-                className="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
-              >
-                Download PDF
-              </button>
-            </div>
-          );
-        })}
+        <button
+          onClick={() => handleDownloadPDF(latestSalary)}
+          className="mt-8 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-sm"
+        >
+          Download Salary Slip
+        </button>
       </div>
     </div>
   );
