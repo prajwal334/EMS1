@@ -37,7 +37,7 @@ router.post("/upload", authMiddleware, upload.single("file"), (req, res) => {
     url: `/uploads/messages/${req.file.filename}`,
   });
 });
-router.post("/:id", authMiddleware, reactToMessage);
+router.post("/:id/react", authMiddleware, reactToMessage);
 router.post("/forward", authMiddleware, forwardMessage);
 
 export default router;
