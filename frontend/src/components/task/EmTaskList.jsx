@@ -8,10 +8,10 @@ import {
 } from "react-icons/fi";
 
 import { useAuth } from "../../context/authContext";
-import QueryModal from "../../components/modal/QueryModal";
-import TimeModal from "../../components/modal/TimeModal";
-import DoneModal from "../../components/modal/DoneModal";
-import ViewModal from "../../components/modal/ViewModal";
+import QueryModal from "../task/modal/QueryModal";
+import TimeModal from "../task/modal/TimeModal";
+import DoneModal from "../task/modal/DoneModal";
+import ViewModal from "../task/modal/ViewModal";
 
 const EmTasklist = () => {
   const { id } = useParams();
@@ -177,30 +177,29 @@ const EmTasklist = () => {
       </div>
 
       {/* SubDepartments */}
-<div className="flex flex-wrap justify-center gap-4 mb-8">
-  {subDepartments.map((sub) => {
-    const isActive = userDesignation === sub.name;
-    const isSelected = selectedSubDep === sub._id;
+      <div className="flex flex-wrap justify-center gap-4 mb-8">
+        {subDepartments.map((sub) => {
+          const isActive = userDesignation === sub;
+          const isSelected = selectedSubDep === sub;
 
-    return (
-      <div
-        key={sub._id}
-        onClick={() => isActive && setSelectedSubDep(sub._id)}
-        className={`w-36 px-4 py-3 text-center rounded-lg text-sm font-bold shadow-lg transition
-          ${
-            isActive
-              ? "bg-blue-500 text-white cursor-pointer hover:bg-blue-600"
-              : "bg-gray-200 text-gray-600 cursor-not-allowed"
-          }
-          ${isSelected ? "ring-2 ring-offset-2 ring-blue-300" : ""}
-        `}
-      >
-        {sub.name}
+          return (
+            <div
+              key={sub}
+              onClick={() => isActive && setSelectedSubDep(sub)}
+              className={`w-36 px-4 py-3 text-center rounded-lg text-sm font-bold shadow-lg transition
+                ${
+                  isActive
+                    ? "bg-blue-500 text-white cursor-pointer hover:bg-blue-600"
+                    : "bg-gray-200 text-gray-600 cursor-not-allowed"
+                }
+                ${isSelected ? "ring-2 ring-offset-2 ring-blue-300" : ""}
+              `}
+            >
+              {sub}
+            </div>
+          );
+        })}
       </div>
-    );
-  })}
-</div>
-
 
       {/* Team Members */}
       {employees.length > 0 && (
@@ -217,93 +216,87 @@ const EmTasklist = () => {
       )}
 
       {/* Task Cards */}
-<div
-  className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-all duration-300 ${
-    isAnyModalOpen ? "blur-sm pointer-events-none select-none" : ""
-  }`}
->
-  {tasks.map((task, index) => (
-    <div
-      key={task._id || index}
-      className="bg-white rounded-2xl p-6 shadow-2xl w-80 h-[320px] flex flex-col justify-between transition hover:shadow-3xl"
-    >
-      {/* Header */}
-      <div className="flex justify-between items-start mb-2">
-        <h4 className="font-semibold text-lg text-gray-800 truncate">
-          {task.task_title || "Untitled Task"}
-        </h4>
-        <span className="text-xs text-gray-500">
-          {task.endDate
-            ? new Date(task.endDate).toLocaleDateString()
-            : "No Date"}
-        </span>
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-all duration-300 ${
+          isAnyModalOpen ? "blur-sm pointer-events-none select-none" : ""
+        }`}
+      >
+        {tasks.map((task, index) => (
+          <div
+            key={task._id || index}
+            className="bg-white rounded-2xl p-6 shadow-2xl w-80 h-[320px] flex flex-col justify-between transition hover:shadow-3xl"
+          >
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="font-semibold text-lg text-gray-800 truncate">
+                {task.task_title || "Untitled Task"}
+              </h4>
+              <span className="text-xs text-gray-500">
+                {task.endDate
+                  ? new Date(task.endDate).toLocaleDateString()
+                  : "No Date"}
+              </span>
+            </div>
+
+            <p className="text-sm text-gray-700 mb-4 flex-grow bg-gray-50 p-2 rounded overflow-y-auto">
+              {task.message || "No description"}
+            </p>
+
+            <div className="flex justify-between items-center mt-2">
+              <button
+                title="View"
+                onClick={() => {
+                  setCurrentViewTaskId(task._id);
+                  setIsViewModalOpen(true);
+                }}
+                className="text-black hover:text-gray-700"
+              >
+                <FiEye size={20} />
+              </button>
+
+              <div className="flex gap-4">
+                <button
+                  title="Query"
+                  onClick={() => {
+                    setCurrentQueryTaskId(task._id);
+                    setQueryText("");
+                    setIsQueryModalOpen(true);
+                  }}
+                  className="text-black hover:text-gray-700"
+                >
+                  <FiMessageSquare size={20} />
+                </button>
+
+                <button
+                  title="Extend Time"
+                  onClick={() => {
+                    setCurrentTimeTaskId(task._id);
+                    setSelectedDate(new Date());
+                    setTimeReason("");
+                    setIsTimeModalOpen(true);
+                  }}
+                  className="text-black hover:text-gray-700"
+                >
+                  <FiClock size={20} />
+                </button>
+
+                <button
+                  title="Mark Done"
+                  onClick={() => {
+                    setCurrentDoneTaskId(task._id);
+                    setDoneMessage("");
+                    setDoneImage(null);
+                    setDoneImagePreview(null);
+                    setIsDoneModalOpen(true);
+                  }}
+                  className="text-black hover:text-gray-700"
+                >
+                  <FiCheckCircle size={20} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-
-      {/* Description */}
-      <p className="text-sm text-gray-700 mb-4 flex-grow bg-gray-50 p-2 rounded overflow-y-auto">
-        {task.message || "No description"}
-      </p>
-
-      {/* Actions */}
-      <div className="flex justify-between items-center mt-2">
-        {/* View Icon */}
-        <button
-          title="View"
-          onClick={() => {
-            setCurrentViewTaskId(task._id);
-            setIsViewModalOpen(true);
-          }}
-          className="text-black hover:text-gray-700"
-        >
-          <FiEye size={20} />
-        </button>
-
-        {/* Right-side icons */}
-        <div className="flex gap-4">
-          <button
-            title="Query"
-            onClick={() => {
-              setCurrentQueryTaskId(task._id);
-              setQueryText("");
-              setIsQueryModalOpen(true);
-            }}
-            className="text-black hover:text-gray-700"
-          >
-            <FiMessageSquare size={20} />
-          </button>
-
-          <button
-            title="Extend Time"
-            onClick={() => {
-              setCurrentTimeTaskId(task._id);
-              setSelectedDate(new Date());
-              setTimeReason("");
-              setIsTimeModalOpen(true);
-            }}
-            className="text-black hover:text-gray-700"
-          >
-            <FiClock size={20} />
-          </button>
-
-          <button
-            title="Mark Done"
-            onClick={() => {
-              setCurrentDoneTaskId(task._id);
-              setDoneMessage("");
-              setDoneImage(null);
-              setDoneImagePreview(null);
-              setIsDoneModalOpen(true);
-            }}
-            className="text-black hover:text-gray-700"
-          >
-            <FiCheckCircle size={20} />
-          </button>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
-
 
       {/* Modals */}
       <ViewModal

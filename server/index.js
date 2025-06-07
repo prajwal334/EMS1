@@ -20,11 +20,15 @@ import loginHistoryRoutes from "./routes/loginhistory.js";
 import dashboardRouter from "./routes/dashboard.js";
 import attendanceRoutes from "./routes/attendance.js";
 import taskRoutes from "./routes/task.js";
+import salesRoutes from "./routes/saleTask.js";
+import targetRoutes from "./routes/target.js";
 import adminRouter from "./routes/admin.js";
 import groupRouter from "./routes/groupChat.js";
 import groupMessageRouter from "./routes/groupMessage.js"; // ✅ Add this route
 import directChatRoutes from "./routes/directChat.js";
 import directMessageRoutes from "./routes/directMessage.js";
+
+
 
 
 // Load environment variables
@@ -65,6 +69,8 @@ app.use("/api/login-history", loginHistoryRoutes);
 app.use("/api/attendance", attendanceRoutes);
 
 app.use("/api/task", taskRoutes);
+app.use("/api/salestask", salesRoutes);
+app.use("/api/targets", targetRoutes);
 
 app.use("/api/admin", adminRouter);
 app.use("/api/group", groupRouter);

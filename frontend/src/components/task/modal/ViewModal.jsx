@@ -1,9 +1,9 @@
 import React from "react";
 
 const ViewModal = ({ isOpen, onClose, task }) => {
-  if (!isOpen || !task || !task.image) return null;
+  if (!isOpen || !task || !task.initial_image) return null;
 
-  const imageUrl = `http://localhost:3000/uploads/${task.image}`;
+  const imageUrl = `http://localhost:3000/uploads/${task.initial_image}`;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

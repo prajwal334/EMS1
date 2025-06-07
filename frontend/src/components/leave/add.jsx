@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import LeaveHeader from "../../assets/images/leave_task_header[1].png"
 
 const ApplyLeave = () => {
   const { user } = useAuth();
@@ -131,13 +132,12 @@ const ApplyLeave = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4">
+    <div className="bg-gray-100 min-h-screen ">
       {/* Leave Balances */}
       <div
         className="bg-cover bg-center py-10 px-4 mb-6"
         style={{
-          backgroundImage:
-            "url('https://www.businessmanager.in/wp-content/uploads/2024/11/Concept-and-Need-for-Medical-Leave-Bank-Scheme.jpg')",
+           backgroundImage: `url(${LeaveHeader})`,
         }}
       >
         <div className="max-w-5xl mx-auto flex justify-between gap-4">

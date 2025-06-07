@@ -12,13 +12,13 @@ import verifyUser from "../middleware/authMiddlware.js";
 const router = express.Router();
 
 // Create a task
-router.post("/assign", verifyUser, upload.single("image"), createTask);
+router.post("/assign", verifyUser, upload.single("initial_image"), createTask);
 
 // Get all tasks
 router.get("/", getAllTasks);
 
 // Update a task
-router.put("/:id", upload.single("image"), updateTask);
+router.put("/:id", upload.single("update_image"), updateTask);
 
 // Delete a task
 router.delete("/:id", deleteTask);
