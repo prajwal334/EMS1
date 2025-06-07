@@ -10,6 +10,7 @@ import SalesTable from "./TaskStatus/SalesTable";
 import MarketTable from "./TaskStatus/MarketTable";
 import MarketTargetList from "./TaskStatus/MarketTarget";
 import OpTable from "./TaskStatus/OpTable";
+import OpTargetList from "./TaskStatus/OpTarget";
 
 const EmTasklist = () => {
   const { id } = useParams();
@@ -90,7 +91,9 @@ const EmTasklist = () => {
   return (
     <div
       className={`min-h-screen bg-gray-100 w-full ${
-        department?.dep_name === "Sales" || department?.dep_name === "Marketing"
+        department?.dep_name === "Sales" ||
+        department?.dep_name === "Marketing" ||
+        department?.dep_name === "Operations"
           ? "p-0 m-0"
           : "px-4 py-8"
       }`}
@@ -106,7 +109,8 @@ const EmTasklist = () => {
           <>
             {/* Show department and sub-department cards only if department is NOT Sales and NOT Marketing */}
             {department.dep_name !== "Sales" &&
-              department.dep_name !== "Marketing" && (
+              department.dep_name !== "Marketing" &&
+              department.dep_name !== "Operations" && (
                 <>
                   <div className="flex justify-center mb-6">
                     <div className="bg-white rounded-lg shadow-md px-6 py-3 text-center w-64">
@@ -164,7 +168,12 @@ const EmTasklist = () => {
                 <MarketTable />
               </>
             )}
-            {department.dep_name === "Operation" && <OpTable />}
+            {department.dep_name === "Operations" && (
+              <>
+                <OpTargetList />
+                <OpTable />
+              </>
+            )}
           </>
         )}
       </div>

@@ -27,6 +27,7 @@ import groupRouter from "./routes/groupChat.js";
 import groupMessageRouter from "./routes/groupMessage.js"; // ✅ Add this route
 import directChatRoutes from "./routes/directChat.js";
 import directMessageRoutes from "./routes/directMessage.js";
+import certificateRoutes from "./routes/training.js";
 
 // Load environment variables
 dotenv.config();
@@ -47,7 +48,13 @@ const io = new Server(server, {
 });
 
 // Setup Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use("/uploads", express.static("public/uploads"));
 
@@ -75,6 +82,8 @@ app.use("/api/messages", groupMessageRouter); // ✅ Mount route
 app.use("/uploads", express.static("public/uploads"));
 app.use("/api/direct-chats", directChatRoutes);
 app.use("/api/direct-messages", directMessageRoutes);
+
+app.use("/api/certificate", certificateRoutes);
 
 // ✅ Socket.io Logic
 io.on("connection", (socket) => {
