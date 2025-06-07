@@ -288,13 +288,15 @@ y += 22;
           To open the file, please enter your <b>Navikshaa Unit Personal Number</b> (NUPN).
 
         </p>
-
+{filteredSalaries.map((salary) => (
         <button
-          onClick={() => handleDownloadPDF(latestSalary)}
+          key={salary._id}
+          onClick={() => handleDownloadPDF(salary)}
           className="mt-16 bg-blue-600 text-white px-16 py-2 rounded hover:bg-blue-700 text-sm"
         >
-          DOWNLOAD YOUR PAYSLIP NOW
+          DOWNLOAD PAYSLIP FOR {salary.payFrom?.slice(0, 10)} TO {salary.payTo?.slice(0, 10)}
         </button>
+      ))}
       </div>
     </div>
   );
