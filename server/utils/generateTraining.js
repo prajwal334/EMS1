@@ -35,16 +35,16 @@ const generateTraining = async (name, date) => {
   const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
   page.drawText(name, {
-    x: 250,
-    y: 350,
+    x: 29,
+    y: 390,
     size: 24,
     font,
     color: rgb(0, 0, 0),
   });
 
-  page.drawText(`Completed on: ${date}`, {
-    x: 250,
-    y: 310,
+  page.drawText(` ${date}`, {
+    x: 200,
+    y: 195,
     size: 18,
     font,
     color: rgb(0, 0, 0),
