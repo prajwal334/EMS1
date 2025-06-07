@@ -115,7 +115,7 @@ const EmTasklist = () => {
                 <>
                   <div className="flex justify-center mb-6">
                     <div className="w-full mb-8">
-                      <h2 className="w-full bg-red-200 rounded-xl shadow-xl p-5 text-center text-2xl font-bold text-gray-800">
+                      <h2 className="w-full bg-red-300 rounded-xl shadow-xl p-5 text-center text-2xl font-bold text-gray-800">
                         {department.dep_name}
                       </h2>
                     </div>
