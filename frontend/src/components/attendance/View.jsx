@@ -3,6 +3,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
 import { useAuth } from "../../context/authContext";
+import { FaFilter, FaRegClock } from "react-icons/fa";
 import "./AttendanceCalendar.css";
 
 const AttendanceCalendar = () => {
@@ -10,18 +11,18 @@ const AttendanceCalendar = () => {
   const token = localStorage.getItem("token");
 
   const [attendanceData, setAttendanceData] = useState([]);
-  const [selectedDateData, setSelectedDateData] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const formatDate = (date) => date.toLocaleDateString("en-CA");
 
-  const isToday = (someDate) => {
-    const today = new Date();
-    return (
-      someDate.getDate() === today.getDate() &&
-      someDate.getMonth() === today.getMonth() &&
-      someDate.getFullYear() === today.getFullYear()
-    );
-  };
+  const formatDisplayDate = (dateStr) =>
+    new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
 
   const normalizeStatus = (status) => {
     const normalized = status?.toLowerCase() || "";
@@ -44,57 +45,52 @@ const AttendanceCalendar = () => {
 
       const groupedByDate = {};
 
-      res.data.forEach((entry) => {
-        // Prefer entry.date if it's valid, else derive from loginTime
+      res.data.data.forEach((entry) => {
         let dateObj;
-        if (entry.date && !isNaN(new Date(entry.date))) {
-          dateObj = new Date(entry.date);
-        } else if (entry.loginTime) {
+
+        if (entry.loginTime) {
           dateObj = new Date(entry.loginTime);
-        } else {
-          return; // skip invalid entries
-        }
+          if (user?.department === "it" && dateObj.getHours() < 12) {
+            dateObj.setDate(dateObj.getDate() - 1);
+          }
+        } else if (entry.date && !isNaN(new Date(entry.date))) {
+          dateObj = new Date(entry.date);
+        } else return;
 
         const dateStr = dateObj.toLocaleDateString("en-CA");
 
         if (!groupedByDate[dateStr]) {
           groupedByDate[dateStr] = [];
         }
-
         groupedByDate[dateStr].push(entry);
       });
 
       const formatted = Object.entries(groupedByDate).map(([date, entries]) => {
-        const validEntry =
-          entries.find(
-            (e) => e.status && e.status.toLowerCase() !== "unknown"
-          ) || entries[0];
-
-        const loginTime = validEntry.loginTime
-          ? new Date(validEntry.loginTime).toLocaleTimeString("en-IN", {
+        const entry = entries[0];
+        const loginTime = entry.loginTime
+          ? new Date(entry.loginTime).toLocaleTimeString("en-GB", {
               hour: "2-digit",
               minute: "2-digit",
-              hour12: true,
             })
           : null;
 
-        const logoutTime = validEntry.logoutTime
-          ? new Date(validEntry.logoutTime).toLocaleTimeString("en-IN", {
+        const logoutTime = entry.logoutTime
+          ? new Date(entry.logoutTime).toLocaleTimeString("en-GB", {
               hour: "2-digit",
               minute: "2-digit",
-              hour12: true,
             })
           : null;
 
         return {
           date,
-          status: normalizeStatus(validEntry.status),
+          status: normalizeStatus(entry.status),
           loginTime,
           logoutTime,
         };
       });
 
-      setAttendanceData(formatted);
+      setAttendanceData(formatted.reverse());
+      setFilteredData(formatted.reverse());
     } catch (err) {
       console.error("Error fetching login history:", err);
     }
@@ -106,86 +102,108 @@ const AttendanceCalendar = () => {
     }
   }, [user]);
 
-  const getStatusForDate = (date) => {
-    const dateStr = formatDate(date);
-    const record = attendanceData.find((entry) => entry.date === dateStr);
-    return record?.status || (isToday(date) ? "No Login (Today)" : "No Login");
+  const handleDateSelect = (date) => {
+    const selected = formatDate(date);
+    setSelectedDate(selected);
+    const filtered = attendanceData.filter((entry) => entry.date === selected);
+    setFilteredData(filtered);
+    setShowCalendar(false);
   };
 
-  const getTileClassName = ({ date }) => {
-    const status = getStatusForDate(date);
-    return (
-      {
-        Sunday: "sunday",
-        "On Time": "on-time",
-        Late: "late",
-        "Half Day": "half-day",
-        Holiday: "holiday",
-        "No Login": "no-login",
-        "No Login (Today)": "no-login-today",
-      }[status] || "no-attendance"
-    );
+  const clearFilter = () => {
+    setSelectedDate(null);
+    setFilteredData(attendanceData);
   };
 
-  const handleDateClick = (value) => {
-    const dateStr = formatDate(value);
-    const data = attendanceData.find((entry) => entry.date === dateStr);
-    setSelectedDateData(
-      data || {
-        date: dateStr,
-        loginTime: null,
-        logoutTime: null,
-        status: getStatusForDate(new Date(dateStr)),
-      }
-    );
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "On Time":
+        return "bg-green-500";
+      case "Late":
+        return "bg-orange-400";
+      case "Half Day":
+        return "bg-pink-400";
+      case "Holiday":
+        return "bg-gray-400";
+      case "Sunday":
+        return "bg-blue-400";
+      default:
+        return "bg-gray-300";
+    }
   };
 
   return (
-    <div className="p-4 attendance-wrapper">
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        Attendance Calendar
-      </h2>
-
-      <div className="calendar-container">
-        <Calendar
-          onClickDay={handleDateClick}
-          tileClassName={getTileClassName}
-        />
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-4 justify-center">
-        <Legend color="bg-green-300" label="On Time" />
-        <Legend color="bg-orange-300" label="Late" />
-        <Legend color="bg-pink-300" label="Half Day" />
-        <Legend color="bg-gray-300" label="Holiday" />
-        <Legend color="bg-blue-300" label="Sunday" />
-        <Legend color="border-2 border-gray-300" label="No Login" />
-        <Legend color="border-2 border-red-500" label="No Login (Today)" />
-      </div>
-
-      {selectedDateData ? (
-        <div className="mt-4 p-4 border rounded shadow bg-white max-w-md mx-auto">
-          <h3 className="text-lg font-semibold">
-            Details for {selectedDateData.date}
-          </h3>
-          <p>Login: {selectedDateData.loginTime || "—"}</p>
-          <p>Logout: {selectedDateData.logoutTime || "—"}</p>
-          <p>Status: {selectedDateData.status}</p>
+    <div className="relative px-4 py-6 bg-gray-100 min-h-screen">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold border-l-4 border-green-600 pl-2 uppercase">
+          Attendance Detail
+        </h2>
+        <div className="flex items-center gap-2">
+          {selectedDate && (
+            <button
+              onClick={clearFilter}
+              className="bg-red-100 text-red-600 px-3 py-1 rounded-full font-semibold text-sm"
+            >
+              Clear Filter
+            </button>
+          )}
+          <button
+            onClick={() => setShowCalendar(!showCalendar)}
+            className="bg-white px-4 py-2 rounded-full shadow flex items-center gap-2 font-semibold"
+          >
+            <FaFilter /> Filter
+          </button>
         </div>
-      ) : (
-        <p className="mt-4 text-gray-600 text-center">
-          Click on a date to see details.
-        </p>
+      </div>
+
+      {showCalendar && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg relative">
+            <button
+              onClick={() => setShowCalendar(false)}
+              className="absolute top-2 right-3 text-red-500 font-bold"
+            >
+              ✕
+            </button>
+            <Calendar onChange={handleDateSelect} />
+          </div>
+        </div>
       )}
+
+      {/* Attendance Card Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredData.map((entry, idx) => (
+          <div
+            key={idx}
+            className="bg-white rounded-xl p-3 shadow-md hover:shadow-lg transition-all w-full max-w-[300px] mx-auto"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-sm">
+                <FaRegClock className="text-gray-500" />
+                <span className="font-semibold">{formatDisplayDate(entry.date)}</span>
+              </div>
+              <span
+                className={`text-white text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(entry.status)}`}
+              >
+                {entry.status.toUpperCase()}
+              </span>
+            </div>
+
+            <div className="flex justify-between mt-3 text-center">
+              <div>
+                <p className="text-lg font-bold">{entry.loginTime || "—"}</p>
+                <p className="text-xs text-gray-500">Check In</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold">{entry.logoutTime || "—"}</p>
+                <p className="text-xs text-gray-500">Check Out</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
-
-const Legend = ({ color, label }) => (
-  <div className="flex items-center space-x-2">
-    <div className={`w-4 h-4 rounded ${color}`}></div>
-    <span className="text-sm">{label}</span>
-  </div>
-);
 
 export default AttendanceCalendar;

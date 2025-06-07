@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import logo from "../../assets/images/logo1.png"
 import axios from "axios";
 import jsPDF from "jspdf";
+import Leave from "../../assets/images/Salary.jpg"
 import autoTable from "jspdf-autotable";
 
 const View = () => {
@@ -269,61 +270,34 @@ y += 22;
   }
 
   return (
-    <div className="overflow-x-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">Salary Details</h2>
-
-      <div className="flex justify-end mb-4">
-        <input
-          type="text"
-          placeholder="Search by Employee ID"
-          className="border border-gray-300 rounded-md px-3 py-1 text-sm"
-          onChange={filterSalaries}
+    <div className="bg-gray-100 min-h-screen pb-10">
+      {/* Full-width header image */}
+      <div className="w-full">
+        <img
+          src={Leave}
+          alt="Header"
+          className="w-full h-45 object-cover"
         />
       </div>
 
-      {filteredSalaries.length > 0 ? (
-        <table className="w-full text-sm text-left border border-gray-300 rounded-md shadow-md">
-          <thead className="text-sm text-gray-700 uppercase bg-gray-50 border border-gray-300">
-            <tr>
-              <th className="px-6 py-3">SNo</th>
-              <th className="px-6 py-3">Emp ID</th>
-              <th className="px-6 py-3">Basic Salary</th>
-              <th className="px-6 py-3">Total Allowance</th>
-              <th className="px-6 py-3">Total Deduction</th>
-              <th className="px-6 py-3">Net Salary</th>
-              <th className="px-6 py-3">Pay Date</th>
-              <th className="px-6 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredSalaries.map((salary) => {
-              const totalAllowance = Object.values(salary.allowances || {}).reduce((a, b) => a + b, 0);
-              const totalDeduction = Object.values(salary.deductions || {}).reduce((a, b) => a + b, 0);
-              return (
-                <tr key={salary._id} className="bg-white border-b hover:bg-gray-50">
-                  <td className="px-6 py-3">{sno++}</td>
-                  <td className="px-6 py-3">{salary.employeeId?.employeeId || "N/A"}</td>
-                  <td className="px-6 py-3">₹ {salary.basicSalary.toFixed(2)}</td>
-                  <td className="px-6 py-3">₹ {totalAllowance.toFixed(2)}</td>
-                  <td className="px-6 py-3">₹ {totalDeduction.toFixed(2)}</td>
-                  <td className="px-6 py-3">₹ {salary.netSalary.toFixed(2)}</td>
-                  <td className="px-6 py-3">{new Date(salary.payDate).toLocaleDateString()}</td>
-                  <td className="px-6 py-3">
-                    <button
-                      onClick={() => handleDownloadPDF(salary)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
-                    >
-                      Download PDF
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      ) : (
-        <div className="text-center text-gray-600 mt-10">No salary records found.</div>
-      )}
+      <div className="max-w-7xl mx-auto text-center mt-40 px-6">
+        <p className="text-black text-lg leading-relaxed ">
+          To view your <b>salary slip</b>, kindly <b>download the PDF</b> and keep it <b>safe for your records</b>.<br></br>
+          Note: Salary slips will be <b>automatically deleted from the server</b> after this <b>month ends</b>, so ensure you <b>download</b> it before the month concludes.<br></br>
+          The <b>PDF is password-protected</b> for your security.<br></br>
+          To open the file, please enter your <b>Navikshaa Unit Personal Number</b> (NUPN).
+
+        </p>
+{filteredSalaries.map((salary) => (
+        <button
+          key={salary._id}
+          onClick={() => handleDownloadPDF(salary)}
+          className="mt-16 bg-blue-600 text-white px-16 py-2 rounded hover:bg-blue-700 text-sm"
+        >
+          DOWNLOAD PAYSLIP FOR {salary.payFrom?.slice(0, 10)} TO {salary.payTo?.slice(0, 10)}
+        </button>
+      ))}
+      </div>
     </div>
   );
 };

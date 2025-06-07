@@ -27,6 +27,8 @@ import HomePlaceholder from "./pages/HomePlaceholder";
 import DirectChat from "./components/groupChat/DirectChat";
 import NewChat from "./pages/NewChat";
 import AddGroup from "./components/groupChat/AddGroup";
+import MyGroups from "./components/groupChat/MyGroups";
+
 
 // HR Department
 import DepartmentList1 from "./components/HrDepartment/DepartmentList";
@@ -66,7 +68,7 @@ import LeaveDetail from "./components/leave/DetailLeave";
 
 // Attendance
 import View4 from "./components/attendance/View";
-import View5 from "./components/attendance/View";
+import View5 from "./pages/Attendanceem";
 import AdminView from "./components/attendance/AdminView";
 import AttendanceEditView from "./components/attendance/AdminEditView";
 
@@ -76,7 +78,7 @@ import Setting from "./components/EmployeeDashboard/Setting";
 //tasks
 import DptTaskList from "./components/task/DptTaskList";
 import RoleList from "./components/task/Rolelist";
-import TaskList from "./components/task/TaskList";
+import TaskList from "./components/task/Tasklist";
 import EmDepartmentView from "./components/task/EmDepartmentView";
 import EmTasklist from "./components/task/EmTaskList";
 
@@ -189,25 +191,26 @@ function App() {
           <Route index element={<EmployeeSummary />} />
           <Route path="profile/:id" element={<View />} />
           <Route path="leaves/:id" element={<LeaveList />} />
-          <Route path="add-leave" element={<LeaveAdd />} />
+          <Route path="add-leave/:id" element={<LeaveAdd />} />
           <Route path="salary/:id" element={<ViewSalaryEmp />} />
           <Route path="pf/:employeeId" element={<PfView1 />} />
-          <Route path="login-history/:userId" element={<View5 />} />
-          <Route path="teams/user/:UseId" element={<EmTeam />} />
+          <Route path="login-history/:id" element={<View5 />} />
+          <Route path="teams/user/:UserId" element={<EmTeam />} />
           <Route path="teams/team/:id" element={<EmView />} />
-
 
           <Route path="task/user/:userId" element={<EmDepartmentView />} />
           <Route path="tasks/department/:id" element={<EmTasklist />} />
 
-          <Route path="groups/:id" element={<ChatLayout />}>
-            <Route index element={<HomePlaceholder />} />
-            <Route path="setting" element={<SettingChat />} />
-            <Route path="addgroup" element={<AddGroup />} />
-            <Route path="new-chat" element={<NewChat />} />
-            <Route path="direct/:id" element={<DirectChat />} />
-            <Route path=":id" element={<ChatRoom />} />
-          </Route>
+          <Route path="groups" element={<ChatLayout />} >
+  <Route index element={<HomePlaceholder />} />
+  <Route path="setting" element={<SettingChat />} />
+  <Route path="addgroup" element={<AddGroup />} />
+  <Route path="new-chat" element={<NewChat />} />
+  <Route path=":id" element={<ChatRoom />} />  {/* ✅ FIXED */}
+  <Route path="direct/:id" element={<DirectChat />} />
+
+</Route>
+
 
         </Route>
       </Routes>

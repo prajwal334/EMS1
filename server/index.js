@@ -29,6 +29,8 @@ import directChatRoutes from "./routes/directChat.js";
 import directMessageRoutes from "./routes/directMessage.js";
 import certificateRoutes from "./routes/training.js";
 
+
+
 // Load environment variables
 dotenv.config();
 

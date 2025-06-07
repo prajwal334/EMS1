@@ -1,119 +1,264 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/authContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useState } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import LeaveHeader from "../../assets/images/leave_task_header[1].png"
 
-const Add = () => {
+const ApplyLeave = () => {
   const { user } = useAuth();
-
-  const [leave, setLeave] = useState({
-    userId: user._id,
-  });
-
   const navigate = useNavigate();
 
+  const [leaveBalance, setLeaveBalance] = useState({
+    casual: 24,
+    medical: 12,
+    earned: 12,
+  });
+
+  const [leaveHistory, setLeaveHistory] = useState([]);
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [form, setForm] = useState({
+    leaveType: "",
+    reason: "",
+  });
+
+  const [selectedDays, setSelectedDays] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    fetchLeaves();
+  }, []);
+
+  const fetchLeaves = async () => {
+    try {
+      const res = await axios.get(`http://localhost:3000/api/leave/${user._id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      if (res.data.success) {
+        setLeaveHistory(res.data.leaves);
+        updateBalances(res.data.leaves);
+      }
+    } catch (err) {
+      alert("Error fetching leave data.");
+    }
+  };
+
+  const updateBalances = (leaves) => {
+    let casual = 24, medical = 12, earned = 12;
+
+    leaves.forEach((l) => {
+      if (l.status === "Rejected") return;
+
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const rawDays = (new Date(l.endDate) - new Date(l.startDate)) / msPerDay + 1;
+      const days = Math.round(rawDays);
+
+      if (l.leaveType === "Casual Leave") {
+        if (casual >= days) {
+          casual -= days;
+        } else {
+          const remaining = days - casual;
+          casual = 0;
+          earned -= remaining;
+        }
+      } else if (l.leaveType === "Medical Leave") {
+        medical -= days;
+      }
+    });
+
+    setLeaveBalance({
+      casual: Math.max(casual, 0),
+      medical: Math.max(medical, 0),
+      earned: Math.max(earned, 0),
+    });
+  };
+
+  const handleCalendarChange = (range) => {
+    setDateRange(range);
+    if (range && range[0] && range[1]) {
+      const diff = Math.round((range[1] - range[0]) / (1000 * 60 * 60 * 24)) + 1;
+      setSelectedDays(diff);
+    }
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setLeave((prevState) => ({ ...prevState, [name]: value }));
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!dateRange[0] || !dateRange[1]) {
+      alert("Please select start and end dates.");
+      return;
+    }
+
     try {
-      const response = await axios.post(
-        `http://localhost:3000/api/leave/add`,
-        leave,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      if (response.data.success) {
+      const payload = {
+        userId: user._id,
+        leaveType: form.leaveType,
+        reason: form.reason,
+        startDate: dateRange[0],
+        endDate: dateRange[1],
+      };
+
+      const res = await axios.post("http://localhost:3000/api/leave/add", payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (res.data.success) {
+        alert("Leave applied successfully!");
         navigate("/employee-dashboard");
-        alert("Leave applied successfully");
       }
-    } catch (error) {
-      if (error.response && !error.response.data.success) {
-        alert(error.response.data.error);
-      }
+    } catch (err) {
+      alert("Leave application failed.");
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex >= 3) {
+      setCurrentIndex(currentIndex - 3);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex + 3 < leaveHistory.length) {
+      setCurrentIndex(currentIndex + 3);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Apply For Leaves</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="bg-gray-100 min-h-screen ">
+      {/* Leave Balances */}
+      <div
+        className="bg-cover bg-center py-10 px-4 mb-6"
+        style={{
+           backgroundImage: `url(${LeaveHeader})`,
+        }}
+      >
+        <div className="max-w-5xl mx-auto flex justify-between gap-4">
+          {[
+            { type: "CASUAL LEAVE", value: leaveBalance.casual, color: "bg-yellow-300" },
+            { type: "MEDICAL LEAVE", value: leaveBalance.medical, color: "bg-yellow-300" },
+            { type: "EARNED LEAVE", value: leaveBalance.earned, color: "bg-yellow-300" },
+          ].map((item, index) => (
+            <div
+              key={index}
+              className="flex-1 bg-white rounded-xl shadow-md text-center py-6"
+            >
+              <div className="text-4xl font-bold">{item.value}</div>
+              <div
+                className={`mt-3 inline-block text-sm font-medium px-4 py-1 rounded-full ${item.color}`}
+              >
+                {item.type}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Leave History Cards with Navigation */}
+      <div className="flex items-center justify-between mb-6 px-4">
+        <button
+          onClick={handlePrev}
+          className="bg-gray-300 px-3 py-2 rounded disabled:opacity-50"
+          disabled={currentIndex === 0}
+        >
+          ⬅️
+        </button>
+
+        <div className="flex space-x-16 overflow-hidden w-full justify-center px-8">
+          {leaveHistory.slice(currentIndex, currentIndex + 3).map((l, idx) => (
+            <div
+              key={idx}
+              className="min-w-[280px] bg-white rounded-xl shadow p-6"
+            >
+              <h4 className="font-semibold">{l.leaveType.toUpperCase()}</h4>
+              <p
+                className={`text-white px-3 py-1 mt-2 inline-block rounded-full text-sm ${
+                  l.status === "Approved"
+                    ? "bg-green-500"
+                    : l.status === "Rejected"
+                    ? "bg-red-400"
+                    : "bg-yellow-400"
+                }`}
+              >
+                {l.status.toUpperCase()}
+              </p>
+              <p className="text-sm mt-2">
+                {new Date(l.startDate).toLocaleDateString()} -{" "}
+                {new Date(l.endDate).toLocaleDateString()}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={handleNext}
+          className="bg-gray-300 px-3 py-2 rounded disabled:opacity-50"
+          disabled={currentIndex + 3 >= leaveHistory.length}
+        >
+          ➡️
+        </button>
+      </div>
+
+      {/* Leave Application Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-xl shadow max-w-6xl mx-auto"
+      >
+        <h2 className="text-xl font-bold mb-4">Apply Leave</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Calendar */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Leave Type
-            </label>
+            <label className="block mb-1 font-medium text-sm">Select Date Range</label>
+            <Calendar
+              selectRange
+              onChange={handleCalendarChange}
+              value={dateRange}
+              className="w-full rounded-lg border border-gray-600 p-4"
+            />
+            {selectedDays > 0 && (
+              <p className="mt-2 text-gray-600">You selected {selectedDays} days</p>
+            )}
+          </div>
+
+          {/* Leave Type + Reason */}
+          <div className="flex flex-col gap-4">
             <select
               name="leaveType"
               onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
+              className="p-2 border border-gray-300 rounded h-[42px]"
             >
               <option value="">Select Leave Type</option>
-              <option value="Sick Leave">Sick Leave</option>
               <option value="Casual Leave">Casual Leave</option>
-              <option value="Annual Leave">Annual Leave</option>
+              <option value="Medical Leave">Medical Leave</option>
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Start Date
-            </label>
-            <input
-              type="date"
-              name="startDate"
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              End Date
-            </label>
-            <input
-              type="date"
-              name="endDate"
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Reason
-            </label>
             <textarea
               name="reason"
               onChange={handleChange}
-              placeholder="Enter Reason for Leave"
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              placeholder="Reason for leave"
               required
-            ></textarea>
-          </div>
-
-          <div className="col-span-full">
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200"
-            >
-              Apply Leave
-            </button>
+              className="p-2 border border-gray-300 rounded flex-1 min-h-[120px]"
+            />
           </div>
         </div>
+
+        <button
+          type="submit"
+          className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Apply
+        </button>
       </form>
     </div>
   );
 };
 
-export default Add;
+export default ApplyLeave;

@@ -1,6 +1,13 @@
 // models/GroupMessage.js
 import mongoose from "mongoose";
 
+const ReactionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  emoji: { type: String, required: true },
+});
+
+
+
 const groupMessageSchema = new mongoose.Schema(
   {
     groupId: {
@@ -13,15 +20,8 @@ const groupMessageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    reactions: [
-  {
-    emoji: String,
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
-    }
-  }
-],
+    reactions: [ReactionSchema],
+    
     message: {
       type: String,
       default: "",

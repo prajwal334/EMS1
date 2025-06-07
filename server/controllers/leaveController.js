@@ -5,9 +5,16 @@ import mongoose from "mongoose";
 const addLeave = async (req, res) => {
   try {
     const { userId, leaveType, startDate, endDate, reason } = req.body;
-    const employee = await Employee.findOne({ userId });
 
-    console.log("leave");
+    if (!userId || !leaveType || !startDate || !endDate || !reason) {
+      return res.status(400).json({ success: false, message: "All fields required" });
+    }
+
+    const employee = await Employee.findOne({ userId });
+    if (!employee) {
+      return res.status(404).json({ success: false, message: "Employee not found" });
+    }
+
     const newLeave = new Leave({
       employeeId: employee._id,
       leaveType,
@@ -17,18 +24,15 @@ const addLeave = async (req, res) => {
     });
 
     await newLeave.save();
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Leave Added Successfully",
-        leave: newLeave,
-      });
+
+    return res.status(201).json({
+      success: true,
+      message: "Leave Added Successfully",
+      leave: newLeave,
+    });
   } catch (error) {
-    console.error(error.message); // log full error, not just .message
-    return res
-      .status(500)
-      .json({ success: false, error: "Leave add server Error " });
+    console.error("Error in addLeave:", error); // Full error trace
+    return res.status(500).json({ success: false, error: "Leave add server error" });
   }
 };
 
@@ -36,20 +40,20 @@ const getLeave = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if the ID is a valid ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: "Invalid ID" });
+    // Find employee by userId
+    const employee = await Employee.findOne({ userId: id });
+    if (!employee) {
+      return res.status(404).json({ success: false, message: "Employee not found" });
     }
 
-    const leaves = await Leave.find({ employeeId: id });
+    const leaves = await Leave.find({ employeeId: employee._id });
     return res.status(200).json({ success: true, leaves: leaves || [] });
   } catch (error) {
     console.error("getLeave error:", error);
-    return res
-      .status(500)
-      .json({ success: false, error: "Leave get server Error" });
+    return res.status(500).json({ success: false, error: "Leave get server Error" });
   }
 };
+
 
 const getLeaves = async (req, res) => {
   try {
