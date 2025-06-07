@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const AddDepartment = () => {
   const [department, setDepartment] = useState({
     dep_name: "",
-    description: ""
+    description: "",
+    sub_departments: "",
   });
 
   const [availableDepartments, setAvailableDepartments] = useState([]);
@@ -14,10 +15,10 @@ const AddDepartment = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/department', {
+        const res = await axios.get("http://localhost:3000/api/department", {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
         if (res.data.success) {
           setAvailableDepartments(res.data.departments);
@@ -32,22 +33,49 @@ const AddDepartment = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setDepartment({ ...department, [name]: value });
+
+    if (name === "dep_name") {
+      const existing = availableDepartments.find((d) => d.dep_name === value);
+      setDepartment({
+        ...department,
+        [name]: value,
+        description: existing ? existing.description : "",
+      });
+    } else {
+      setDepartment({ ...department, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const subDepArray = department.sub_departments
+      .split(",")
+      .map((sub) => sub.trim())
+      .filter((sub) => sub !== "");
+
     try {
-      const response = await axios.post('http://localhost:3000/api/department/add', department, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+      const payload = {
+        dep_name: department.dep_name,
+        description: department.description,
+        sub_departments: subDepArray,
+      };
+
+      const response = await axios.post(
+        "http://localhost:3000/api/department/add",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
-      });
+      );
+
       if (response.data.success) {
         navigate("/admin-dashboard/departments");
       }
     } catch (error) {
-      alert(error.response?.data?.error || "Error creating department");
+      alert(error.response?.data?.error || "Error saving department");
     }
   };
 
@@ -56,7 +84,12 @@ const AddDepartment = () => {
       <h2 className="text-2xl font-bold mb-6">Add Department</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="dep_name" className="text-sm font-medium text-gray-700">Department Name</label>
+          <label
+            htmlFor="dep_name"
+            className="text-sm font-medium text-gray-700"
+          >
+            Department Name
+          </label>
           <select
             name="dep_name"
             onChange={handleChange}
@@ -64,7 +97,7 @@ const AddDepartment = () => {
             required
           >
             <option value="">Select Department</option>
-            {availableDepartments.map(dep => (
+            {availableDepartments.map((dep) => (
               <option key={dep._id} value={dep.dep_name}>
                 {dep.dep_name}
               </option>
@@ -72,14 +105,38 @@ const AddDepartment = () => {
           </select>
         </div>
 
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+        <div className="mt-4">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Description
+          </label>
           <textarea
             name="description"
+            value={department.description}
             onChange={handleChange}
             placeholder="Enter department description"
             className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-            rows="4"
+            rows="3"
+            required
+          />
+        </div>
+
+        <div className="mt-4">
+          <label
+            htmlFor="sub_departments"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Sub-Departments (comma-separated)
+          </label>
+          <input
+            type="text"
+            name="sub_departments"
+            value={department.sub_departments}
+            onChange={handleChange}
+            className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+            placeholder="e.g. HR, IT, Marketing"
             required
           />
         </div>
@@ -88,7 +145,7 @@ const AddDepartment = () => {
           type="submit"
           className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded"
         >
-          Add Department
+          Save Department
         </button>
       </form>
     </div>

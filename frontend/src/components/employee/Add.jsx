@@ -27,13 +27,14 @@ const Add = () => {
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
 
-      // Fetch sub-departments when department changes
       if (name === "department") {
         try {
           const response = await axios.get(
-            `http://localhost:3000/api/department/${value}/subdepartments`
+            `http://localhost:3000/api/department/${value}`
           );
-          setSubDepartments(response.data.subDepartments);
+
+          const subDeps = response.data.department.sub_departments || [];
+          setSubDepartments(subDeps);
 
           // reset designation when department changes
           setFormData((prev) => ({ ...prev, designation: "" }));
@@ -231,9 +232,9 @@ const Add = () => {
               required
             >
               <option value="">Select Designation</option>
-              {subDepartments.map((subDep) => (
-                <option key={subDep._id} value={subDep._id}>
-                  {subDep.name}
+              {subDepartments.map((subDep, index) => (
+                <option key={index} value={subDep}>
+                  {subDep}
                 </option>
               ))}
             </select>
@@ -537,7 +538,6 @@ const Add = () => {
               <option value="admin">Admin</option>
               <option value="employee">Employee</option>
               <option value="hr">HR</option>
-              <option value="leader">Team Leader</option>
               <option value="manager">Manager</option>
               <option value="leader">Leader</option>
             </select>

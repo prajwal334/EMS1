@@ -27,7 +27,7 @@ import groupRouter from "./routes/groupChat.js";
 import groupMessageRouter from "./routes/groupMessage.js"; // ✅ Add this route
 import directChatRoutes from "./routes/directChat.js";
 import directMessageRoutes from "./routes/directMessage.js";
-
+import certificateRoutes from "./routes/training.js";
 
 
 
@@ -50,7 +50,13 @@ const io = new Server(server, {
 });
 
 // Setup Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use("/uploads", express.static("public/uploads"));
 
@@ -79,6 +85,7 @@ app.use("/uploads", express.static("public/uploads"));
 app.use("/api/direct-chats", directChatRoutes);
 app.use("/api/direct-messages", directMessageRoutes);
 
+app.use("/api/certificate", certificateRoutes);
 
 // ✅ Socket.io Logic
 io.on("connection", (socket) => {
@@ -113,23 +120,20 @@ io.on("connection", (socket) => {
   });
 
   // User starts typing
-socket.on("typing", ({ groupId, user }) => {
-  socket.to(groupId).emit("typing", { user });
-});
+  socket.on("typing", ({ groupId, user }) => {
+    socket.to(groupId).emit("typing", { user });
+  });
 
-// User stops typing
-socket.on("stopTyping", ({ groupId }) => {
-  socket.to(groupId).emit("stopTyping");
-});
-
+  // User stops typing
+  socket.on("stopTyping", ({ groupId }) => {
+    socket.to(groupId).emit("stopTyping");
+  });
 
   // ✅ Disconnect
   socket.on("disconnect", () => {
     console.log("🔴 Socket disconnected:", socket.id);
   });
 });
-
-
 
 // Start Server
 const PORT = process.env.PORT || 5000;

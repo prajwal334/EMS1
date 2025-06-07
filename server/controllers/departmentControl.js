@@ -4,7 +4,9 @@ import mongoose from "mongoose";
 
 const getDepartments = async (req, res) => {
   try {
-    const departments = await Department.find();
+    const departments = await Department.find().select(
+      "dep_name description sub_departments"
+    );
     return res.status(200).json({ success: true, departments });
   } catch (error) {
     return res.status(500).json({ success: false, error: "Server Error" });
@@ -13,18 +15,47 @@ const getDepartments = async (req, res) => {
 
 const addDepartment = async (req, res) => {
   try {
-    const { dep_name, description } = req.body;
+    const { dep_name, description, sub_departments } = req.body;
+
+    const existingDep = await Department.findOne({ dep_name });
+
+    if (existingDep) {
+      // Append new sub_departments if they don't already exist
+      const existingSubs = existingDep.sub_departments || [];
+      const newSubs = Array.isArray(sub_departments)
+        ? sub_departments
+        : [sub_departments];
+      const updatedSubs = [...new Set([...existingSubs, ...newSubs])]; // Ensure uniqueness
+
+      existingDep.sub_departments = updatedSubs;
+      existingDep.updatedAt = Date.now();
+      await existingDep.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Sub-departments updated successfully",
+        department: existingDep,
+      });
+    }
+
+    // Create new department
     const newDep = new Department({
       dep_name,
       description,
+      sub_departments: Array.isArray(sub_departments)
+        ? sub_departments
+        : [sub_departments],
     });
+
     await newDep.save();
+
     return res.status(201).json({
       success: true,
-      message: "Department Added Successfully",
+      message: "Department created successfully",
       department: newDep,
     });
   } catch (error) {
+    console.error("Error adding/updating department:", error);
     return res.status(500).json({ success: false, error: "Server Error" });
   }
 };
@@ -90,6 +121,7 @@ const getSubDepartments = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const getDepartmentById = async (req, res) => {
   try {
     const { id } = req.params;

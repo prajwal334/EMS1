@@ -6,18 +6,15 @@ const predefinedDepartments = [
   {
     dep_name: "IT",
     description: "Handles all tech infrastructure",
-    sub_departments: [
-      { name: "MERN Stack" },
-      { name: "DIRA" },
-      { name: "UI/UX" },
-      { name: "Frontend" },
-      { name: "AI" },
-      { name: "ML" },
-      { name: "Network" },
-    ],
   },
-  { dep_name: "HR", description: "Human Resources department" },
-  { dep_name: "Sales", description: "Sales and business development" },
+  {
+    dep_name: "HR",
+    description: "Human Resources department",
+  },
+  {
+    dep_name: "Sales",
+    description: "Sales and business development",
+  },
   { dep_name: "Finance", description: "Handles financial operations" },
   { dep_name: "Marketing", description: "Marketing and promotions" },
   { dep_name: "Compliance", description: "Compliance and regulation" },

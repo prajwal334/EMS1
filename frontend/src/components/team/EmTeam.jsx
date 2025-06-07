@@ -24,6 +24,7 @@ const MyTeams = () => {
       const res = await fetch(`http://localhost:3000/api/team/user/${userId}`);
       const data = await res.json();
       setTeams(data.teams || []);
+      
     } catch (err) {
       console.error("Failed to fetch teams", err);
     } finally {

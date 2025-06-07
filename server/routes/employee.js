@@ -11,6 +11,7 @@ import {
   getDepartmentByUserId,
   fetchUsersGroupedByRoleInDepartment,
   fetchUsersGroupedByDesignationInDepartment,
+  fetchEmployeesByDesignationName,
 } from "../controllers/employeeController.js";
 
 const router = express.Router();
@@ -40,5 +41,7 @@ router.get(
   "/users/designations/:departmentId",
   fetchUsersGroupedByDesignationInDepartment
 );
+
+router.get("/designation-name/:name", fetchEmployeesByDesignationName);
 
 export default router;

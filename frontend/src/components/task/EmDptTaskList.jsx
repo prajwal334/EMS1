@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const EmDptTaskList = ({ departmentId }) => {
   const [departments, setDepartments] = useState([]);
+  const [salesDepId, setSalesDepId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,7 +18,12 @@ const EmDptTaskList = ({ departmentId }) => {
         });
 
         const data = await res.json();
-        setDepartments(data.departments || []);
+        const deps = data.departments || [];
+        setDepartments(deps);
+
+        // Find Sales department ID
+        const salesDep = deps.find((dep) => dep.dep_name === "Sales");
+        if (salesDep) setSalesDepId(salesDep._id);
       } catch (error) {
         console.error("Error fetching departments:", error);
       }
@@ -31,6 +37,8 @@ const EmDptTaskList = ({ departmentId }) => {
       navigate(`/employee-dashboard/tasks/department/${depId}`);
     }
   };
+
+  const isSalesSelected = departmentId === salesDepId;
 
   return (
     <div className="w-full px-6 md:px-12 lg:px-20 py-2 bg-gray-50 min-h-screen">
