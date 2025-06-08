@@ -5,13 +5,16 @@ const getCertificate = async (req, res) => {
   try {
     const userId = req.params.id;
 
+    // Set CORS headers
+    res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    // Fetch sales tasks
     const response = await fetch("http://localhost:3000/api/salestask");
     const data = await response.json();
 
-    console.log("Sales task API data:", data);
-
-    // Adjust here according to your API response structure
-    const tasks = data.salestasks || data; 
+    const tasks = data.salestasks || data;
     const user = tasks.find((item) => item._id === userId);
 
     if (!user) {
@@ -19,21 +22,27 @@ const getCertificate = async (req, res) => {
     }
 
     const name = user.customer_name;
-    const completionDate = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
+    const domain = user.domain_interested;
+    const completionDate = new Date().toISOString().split("T")[0];
 
-    console.log(`Generating certificate for ${name} on ${completionDate}`);
+    // ✅ Generate certificate PDF and ID
+    const { pdfBytes, certificationId } = await generateTraining(
+      name,
+      completionDate,
+      domain
+    );
 
-    const pdfBytes = await generateTraining(name, completionDate);
-
+    // Set headers for PDF download
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      "attachment; filename=certificate.pdf"
+      `attachment; filename=${name}_certificate.pdf`
     );
 
+    // Send PDF as response
     res.send(Buffer.from(pdfBytes));
   } catch (error) {
-    console.error("Certificate generation error:", error);
+    console.error("❌ Certificate generation error:", error);
     res.status(500).send("Error generating certificate");
   }
 };

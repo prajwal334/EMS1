@@ -16,7 +16,7 @@ const salesSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-    },
+    }, 
     contact_no: {
       type: String,
       required: true,
