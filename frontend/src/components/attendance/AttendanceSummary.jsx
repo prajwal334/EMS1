@@ -68,19 +68,21 @@ const AttendanceSummary = ({ userId }) => {
   };
 
   useEffect(() => {
-    if (!userId) return;
-    fetchAttendance();
+  if (!userId) return;
 
-    const interval = setInterval(() => {
-      const newDate = new Date().toDateString();
-      if (newDate !== currentDate) {
-        setCurrentDate(newDate);
-      }
+  fetchAttendance(); // initial call
+
+  const interval = setInterval(() => {
+    const newDate = new Date().toDateString();
+    if (newDate !== currentDate) {
+      setCurrentDate(newDate);
       fetchAttendance();
-    }, 30 * 60 * 1000);
+    }
+  }, 30 * 60 * 1000);
 
-    return () => clearInterval(interval);
-  }, [userId, currentDate]);
+  return () => clearInterval(interval);
+}, [userId]);
+
 
   useEffect(() => {
     const validStatuses = [

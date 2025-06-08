@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+
 import { PiCertificateBold } from "react-icons/pi";
+
 
 const OpTable = () => {
   const [salesData, setSalesData] = useState([]);
@@ -21,6 +23,7 @@ const OpTable = () => {
       .then((data) => setSalesData(data))
       .catch((err) => console.error("Fetch failed:", err));
   };
+
 
   const handleDownloadCertificate = async (id, name) => {
     try {
@@ -44,6 +47,7 @@ const OpTable = () => {
       alert("Error downloading certificate");
     }
   };
+
 
   const filteredData = salesData.filter((item) => {
     const matchName = (item.customer_name || "")
@@ -87,6 +91,7 @@ const OpTable = () => {
     <div className="p-4 bg-white min-h-screen flex flex-col items-center">
       <div
         className="max-w-full bg-white rounded-lg w-full"
+
         style={{ maxWidth: "1200px" }}
       >
         <div className="border-b border-gray-300 px-4 py-3 flex flex-col sm:flex-row gap-3">
@@ -111,6 +116,7 @@ const OpTable = () => {
           />
         </div>
 
+
         <div className="overflow-x-auto max-h-[480px] relative">
           <table className="w-full" style={{ minWidth: "1200px" }}>
             <thead>
@@ -118,11 +124,13 @@ const OpTable = () => {
                 {columns.map(({ label, width, sticky }) => (
                   <th
                     key={label + width}
+
                     style={{
                       width,
                       minWidth: width,
                       position: "sticky",
                       top: 0,
+
                       ...(sticky ? { right: 0 } : {}),
                       backgroundColor: "#E5E7EB",
                       color: "#111827",
@@ -130,6 +138,7 @@ const OpTable = () => {
                       textAlign: "left",
                       padding: "8px",
                       zIndex: 10,
+
                     }}
                   >
                     {label}
@@ -149,22 +158,30 @@ const OpTable = () => {
                 </tr>
               ) : (
                 currentItems.map((item, idx) => (
-                  <tr key={item._id}>
-                    {/* SL NO. */}
+
+                  <tr
+                    key={item._id}
+                    style={{
+                      backgroundColor: idx % 2 === 0 ? "white" : "#F9FAFB",
+                    }}
+                  >
                     <td
                       style={{
                         width: columns[0].width,
                         minWidth: columns[0].width,
                         padding: "8px",
                         textAlign: "center",
+
                         backgroundColor: "white",
-                      }}
+         }}
                     >
                       {(currentPage - 1) * itemsPerPage + idx + 1}
                     </td>
 
+
                     {/* Main data columns */}
                     {columns.slice(1, -1).map(({ key, width }) => {
+
                       let value = item[key];
                       if (
                         (key === "internship_start_date" ||
@@ -180,7 +197,9 @@ const OpTable = () => {
                             width,
                             minWidth: width,
                             padding: "8px",
+
                             backgroundColor: "white",
+
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
@@ -190,6 +209,7 @@ const OpTable = () => {
                         </td>
                       );
                     })}
+
 
                     {/* Action column - Download certificate */}
                     <td
@@ -216,6 +236,7 @@ const OpTable = () => {
                         <PiCertificateBold size={18} />
                       </button>
                     </td>
+
                   </tr>
                 ))
               )}
@@ -223,7 +244,9 @@ const OpTable = () => {
           </table>
         </div>
 
+
         {/* Pagination */}
+
         <div className="border-t px-4 py-3 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
@@ -238,6 +261,7 @@ const OpTable = () => {
               onClick={() => handlePageChange(num + 1)}
               className={`px-3 py-1 rounded border ${
                 currentPage === num + 1 ? "bg-gray-800 text-white" : ""
+
               }`}
             >
               {num + 1}

@@ -32,14 +32,25 @@ const createOrUpdateLoginHistory = async ({ userId, loginAt, logoutAt }) => {
   const logoutDate = logoutAt ? new Date(logoutAt) : null;
 
   let recordDate = loginDate || logoutDate || new Date();
-  if (rules.isNightShift && logoutDate) {
+  if (rules.isNightShift) {
+  if (loginDate && loginDate.getHours() < 12) {
+    // Login between 12 AM to 11:59 AM → belongs to previous day's shift
+    recordDate = new Date(loginDate);
+    recordDate.setDate(recordDate.getDate() - 1);
+  } else if (logoutDate && logoutDate.getHours() < 12) {
+    // Logout in the morning, still belongs to previous day
     recordDate = new Date(logoutDate);
     recordDate.setDate(recordDate.getDate() - 1);
   }
+}
 
-  const dateStr = recordDate.toISOString().split("T")[0];
-  const dayStart = new Date(`${dateStr}T00:00:00.000Z`);
-  const dayEnd = new Date(`${dateStr}T23:59:59.999Z`);
+
+  const localDate = new Date(recordDate);
+const dateStr = localDate.toLocaleDateString("en-CA"); // yyyy-mm-dd
+
+const dayStart = new Date(`${dateStr}T00:00:00`);
+const dayEnd = new Date(`${dateStr}T23:59:59`);
+
 
   let history = await LoginHistory.findOne({
     userId,
@@ -182,9 +193,12 @@ const editLoginHistoryByUserId = async (req, res) => {
       return res.status(400).json({ message: "Date is required." });
     }
 
-    const dateStr = new Date(date).toISOString().split("T")[0];
-    const dayStart = new Date(`${dateStr}T00:00:00.000Z`);
-    const dayEnd = new Date(`${dateStr}T23:59:59.999Z`);
+    const localDate = new Date(recordDate);
+const dateStr = localDate.toLocaleDateString("en-CA"); // yyyy-mm-dd
+
+const dayStart = new Date(`${dateStr}T00:00:00`);
+const dayEnd = new Date(`${dateStr}T23:59:59`);
+
 
     const history = await LoginHistory.findOne({
       userId,

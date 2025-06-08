@@ -1,10 +1,24 @@
 // controllers/groupMessageController.js
 import GroupMessage from "../models/GroupMessage.js";
+import Group from "../models/GroupChat.js"; // Make sure you import Group model
 
 export const addGroupMessage = async (req, res) => {
   try {
     const { groupId, message } = req.body;
     const file = req.file ? req.file.path : null;
+
+    // Check if user is a member of the group
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ success: false, error: "Group not found" });
+    }
+
+    const isMember = group.members.some(member => member.toString() === req.user._id.toString());
+
+    // Allow only group members or admin
+    if (!isMember && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, error: "You are not a member of this group" });
+    }
 
     const newMessage = new GroupMessage({
       groupId,
@@ -18,29 +32,48 @@ export const addGroupMessage = async (req, res) => {
 
     res.status(201).json({ success: true, message: newMessage });
   } catch (err) {
-    console.error(err);
+    console.error("Send message failed:", err);
     res.status(500).json({ success: false, error: "Failed to send message" });
   }
 };
 
+
+
 export const getGroupMessages = async (req, res) => {
   try {
-    const messages = await GroupMessage.find({ groupId: req.params.groupId })
+    const groupId = req.params.groupId;
+
+    // Fetch group first
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ success: false, error: "Group not found" });
+    }
+
+    const isMember = group.members.some(
+      (memberId) => memberId.toString() === req.user._id.toString()
+    );
+
+    if (!isMember && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
+    const messages = await GroupMessage.find({ groupId })
       .populate("sender", "name")
       .sort({ createdAt: 1 });
 
-    // Mark others' messages as read
+    // Mark other users' messages as read
     await GroupMessage.updateMany(
-      { groupId: req.params.groupId, sender: { $ne: req.user._id } },
+      { groupId, sender: { $ne: req.user._id } },
       { isRead: true }
     );
 
     res.json({ success: true, messages });
   } catch (error) {
-    console.error(error);
+    console.error("Message fetch error:", error);
     res.status(500).json({ success: false, error: "Failed to fetch messages" });
   }
 };
+
 
 export const updateGroupMessage = async (req, res) => {
   try {
@@ -64,29 +97,33 @@ export const deleteGroupMessage = async (req, res) => {
   }
 };
 
-// controllers/groupMessageController.js
+// React to a message with emoji
 export const reactToMessage = async (req, res) => {
+  const { messageId } = req.params;
   const { emoji } = req.body;
-  const { id } = req.params;
+  const userId = req.user._id; // Corrected from req.user.id
 
   try {
-    const message = await Message.findById(id);
+    const message = await GroupMessage.findById(messageId);
     if (!message) {
-      return res.status(404).json({ success: false, message: "Message not found" });
+      return res.status(404).json({ success: false, error: "Message not found" });
     }
 
-    // Initialize reactions array if missing
-    if (!message.reactions) {
-      message.reactions = [];
-    }
+    // Remove previous reaction from the same user (optional behavior)
+    message.reactions = message.reactions.filter(
+      (reaction) => reaction.userId.toString() !== userId.toString()
+    );
 
-    message.reactions.push(emoji);
+    // Add new reaction
+    message.reactions.push({ userId, emoji });
+
     await message.save();
+    await message.populate("reactions.userId", "name"); // Optional: enrich response
 
     res.json({ success: true, message });
   } catch (err) {
-    console.error("Error reacting to message:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("React error:", err);
+    res.status(500).json({ success: false, error: "Failed to react to message" });
   }
 };
 

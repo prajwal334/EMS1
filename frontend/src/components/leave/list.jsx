@@ -1,12 +1,10 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authContext";
-import { useNavigate } from "react-router-dom";
-
+import Leave from "../../assets/images/leave.png"
 const List = () => {
-  const [leaves, setLeaves] = useState(null);
-  let sno = 1;
+  const [leaves, setLeaves] = useState([]);
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -25,93 +23,82 @@ const List = () => {
         setLeaves(response.data.leaves);
       }
     } catch (error) {
-      if (error.response && !error.response.data.success) {
-        alert(error.message);
-      }
+      alert("Error fetching leave data");
     }
   };
+
   useEffect(() => {
-    console.log("Fetching leaves for employee ID:", id);
     fetchLeaves();
   }, []);
 
-  if (!leaves) {
-    return <div>Loding..</div>;
-  }
-
   return (
-    <div className="p-6">
-      <div className="text-center">
-        <h4 className="text-2xl font-bold">Leave List</h4>
-        <p className="text-gray-500">All the leave details of the employee</p>
+    <div className="bg-gray-100 min-h-screen">
+      {/* Full-width header image */}
+      <div className="w-full">
+        <img
+          src= {Leave}
+          alt="Header"
+          className="w-full h-45 object-cover"
+        />
       </div>
-      <div className="flex justify-between items-center mt-4">
-        <div className="flex items-center">
-          <label htmlFor="search" className="mr-2">
-            Search:
-          </label>
-          <input
-            type="text"
-            id="search"
-            placeholder="Search..."
-            className="border border-gray-300 rounded px-2 py-1"
-          />
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold">Leave List</h2>
+          <p className="text-gray-600">All the leave details of the employee</p>
         </div>
+
         {user.role === "employee" && (
-          <Link
-            to="/employee-dashboard/add-leave"
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-          >
-            Apply Leave
-          </Link>
-        )}
-      </div>
-
-      <table className="min-w-full mt-4 border border-gray-300">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50 border border-gray-300 border-b">
-          <tr>
-            <th className="border border-gray-300 px-6 py-3">SNo</th>
-            <th className="border border-gray-300 px-6 py-3">Leave Type</th>
-            <th className="border border-gray-300 px-6 py-3">Start Date</th>
-            <th className="border border-gray-300 px-6 py-3">End Date</th>
-            <th className="border border-gray-300 px-6 py-3">Description</th>
-            <th className="border border-gray-300 px-6 py-3">Status</th>
-            <th className="border border-gray-300 px-6 py-3">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {leaves.map((leave) => (
-            <tr
-              key={leave._id}
-              className="bg-white border-b dark:bg-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+          <div className="text-right mb-4">
+            <Link
+              to="/employee-dashboard/add-leave"
+              className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
             >
-              <td className="px-6 py-3">{sno++}</td>
-              <td className="px-6 py-3">{leave.leaveType}</td>
-              <td className="px-6 py-3">
-                {new Date(leave.startDate).toLocaleDateString()}
-              </td>
-              <td className="px-6 py-3">
-                {new Date(leave.endDate).toLocaleDateString()}
-              </td>
-              <td className="px-6 py-3">{leave.reason}</td>
-              <td className="px-6 py-3">{leave.status}</td>
+              Apply Leave
+            </Link>
+          </div>
+        )}
 
-              <td className="px-6 py-3">
-                {user.role === "admin" && leave.status === "Pending" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {leaves.map((leave, index) => (
+            <div
+              key={leave._id}
+              className="bg-white rounded-xl shadow p-6 space-y-2"
+            >
+              <div className="text-sm text-gray-500">#{index + 1}</div>
+              <div>
+                <strong>Leave Type:</strong> {leave.leaveType}
+              </div>
+              <div>
+                <strong>Start Date:</strong>{" "}
+                {new Date(leave.startDate).toLocaleDateString()}
+              </div>
+              <div>
+                <strong>End Date:</strong>{" "}
+                {new Date(leave.endDate).toLocaleDateString()}
+              </div>
+              <div>
+                <strong>Description:</strong> {leave.reason}
+              </div>
+              <div>
+                <strong>Status:</strong> {leave.status}
+              </div>
+
+              {(user.role === "hr" || user.role === "manager") &&
+                leave.status === "Pending" && (
                   <button
                     onClick={() =>
                       navigate(`/admin-dashboard/leaves/${leave._id}`)
-                    } // ✅ use leave._id
-                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    }
+                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                   >
                     View
                   </button>
                 )}
-              </td>
-            </tr>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      </div>
     </div>
   );
 };

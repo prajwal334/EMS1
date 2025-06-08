@@ -38,8 +38,10 @@ const Sidebar = () => {
     { to: "/employee-dashboard", label: "Dashboard", exact: true },
     { to: `/employee-dashboard/profile/${user?._id}`, label: "My Profile" },
     { to: `/employee-dashboard/task/user/${user?._id}`, label: "Task" },
-    { to: `/employee-dashboard/leaves/${user?._id}`, label: "Leaves" },
-    { to: `/employee-dashboard/groups/${user?._id}`, label: "Group Chat" },
+
+    { to: `/employee-dashboard/add-leave/${user?._id}`, label: "Leaves" },
+    { to: `/employee-dashboard/groups`, label: "Group Chat" },
+
     { to: `/employee-dashboard/salary/${user?._id}`, label: "Salary" },
     {
       to: `/employee-dashboard/login-history/${user?._id}`,
