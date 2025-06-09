@@ -8,6 +8,8 @@ import {
   deleteSale,
   getSalesByName,
   getSalesByMarketedFrom,
+  upload,
+  uploadSaleImage,
 } from "../controllers/salesTaskController.js";
 
 const router = express.Router();
@@ -21,6 +23,6 @@ router.get("/marketed-from/:marketed_from", getSalesByMarketedFrom);
 router.get("/:id", getSaleById);
 router.put("/:id", updateSale);
 router.delete("/:id", deleteSale);
-
+router.post("/upload-image", upload.single("image"), uploadSaleImage);
 
 export default router;

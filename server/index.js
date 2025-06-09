@@ -28,8 +28,8 @@ import groupMessageRouter from "./routes/groupMessage.js"; // ✅ Add this route
 import directChatRoutes from "./routes/directChat.js";
 import directMessageRoutes from "./routes/directMessage.js";
 import certificateRoutes from "./routes/training.js";
-
-
+import internshipCertificateRouter from "./routes/internship.js";
+import offerLetterRoutes from "./routes/offerletter.js";
 
 // Load environment variables
 dotenv.config();
@@ -86,6 +86,8 @@ app.use("/api/direct-chats", directChatRoutes);
 app.use("/api/direct-messages", directMessageRoutes);
 
 app.use("/api/certificate", certificateRoutes);
+app.use("/api/internships", internshipCertificateRouter);
+app.use("/api/offer-letter", offerLetterRoutes);
 
 // ✅ Socket.io Logic
 io.on("connection", (socket) => {

@@ -99,7 +99,9 @@ const EmTasklist = () => {
           : "px-4 py-8"
       }`}
     >
+
       <div className="max-w-7xl mx-auto">
+
         {loading && (
           <p className="text-center">Loading department details...</p>
         )}
@@ -114,6 +116,7 @@ const EmTasklist = () => {
               department.dep_name !== "Operations" && (
                 <>
                   <div className="flex justify-center mb-6">
+
                     <div className="w-full mb-8">
                       <h2 className="w-full bg-red-300 rounded-xl shadow-xl p-5 text-center text-2xl font-bold text-gray-800">
                         {department.dep_name}
@@ -127,6 +130,7 @@ const EmTasklist = () => {
                     ) : (
                       subDepartments.map((sub) => {
                         const isActive = userDesignation === sub.name;
+
                                   const isSelected = selectedSubDep === sub.name;
 
                         return (
