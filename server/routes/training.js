@@ -3,7 +3,6 @@ import getCertificate from "../controllers/trainingController.js";
 
 const router = express.Router();
 
-
 router.options("/generate/:id", (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");

@@ -14,6 +14,7 @@ const AddSalesForm = () => {
   const [formData, setFormData] = useState({
     customer_name: "",
     email: "",
+    college_email: "",
     contact_no: "",
     whatsapp_no: "",
     domain_interested: "",
@@ -89,6 +90,7 @@ const AddSalesForm = () => {
       setFormData({
         customer_name: "",
         email: "",
+        college_email: "",
         contact_no: "",
         whatsapp_no: "",
         domain_interested: "",
@@ -102,7 +104,6 @@ const AddSalesForm = () => {
         marketed_from: "",
       });
 
-      // Auto-close modal after 800ms
       setTimeout(() => {
         handleClose();
       }, 800);
@@ -144,6 +145,7 @@ const AddSalesForm = () => {
               {[
                 ["customer_name", "Customer Name"],
                 ["email", "Email"],
+                ["college_email", "College Email"],
                 ["contact_no", "Contact No"],
                 ["whatsapp_no", "WhatsApp No"],
                 ["domain_interested", "Domain Interested"],
@@ -164,6 +166,7 @@ const AddSalesForm = () => {
                     required={[
                       "customer_name",
                       "email",
+                      "college_email",
                       "contact_no",
                       "ticket_size",
                       "registration_amount",
@@ -194,6 +197,7 @@ const AddSalesForm = () => {
                 </select>
               </div>
 
+              {/* Date Fields */}
               {[
                 ["pending_date", "Pending Date", "date"],
                 ["internship_start_date", "Internship Start Date", "date"],

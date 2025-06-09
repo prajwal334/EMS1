@@ -1,6 +1,61 @@
-// controllers/salesController.js
 import mongoose from "mongoose";
 import Sales from "../models/SaleTask.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+// Ensure uploads directory exists
+const uploadDir = "public/uploads/image";
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Multer setup
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    const filename = `customer_${Date.now()}${ext}`;
+    cb(null, filename);
+  },
+});
+
+const upload = multer({ storage });
+
+// Upload image and update DB with public URL
+const uploadSaleImage = async (req, res) => {
+  try {
+    const saleId = req.body.id;
+    if (!saleId)
+      return res.status(400).json({ message: "Sale ID is required" });
+    if (!req.file)
+      return res.status(400).json({ message: "Image file is required" });
+
+    const filename = req.file.filename;
+    const publicImageUrl = `http://localhost:3000/uploads/image/${filename}`;
+
+    const updatedSale = await Sales.findByIdAndUpdate(
+      saleId,
+      { upload_image: publicImageUrl },
+      { new: true }
+    );
+
+    if (!updatedSale) {
+      return res.status(404).json({ message: "Sale not found" });
+    }
+
+    res.status(200).json({
+      message: "Image uploaded successfully",
+      image_url: publicImageUrl,
+      sale: updatedSale,
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 // Create a new sales entry
 const createSale = async (req, res) => {
@@ -23,12 +78,12 @@ const getAllSales = async (req, res) => {
   }
 };
 
-//getSalesByName
+// Get sales by name
 const getSalesByName = async (req, res) => {
   try {
     const { name } = req.params;
     const sales = await Sales.find({
-      name: { $regex: new RegExp(name, "i") }, // case-insensitive match
+      name: { $regex: new RegExp(name, "i") },
     });
 
     res.status(200).json(sales);
@@ -80,13 +135,12 @@ const updateSale = async (req, res) => {
 // Delete a sale
 const deleteSale = async (req, res) => {
   try {
-    console.log("Delete request for ID:", req.params.id); // debug log
     const deletedSale = await Sales.findByIdAndDelete(req.params.id);
     if (!deletedSale)
       return res.status(404).json({ message: "Sale not found" });
     res.status(200).json({ message: "Sale deleted successfully" });
   } catch (error) {
-    console.error("Delete error:", error); // debug log
+    console.error("Delete error:", error);
     res.status(500).json({ message: "Error deleting sale", error });
   }
 };
@@ -96,7 +150,7 @@ const getSalesByMarketedFrom = async (req, res) => {
   try {
     const { marketed_from } = req.params;
     const sales = await Sales.find({
-      marketed_from: { $regex: new RegExp(marketed_from, "i") }, // case-insensitive search
+      marketed_from: { $regex: new RegExp(marketed_from, "i") },
     });
 
     res.status(200).json(sales);
@@ -115,4 +169,6 @@ export {
   getAllSales,
   getSalesByName,
   getSalesByMarketedFrom,
+  uploadSaleImage,
+  upload,
 };
