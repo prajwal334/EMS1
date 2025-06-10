@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -21,7 +20,7 @@ const EmDptTaskList = ({ departmentId }) => {
         const deps = data.departments || [];
         setDepartments(deps);
 
-        // Find Sales department ID
+        // Find Sales department ID (optional if needed later)
         const salesDep = deps.find((dep) => dep.dep_name === "Sales");
         if (salesDep) setSalesDepId(salesDep._id);
       } catch (error) {
@@ -31,14 +30,6 @@ const EmDptTaskList = ({ departmentId }) => {
 
     fetchDepartments();
   }, []);
-
-  const handleCardClick = (depId, isActive) => {
-    if (isActive) {
-      navigate(`/employee-dashboard/tasks/department/${depId}`);
-    }
-  };
-
-  const isSalesSelected = departmentId === salesDepId;
 
   return (
     <div className="w-full px-6 md:px-12 lg:px-20 py-2 bg-gray-50 min-h-screen">
@@ -59,19 +50,25 @@ const EmDptTaskList = ({ departmentId }) => {
         {departments.map((dep) => {
           const isActive = dep._id === departmentId;
 
+          const handleClick = () => {
+            if (!isActive) return;
+
+            if (dep.dep_name.toLowerCase() === "hr") {
+              navigate("/employee-dashboard/tasks/hr/task");
+            } else {
+              navigate(`/employee-dashboard/tasks/department/${dep._id}`);
+            }
+          };
+
           return (
             <div
               key={dep._id}
-              onClick={() => handleCardClick(dep._id, isActive)}
-              className={`
-                rounded-xl p-6 text-center font-semibold text-lg transition-all duration-300
-                shadow-md border 
-                ${
-                  isActive
-                    ? "bg-blue-100 text-blue-900 hover:shadow-xl cursor-pointer scale-105"
-                    : "bg-white text-gray-700 opacity-80 cursor-not-allowed hover:bg-red-100"
-                }
-              `}
+              onClick={handleClick}
+              className={`rounded-xl p-6 text-center font-semibold text-lg transition-all duration-300 shadow-md border ${
+                isActive
+                  ? "bg-blue-100 text-blue-900 hover:shadow-xl cursor-pointer scale-105"
+                  : "bg-white text-gray-700 opacity-80 cursor-not-allowed hover:bg-red-100"
+              }`}
             >
               {dep.dep_name}
             </div>

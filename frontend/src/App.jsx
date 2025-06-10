@@ -81,6 +81,8 @@ import RoleList from "./components/task/Rolelist";
 import TaskList from "./components/task/Tasklist";
 import EmDepartmentView from "./components/task/EmDepartmentView";
 import EmTasklist from "./components/task/EmTaskList";
+import HrTask from "./components/task/TaskStatus/HrTasklist";
+import Onboarding1 from "./components/task/TaskStatus/hrTaks/Onboarding";
 
 function App() {
   return (
@@ -200,6 +202,8 @@ function App() {
 
           <Route path="task/user/:userId" element={<EmDepartmentView />} />
           <Route path="tasks/department/:id" element={<EmTasklist />} />
+          <Route path="tasks/hr/task" element={<HrTask />} />
+          <Route path="tasks/hr/task/Onboarding" element={<Onboarding1 />} />
 
           <Route path="groups" element={<ChatLayout />} >
   <Route index element={<HomePlaceholder />} />
