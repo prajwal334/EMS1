@@ -29,7 +29,6 @@ import NewChat from "./pages/NewChat";
 import AddGroup from "./components/groupChat/AddGroup";
 import MyGroups from "./components/groupChat/MyGroups";
 
-
 // HR Department
 import DepartmentList1 from "./components/HrDepartment/DepartmentList";
 import AddDepartment1 from "./components/HrDepartment/AddDepartment";
@@ -205,17 +204,14 @@ function App() {
           <Route path="tasks/hr/task" element={<HrTask />} />
           <Route path="tasks/hr/task/Onboarding" element={<Onboarding1 />} />
 
-          <Route path="groups" element={<ChatLayout />} >
-  <Route index element={<HomePlaceholder />} />
-  <Route path="setting" element={<SettingChat />} />
-  <Route path="addgroup" element={<AddGroup />} />
-  <Route path="new-chat" element={<NewChat />} />
-  <Route path=":id" element={<ChatRoom />} />  {/* ✅ FIXED */}
-  <Route path="direct/:id" element={<DirectChat />} />
-
-</Route>
-
-
+          <Route path="groups" element={<ChatLayout />}>
+            <Route index element={<HomePlaceholder />} />
+            <Route path="setting" element={<SettingChat />} />
+            <Route path="addgroup" element={<AddGroup />} />
+            <Route path="new-chat" element={<NewChat />} />
+            <Route path=":id" element={<ChatRoom />} /> {/* ✅ FIXED */}
+            <Route path="direct/:id" element={<DirectChat />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

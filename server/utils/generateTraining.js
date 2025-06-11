@@ -1,23 +1,34 @@
 import fs from "fs";
 import path from "path";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { fileURLToPath, pathToFileURL } from "url";
+import { fileURLToPath } from "url";
+import QRCode from "qrcode";
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const generateTraining = async (name, date) => {
+// 🔹 Helper to generate 10-character alphanumeric ID
+const generateRandomCode = (length = 10) => {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+const generateTraining = async (name, date, domain) => {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([842, 595]); // A4 Landscape
 
-  // ✅ Update path to actual location
+  // ✅ Template image path
   const imagePath = path.resolve(
     __dirname,
     "../templates/training_template.jpg"
   );
 
-  // Check if file exists
   if (!fs.existsSync(imagePath)) {
     throw new Error(`Template image not found at ${imagePath}`);
   }
@@ -34,7 +45,20 @@ const generateTraining = async (name, date) => {
 
   const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+  // Format date as "June 06, 2025"
+  const formattedDate = new Date(date).toLocaleDateString("en-US", {
+    month: "long",
+    day: "2-digit",
+    year: "numeric",
+  });
+
+  // 🔹 Generate random Certification ID
+  const certificationId = generateRandomCode();
+  const verifyUrl = `https://navikshaa.com/verify/${certificationId}`;
+
+  // Draw name
   page.drawText(name, {
+
     x: 29,
     y: 390,
     size: 24,
@@ -42,16 +66,60 @@ const generateTraining = async (name, date) => {
     color: rgb(0, 0, 0),
   });
 
+
+  // Draw domain
+  page.drawText(`${domain}`, {
+    x: 27,
+    y: 310,
+    size: 20,
+    font,
+    color: rgb(0, 0, 1),
+  });
+
+  // Draw date
+  page.drawText(formattedDate, {
+    x: 210,
   page.drawText(` ${date}`, {
-    x: 200,
+    x: 200
     y: 195,
     size: 18,
     font,
-    color: rgb(0, 0, 0),
+    color: rgb(0.5, 0.5, 0.5),
+  });
+
+  // Draw Certification ID
+  page.drawText(`${certificationId}`, {
+    x: 120,
+    y: 65,
+    size: 13,
+    font,
+    color: rgb(0.6, 0.6, 0.7),
+  });
+
+  // Draw Verification URL
+  page.drawText(verifyUrl, {
+    x: 10,
+    y: 32,
+    size: 12,
+    font,
+    color: rgb(0.4, 0.8, 1),
+  });
+
+  // ✅ Generate QR Code from verification URL
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl);
+  const qrImageBytes = Buffer.from(qrDataUrl.split(",")[1], "base64");
+  const qrImage = await pdfDoc.embedPng(qrImageBytes);
+
+  // 🖼️ Draw QR Code
+  page.drawImage(qrImage, {
+    x: 750,
+    y: 8,
+    width: 70,
+    height: 68,
   });
 
   const pdfBytes = await pdfDoc.save();
-  return pdfBytes;
+  return { pdfBytes, certificationId };
 };
 
 export default generateTraining;

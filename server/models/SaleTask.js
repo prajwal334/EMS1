@@ -17,6 +17,10 @@ const salesSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    college_email: {
+      type: String,
+      trim: true,
+    },
     contact_no: {
       type: String,
       required: true,
@@ -60,8 +64,9 @@ const salesSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    target: {
+    upload_image: {
       type: String,
+      trim: true,
     },
     createdAt: {
       type: Date,
