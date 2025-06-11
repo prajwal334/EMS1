@@ -1,8 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import Hrtask from "../../../../assets/images/task_bg.jpeg"
 
 const AddCandidate = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const fileInputRef = useRef(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [candidates, setCandidates] = useState([]);
@@ -15,9 +20,21 @@ const AddCandidate = () => {
     profile_type: "",
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const entriesPerPage = 10;
+  const [sortKey, setSortKey] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  const getRemainingDays = (onboardedAt) => {
+  if (!onboardedAt) return null;
+  const diff = 7 - Math.floor((Date.now() - new Date(onboardedAt)) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : 0;
+};
+
 
   const fetchCandidates = async () => {
     setLoading(true);
@@ -72,6 +89,10 @@ const AddCandidate = () => {
     }
   };
 
+
+
+
+
   const handleStatusUpdate = async (id, status) => {
     try {
       await axios.patch(`http://localhost:3000/api/candidates/${id}`, {
@@ -83,41 +104,143 @@ const AddCandidate = () => {
     }
   };
 
-  const onboardedCount = candidates.filter(c => c.status === "onboarded").length;
+  const handleSort = (key) => {
+    const order = sortKey === key && sortOrder === "asc" ? "desc" : "asc";
+    const sorted = [...candidates].sort((a, b) => {
+      const valA = a[key]?.toString().toLowerCase();
+      const valB = b[key]?.toString().toLowerCase();
+      return order === "asc" ? valA.localeCompare(valB) : valB.localeCompare(valA);
+    });
+    setCandidates(sorted);
+    setSortKey(key);
+    setSortOrder(order);
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(candidates);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates");
+    XLSX.writeFile(workbook, "candidates.xlsx");
+  };
+
+  
+
+  const onboardedCount = candidates.filter((c) => c.status === "onboarded").length;
   const incompleteCount = candidates.length - onboardedCount;
-  const onboardedPercentage = candidates.length > 0 ? Math.round((onboardedCount / candidates.length) * 100) : 0;
+  const onboardedPercentage = candidates.length
+    ? Math.round((onboardedCount / candidates.length) * 100)
+    : 0;
   const incompletePercentage = 100 - onboardedPercentage;
+
+  const indexOfLast = currentPage * entriesPerPage;
+  const indexOfFirst = indexOfLast - entriesPerPage;
+  const currentCandidates = candidates.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(candidates.length / entriesPerPage);
 
   return (
     <>
       <div className={isOpen ? "blur-sm pointer-events-none select-none" : ""}>
         {/* Header */}
-        <div
-          className="bg-cover bg-center p-6 flex justify-between items-center"
-          style={{ backgroundImage: "url('/path/to/your/background.jpg')" }}
-        >
-          <div className="flex gap-12 text-center text-black font-bold">
-            <div>
-              <div className="text-4xl">{onboardedPercentage}%</div>
-              <div>ON-BOARDING COMPLETE</div>
-            </div>
-            <div>
-              <div className="text-4xl">{onboardedCount}</div>
-              <div>TOTAL ON-BOARDED</div>
-            </div>
-            <div>
-              <div className="text-4xl">{incompletePercentage}%</div>
-              <div>ON-BOARDING INCOMPLETE</div>
-            </div>
-          </div>
+        {/* Header Section with Graphs */}
+<div
+  className="bg-cover bg-center p-10 h-[300px] flex flex-col md:flex-row justify-between items-center gap-6 relative"
+  style={{ backgroundImage: `url(${Hrtask})` }}
+>
+  {/* LEFT GRAPH - ONBOARDING COMPLETE */}
+  <div className="flex flex-col items-center w-[300px]">
+    <div className="relative w-[260px] h-[180px]">
+      <svg className="absolute top-0 left-0" width="100%" height="100%" viewBox="-10 10 120 20">
+        {/* Background Arc */}
+        <path
+          d="M0,50 A50,50 0 0,1 100,50"
+          fill="none"
+          stroke="#d1d5db"
+          strokeWidth="14"
+        />
+        {/* Foreground Arc (Dynamic) */}
+        <path
+          d="M0,50 A50,50 0 0,1 100,50"
+          fill="none"
+          stroke="#000"
+          strokeWidth="14"
+          strokeLinecap="round"
+          strokeDasharray="157"
+          strokeDashoffset={157 - (157 * onboardedPercentage) / 100}
+          style={{ transition: "stroke-dashoffset 1s ease-in-out" }}
+        />
+      </svg>
+      {/* Percentage Text */}
+      <div
+        className={`absolute top-[76%] left-[45%] font-bold text-xl ${
+          onboardedPercentage >= 75
+            ? "text-green-600"
+            : onboardedPercentage >= 50
+            ? "text-orange-500"
+            : "text-red-600"
+        }`}
+      >
+        {onboardedPercentage}%
+      </div>
+    </div>
+    <div className="text-md font-bold mt-2 text-center">ON-BOARDING COMPLETE</div>
+  </div>
 
-          <button
-            onClick={handleOpen}
-            className="bg-black text-white font-bold px-4 py-2 rounded-full"
-          >
-            + ADD CANDIDATE
-          </button>
-        </div>
+  {/* CENTER COUNT */}
+  <div className="flex flex-col items-center justify-center text-center">
+    <div className="text-5xl font-bold text-black">{onboardedCount}</div>
+    <div className="text-lg font-bold text-black">TOTAL<br />ON-BOARDED</div>
+  </div>
+
+  {/* RIGHT GRAPH - ONBOARDING INCOMPLETE */}
+  <div className="flex flex-col items-center w-[300px]">
+    <div className="relative w-[260px] h-[160px]">
+      <svg className="absolute top-0 left-0" width="100%" height="100%" viewBox="-10 10 120 20">
+        {/* Background Arc */}
+        <path
+          d="M0,50 A50,50 0 0,1 100,50"
+          fill="none"
+          stroke="#d1d5db"
+          strokeWidth="14"
+        />
+        {/* Foreground Arc (Dynamic) */}
+        <path
+          d="M0,50 A50,50 0 0,1 100,50"
+          fill="none"
+          stroke="#000"
+          strokeWidth="14"
+          strokeLinecap="round"
+          strokeDasharray="157"
+          strokeDashoffset={157 - (157 * incompletePercentage) / 100}
+          style={{ transition: "stroke-dashoffset 1s ease-in-out" }}
+        />
+      </svg>
+      {/* Percentage Text */}
+      <div
+        className={`absolute top-[76%] left-[45%] font-bold text-xl ${
+          incompletePercentage >= 75
+            ? "text-green-600"
+            : incompletePercentage >= 50
+            ? "text-orange-500"
+            : "text-red-600"
+        }`}
+      >
+        {incompletePercentage}%
+      </div>
+    </div>
+    <div className="text-md font-bold mt-2 text-center">ON-BOARDING INCOMPLETE</div>
+  </div>
+
+  {/* ACTION BUTTONS */}
+  {/* ACTION BUTTONS */}
+<div className="absolute top-4 right-6 flex gap-2">
+  <button
+    onClick={handleOpen}
+    className="bg-black text-white font-bold px-4 py-2 rounded-full"
+  >
+    + ADD CANDIDATE
+  </button>
+</div>
+</div>
 
         {/* Table */}
         <div className="overflow-x-auto mt-4">
@@ -126,19 +249,26 @@ const AddCandidate = () => {
           ) : (
             <table className="min-w-full bg-white text-sm border border-gray-300">
               <thead>
-                <tr className="bg-gray-100">
-                  <th className="px-4 py-2">SL. NO.</th>
-                  <th className="px-4 py-2">NAME</th>
-                  <th className="px-4 py-2">EMAIL</th>
-                  <th className="px-4 py-2">CONTACT NO.</th>
-                  <th className="px-4 py-2">WHATSAPP NO.</th>
-                  <th className="px-4 py-2">DATE OF JOINING</th>
-                  <th className="px-4 py-2">PROFILE TYPE</th>
+                <tr className="bg-gray-100 text-center">
+                  {[
+                    ["#", ""],
+                    ["candidate_name", "NAME"],
+                    ["email", "EMAIL"],
+                    ["contact_no", "CONTACT"],
+                    ["whatsapp_no", "WHATSAPP"],
+                    ["date_of_joining", "DOJ"],
+                    ["profile_type", "PROFILE"],
+                    ["status", "STATUS"],
+                  ].map(([key, label]) => (
+                    <th key={key} className="px-4 py-2 cursor-pointer" onClick={() => handleSort(key)}>
+                      {label}
+                    </th>
+                  ))}
                   <th className="px-4 py-2">ACTION</th>
                 </tr>
               </thead>
               <tbody>
-                {candidates.map((c, index) => (
+                {currentCandidates.map((c, index) => (
                   <tr
                     key={index}
                     className={`text-center ${c.status === "onboarded"
@@ -148,32 +278,51 @@ const AddCandidate = () => {
                       : ""
                       }`}
                   >
-                    <td className="border px-2 py-1">{index + 1}</td>
+                    <td className="border px-2 py-1">{indexOfFirst + index + 1}</td>
                     <td className="border px-2 py-1">{c.candidate_name}</td>
                     <td className="border px-2 py-1">{c.email}</td>
                     <td className="border px-2 py-1">{c.contact_no}</td>
                     <td className="border px-2 py-1">{c.whatsapp_no}</td>
                     <td className="border px-2 py-1">{c.date_of_joining?.slice(0, 10)}</td>
                     <td className="border px-2 py-1">{c.profile_type}</td>
-                    <td className="border px-2 py-1 flex justify-center gap-2">
-                      <button
-                        onClick={() => handleStatusUpdate(c._id, "onboarded")}
-                        className="text-green-600 text-lg hover:scale-110"
+<td className="border px-2 py-1">
+  <div>{c.status}</div>
+  {c.status === "onboarded" && c.onboardedAt && (
+    <div className="text-xs text-red-600">
+      Auto-delete in {getRemainingDays(c.onboardedAt)} day(s)
+    </div>
+  )}
+</td>
+                    <td className="border px-2 py-1">
+                      <select
+                        value={c.status}
+                        onChange={(e) => handleStatusUpdate(c._id, e.target.value)}
+                        className="bg-gray-200 p-1 rounded"
                       >
-                        ✅
-                      </button>
-                      <button
-                        onClick={() => handleStatusUpdate(c._id, "rejected")}
-                        className="text-red-600 text-lg hover:scale-110"
-                      >
-                        ❌
-                      </button>
+                        <option value="pending">Pending</option>
+                        <option value="onboarded">Onboarded</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
+        </div>
+
+        {/* Pagination */}
+        <div className="flex justify-center mt-4 gap-2">
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-3 py-1 border rounded ${currentPage === i + 1 ? "bg-black text-white" : "bg-white"
+                }`}
+            >
+              {i + 1}
+            </button>
+          ))}
         </div>
       </div>
 

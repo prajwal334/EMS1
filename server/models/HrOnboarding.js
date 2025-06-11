@@ -12,6 +12,7 @@ const candidateSchema = new mongoose.Schema({
     enum: ["pending", "onboarded", "rejected"],
     default: "pending",
   },
+  onboardedAt: Date, // 🆕 Add this field
 });
 
 export default mongoose.model("Candidate", candidateSchema);

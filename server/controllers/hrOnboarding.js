@@ -24,7 +24,13 @@ export const updateCandidateStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const updated = await Candidate.findByIdAndUpdate(id, { status }, { new: true });
+
+    const updateData = { status };
+    if (status === "onboarded") {
+      updateData.onboardedAt = new Date(); // ⏱️ Set timestamp
+    }
+
+    const updated = await Candidate.findByIdAndUpdate(id, updateData, { new: true });
     res.status(200).json(updated);
   } catch (err) {
     res.status(400).json({ message: err.message });

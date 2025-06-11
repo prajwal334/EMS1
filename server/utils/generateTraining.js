@@ -79,8 +79,9 @@ const generateTraining = async (name, date, domain) => {
   // Draw date
   page.drawText(formattedDate, {
     x: 210,
+  });
   page.drawText(` ${date}`, {
-    x: 200
+    x: 200,
     y: 195,
     size: 18,
     font,

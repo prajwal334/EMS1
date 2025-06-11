@@ -25,7 +25,7 @@ const Dashboard = () => {
           </button>
           <button
             className="w-64 h-20 rounded-3xl bg-white shadow-xl font-bold text-gray-700 text-lg"
-            onClick={() => navigate("/add-employee")}
+            onClick={() => navigate("/employee-dashboard/task/employees")}
           >
             ADD <br /> EMPLOYEE
           </button>

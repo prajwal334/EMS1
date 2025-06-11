@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
+import cron from "node-cron";
+import { deleteOldOnboardedCandidates } from "./controllers/deleteOldOnboarded.js";
 import connectToDatabase from "./db/db.js";
 import GroupMessage from "./models/GroupMessage.js"; // ✅ import model
 
@@ -50,6 +52,10 @@ const io = new Server(server, {
   },
 });
 
+cron.schedule("0 0 * * *", () => {
+  console.log("🕛 Running daily cleanup job...");
+  deleteOldOnboardedCandidates();
+});
 // Setup Middleware
 app.use(
   cors({
