@@ -80,6 +80,7 @@ import RoleList from "./components/task/Rolelist";
 import TaskList from "./components/task/Tasklist";
 import EmDepartmentView from "./components/task/EmDepartmentView";
 import EmTasklist from "./components/task/EmTaskList";
+import VerifyCertificate from "./pages/Verify";
 
 function App() {
   return (
@@ -209,6 +210,7 @@ function App() {
             <Route path="direct/:id" element={<DirectChat />} />
           </Route>
         </Route>
+        <Route path="verify" element={<VerifyCertificate />} />
       </Routes>
     </BrowserRouter>
   );

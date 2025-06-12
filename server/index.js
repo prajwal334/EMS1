@@ -81,7 +81,9 @@ app.use("/api/targets", targetRoutes);
 app.use("/api/admin", adminRouter);
 app.use("/api/group", groupRouter);
 app.use("/api/messages", groupMessageRouter); // ✅ Mount route
+app.use("/uploads/image", express.static("public/uploads/image"));
 app.use("/uploads", express.static("public/uploads"));
+
 app.use("/api/direct-chats", directChatRoutes);
 app.use("/api/direct-messages", directMessageRoutes);
 
