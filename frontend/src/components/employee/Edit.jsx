@@ -9,6 +9,7 @@ const Edit = () => {
     maritalStatus: "",
     designation: "",
     salary: 0,
+    status: "active",
     role: "",
     department: "",
   });
@@ -42,6 +43,7 @@ const Edit = () => {
             name: employee.userId.name,
             maritalStatus: employee.maritalStatus,
             designation: employee.designation,
+            status: employee.status,
             salary: employee.salary,
             role: employee.role,
             department: employee.department,
@@ -127,7 +129,7 @@ const Edit = () => {
                   <option value="divorced">Divorced</option>
                 </select>
               </div>
-
+              {}
               {/* Designation Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -160,24 +162,6 @@ const Edit = () => {
                 />
               </div>
 
-              {/* Role Field */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Role
-                </label>
-                <select
-                  name="role"
-                  onChange={handleChange}
-                  value={employee.role}
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-                  required
-                >
-                  <option value="">Select Role</option>
-                  <option value="admin">Admin</option>
-                  <option value="employee">Employee</option>
-                </select>
-              </div>
-
               {/* Department Field */}
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700">
@@ -198,6 +182,23 @@ const Edit = () => {
                   ))}
                 </select>
               </div>
+            </div>
+            {/* Status Field */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Status
+              </label>
+              <select
+                name="status"
+                onChange={handleChange}
+                value={employee.status}
+                className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                required
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="terminated">Terminated</option>
+              </select>
             </div>
             <button
               type="submit"

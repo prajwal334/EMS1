@@ -23,6 +23,17 @@ const upload = multer({
 // Add Employee
 const addEmployee = async (req, res) => {
   try {
+    // ✅ Check if user is authorized
+    const loggedInUser = req.user;
+
+    if (!loggedInUser || (loggedInUser.role !== "admin" && loggedInUser.role !== "employee")) {
+      return res.status(403).json({
+        success: false,
+        error: "Access denied: Not authorized to add employee",
+      });
+    }
+
+    // ✅ Extract employee fields
     const {
       name,
       email,
@@ -60,15 +71,16 @@ const addEmployee = async (req, res) => {
       username,
     } = req.body;
 
+    // ✅ Check if user already exists
     const user = await User.findOne({ email });
     if (user) {
-      return res
-        .status(400)
-        .json({ success: false, error: "User already exists" });
+      return res.status(400).json({ success: false, error: "User already exists" });
     }
 
+    // ✅ Hash the password
     const hashPassword = await bcrypt.hash(password, 10);
 
+    // ✅ Create new User
     const newUser = new User({
       name,
       username,
@@ -79,6 +91,7 @@ const addEmployee = async (req, res) => {
     });
     const savedUser = await newUser.save();
 
+    // ✅ Create new Employee
     const newEmployee = new Employee({
       userId: savedUser._id,
       name,
@@ -117,16 +130,20 @@ const addEmployee = async (req, res) => {
     });
 
     await newEmployee.save();
-    return res
-      .status(200)
-      .json({ success: true, message: "Employee added successfully" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Employee added successfully",
+    });
   } catch (error) {
     console.error("Error in addEmployee:", error);
-    return res
-      .status(500)
-      .json({ success: false, error: "Server Error in adding employee" });
+    return res.status(500).json({
+      success: false,
+      error: "Server Error in adding employee",
+    });
   }
 };
+
 
 // Get all employees
 const getEmployees = async (req, res) => {
@@ -171,7 +188,7 @@ const getEmployee = async (req, res) => {
 const updateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, maritalStatus, designation, department, salary, role } =
+    const { name, maritalStatus, status, designation, department, salary, role } =
       req.body;
 
     const employee = await Employee.findById(id);
@@ -189,6 +206,8 @@ const updateEmployee = async (req, res) => {
     const updateEmployee = await Employee.findByIdAndUpdate(id, {
       maritalStatus,
       designation,
+      status,
+      name,
       salary,
       department,
       role,

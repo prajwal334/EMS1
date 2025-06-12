@@ -16,15 +16,15 @@ const Dashboard = () => {
       </div>
 
       <div className="w-full max-w-5xl mt-20 px-10">
-        <div className="flex justify-between mb-12">
+        <div className="flex justify-between mb-16">
           <button
-            className="w-64 h-20 rounded-3xl bg-blue-200 shadow-xl font-bold text-gray-700 text-lg"
+            className="w-64 h-20 rounded-3xl bg-white hover:bg-blue-200 shadow-xl font-bold text-gray-700 text-lg"
             onClick={() => navigate("/employee-dashboard/tasks/hr/task/Onboarding")}
           >
             ON <br /> BOARDING
           </button>
           <button
-            className="w-64 h-20 rounded-3xl bg-white shadow-xl font-bold text-gray-700 text-lg"
+            className="w-64 h-20 rounded-3xl bg-white shadow-xl hover:bg-blue-200 font-bold text-gray-700 text-lg"
             onClick={() => navigate("/employee-dashboard/task/employees")}
           >
             ADD <br /> EMPLOYEE
@@ -33,14 +33,14 @@ const Dashboard = () => {
 
         <div className="flex justify-between px-16">
           <button
-            className="w-64 h-20 rounded-3xl bg-white shadow-xl font-bold text-gray-700 text-lg"
-            onClick={() => navigate("/attendance")}
+            className="w-64 h-20 rounded-3xl bg-white shadow-xl hover:bg-blue-200 font-bold text-gray-700 text-lg"
+            onClick={() => navigate("/employee-dashboard/attendance")}
           >
             ATTENDANCE
           </button>
           <button
-            className="w-64 h-20 rounded-3xl bg-white shadow-xl font-bold text-gray-700 text-lg"
-            onClick={() => navigate("/leaves")}
+            className="w-64 h-20 rounded-3xl bg-white shadow-xl hover:bg-blue-200 font-bold text-gray-700 text-lg"
+            onClick={() => navigate("/employee-dashboard/leaves")}
           >
             LEAVES
           </button>

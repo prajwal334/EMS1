@@ -53,66 +53,73 @@ const Add = () => {
 
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const formDataObj = new FormData();
+  const formDataObj = new FormData();
 
-    // Append all fields except 'designation'
-    for (const key in formData) {
-      if (key !== "designation") {
-        formDataObj.append(key, formData[key]);
-      }
+  // Append all fields except 'designation'
+  for (const key in formData) {
+    if (key !== "designation") {
+      formDataObj.append(key, formData[key]);
     }
+  }
 
-    // Convert sub-department _id to its name for the 'designation' field
-    const selectedSubDep = subDepartments.find(
-      (subDep) => subDep._id === formData.designation
+  // Convert sub-department _id to name
+  const selectedSubDep = subDepartments.find(
+    (subDep) => subDep._id === formData.designation
+  );
+
+  formDataObj.append(
+    "designation",
+    selectedSubDep ? selectedSubDep.name : formData.designation
+  );
+
+  // Add image if exists
+  if (imageFile) {
+    formDataObj.append("image", imageFile);
+  }
+
+  try {
+    const response = await axios.post(
+      "http://localhost:3000/api/employee/add",
+      formDataObj,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
 
-    if (selectedSubDep) {
-      formDataObj.append("designation", selectedSubDep.name);
-    } else {
-      formDataObj.append("designation", formData.designation);
-    }
+    if (response.data.success) {
+      // Get role from local storage or context
+      const userData = JSON.parse(localStorage.getItem("user")); // assuming you store { role: "admin" | "employee" }
 
-    // Append image if available
-    if (imageFile) {
-      formDataObj.append("image", imageFile);
-    }
-
-    try {
-      const response = await axios.post(
-        "http://localhost:3000/api/employee/add",
-        formDataObj,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (response.data.success) {
+      if (userData?.role === "admin") {
+        navigate("admin-dashboard/employees");
+      } else {
         navigate("/employee-dashboard/task/employees");
       }
-    } catch (error) {
-      console.error("Error submitting:", error);
-      alert(error?.response?.data?.error || "Server error");
     }
-  };
+  } catch (error) {
+    console.error("Error submitting:", error);
+    alert(error?.response?.data?.error || "Server error");
+  }
+};
+
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
+    <div className="max-w-6xl mx-auto mt-10 bg-gray-100 p-8 rounded-lg shadow-lg">
       {/* Tab Headers */}
       <div className="flex justify-between mb-6">
         {STEPS.map((s,i) => (
           <button
             key={s}
             onClick={() => setStep(i)}
-            className={`px-4 py-2 rounded ${
+            className={`px-4 py-1 rounded-2xl ${
               i === currentStep
                 ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-700"
+                : "bg-white text-gray-900"
             }`}
           >
             {s}
@@ -136,7 +143,7 @@ const Add = () => {
               onChange={handleChange}
               value={formData.name || ""}
               placeholder="Enter Full Name"
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              className="flex mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
           </div>
@@ -730,16 +737,36 @@ const Add = () => {
 
         </div>
         {/* Navigation Buttons */}
-        <div className="mt-6 flex justify-between">
-          {currentStep > 0 && (
-            <button className=" "type="button" onClick={prev} >Back</button>
-          )}
-          {currentStep < STEPS.length - 1 ? (
-            <button type="button" onClick={next}>Save & Next</button>
-          ) : (
-            <button type="button" onClick={handleSubmit}>Add Employee</button>
-          )}
-        </div>
+        <div className="mt-6 flex justify-between gap-4">
+  {currentStep > 0 && (
+    <button
+      type="button"
+      onClick={prev}
+      className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-2xl"
+    >
+      Back
+    </button>
+  )}
+
+  {currentStep < STEPS.length - 1 ? (
+    <button
+      type="button"
+      onClick={next}
+      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-2xl"
+    >
+      Save & Next
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={handleSubmit}
+      className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-2xl"
+    >
+      Add Employee
+    </button>
+  )}
+</div>
+
       </form>
     </div>
   );
