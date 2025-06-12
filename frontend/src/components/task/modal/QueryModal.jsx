@@ -9,7 +9,7 @@ const QueryModal = ({ isOpen, onClose, onSend, queryText, setQueryText }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-lg w-96 p-6 relative"
+        className="bg-gray-100 rounded-lg shadow-lg w-96 p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -20,10 +20,10 @@ const QueryModal = ({ isOpen, onClose, onSend, queryText, setQueryText }) => {
           ✖️
         </button>
 
-        <h3 className="text-lg font-semibold mb-4">Enter Queries</h3>
+        <h3 className="text-lg font-bold mb-4">Queries</h3>
 
         <textarea
-          className="w-full border border-gray-300 rounded p-2 mb-2 resize-none max-h-40 overflow-y-auto"
+          className="w-full border border-gray-300 rounded p-2 mb-12 resize-none max-h-50 overflow-y-auto"
           rows={5}
           maxLength={1000}
           value={queryText}
@@ -32,10 +32,10 @@ const QueryModal = ({ isOpen, onClose, onSend, queryText, setQueryText }) => {
         />
 
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="absolute bottom-1 right-5  mb-2 bg-blue-600 text-white px-8 py-2 rounded hover:bg-blue-700"
           onClick={onSend}
         >
-          Send
+          Request For Queries
         </button>
       </div>
     </div>

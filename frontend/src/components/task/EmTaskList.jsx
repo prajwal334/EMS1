@@ -17,6 +17,7 @@ const EmTasklist = () => {
   const { user } = useAuth();
 
   const [department, setDepartment] = useState(null);
+    const [selectedSubDep, setSelectedSubDep] = useState("");
   const [subDepartments, setSubDepartments] = useState([]);
   const [userDesignation, setUserDesignation] = useState("");
   const [loading, setLoading] = useState(true);
@@ -99,6 +100,7 @@ const EmTasklist = () => {
       }`}
     >
       <div className="w-[1000px] mx-auto">
+
         {loading && (
           <p className="text-center">Loading department details...</p>
         )}
@@ -113,8 +115,9 @@ const EmTasklist = () => {
               department.dep_name !== "Operations" && (
                 <>
                   <div className="flex justify-center mb-6">
-                    <div className="bg-white rounded-lg shadow-md px-6 py-3 text-center w-64">
-                      <h2 className="text-lg font-semibold text-gray-800">
+
+                    <div className="w-full mb-8">
+                      <h2 className="w-full bg-red-300 rounded-xl shadow-xl p-5 text-center text-2xl font-bold text-gray-800">
                         {department.dep_name}
                       </h2>
                     </div>
@@ -126,16 +129,23 @@ const EmTasklist = () => {
                     ) : (
                       subDepartments.map((sub) => {
                         const isActive = userDesignation === sub.name;
+
+                                  const isSelected = selectedSubDep === sub.name;
+
                         return (
                           <div
                             key={sub._id}
-                            className={`px-4 py-2 text-sm rounded-lg shadow transition-all duration-300 ${
-                              isActive
-                                ? "cursor-pointer hover:bg-blue-100 bg-white"
-                                : "cursor-not-allowed bg-gray-200"
-                            }`}
-                          >
-                            {sub.name}
+                             onClick={() => isActive && setSelectedSubDep(sub.name)}
+              className={`w-36 px-4 py-3 text-center rounded-lg text-sm font-bold shadow-lg transition
+                ${
+                  isActive
+                    ? "bg-blue-500 text-white cursor-pointer hover:bg-blue-600"
+                    : "bg-gray-200 text-gray-600 cursor-not-allowed"
+                }
+                ${isSelected ? "ring-2 ring-offset-2 ring-blue-300" : ""}
+              `}
+            >
+              {sub.name}
                           </div>
                         );
                       })

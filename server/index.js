@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
+import cron from "node-cron";
+import { deleteOldOnboardedCandidates } from "./controllers/deleteOldOnboarded.js";
 import connectToDatabase from "./db/db.js";
 import GroupMessage from "./models/GroupMessage.js"; // ✅ import model
 
@@ -28,6 +30,7 @@ import groupMessageRouter from "./routes/groupMessage.js"; // ✅ Add this route
 import directChatRoutes from "./routes/directChat.js";
 import directMessageRoutes from "./routes/directMessage.js";
 import certificateRoutes from "./routes/training.js";
+import candidateRoutes from "./routes/hrOndording.js";
 import internshipCertificateRouter from "./routes/internship.js";
 import offerLetterRoutes from "./routes/offerletter.js";
 
@@ -49,11 +52,15 @@ const io = new Server(server, {
   },
 });
 
+cron.schedule("0 0 * * *", () => {
+  console.log("🕛 Running daily cleanup job...");
+  deleteOldOnboardedCandidates();
+});
 // Setup Middleware
 app.use(
   cors({
     origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // ✅ ADD PATCH HERE
     credentials: true,
   })
 );
@@ -86,6 +93,7 @@ app.use("/uploads", express.static("public/uploads"));
 
 app.use("/api/direct-chats", directChatRoutes);
 app.use("/api/direct-messages", directMessageRoutes);
+app.use("/api/candidates", candidateRoutes);
 
 app.use("/api/certificate", certificateRoutes);
 app.use("/api/internships", internshipCertificateRouter);
