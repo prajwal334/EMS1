@@ -7,6 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  LabelList, // ✅ import LabelList
 } from "recharts";
 import bgImage from "../../../assets/images/Task_bg.jpeg";
 
@@ -21,9 +22,9 @@ const dayColors = {
 
 const getWeekDates = () => {
   const today = new Date();
-  const day = today.getDay();
+  const day = today.getDay(); // 0 (Sun) - 6 (Sat)
   const monday = new Date(today);
-  monday.setDate(today.getDate() - ((day + 6) % 7));
+  monday.setDate(today.getDate() - ((day + 6) % 7)); // Go to Monday
   const result = [];
   for (let i = 0; i < 6; i++) {
     const date = new Date(monday);
@@ -68,93 +69,44 @@ const CustomGauge = ({ value }) => {
   );
 };
 
-const programPointsMap = {
-  "Autonomous Learning": 1,
-  "Mentor Sync": 4,
-  Accelerator: 6,
-};
-
-const OpTargetList = ({ employeeName }) => {
-  const [targets, setTargets] = useState([]);
-  const [loadingTargets, setLoadingTargets] = useState(true);
+const OpTargetList = () => {
   const [barData, setBarData] = useState([]);
   const [loadingChart, setLoadingChart] = useState(true);
   const [taskCompletedPoints, setTaskCompletedPoints] = useState(0);
-  const [totalTicketSize, setTotalTicketSize] = useState(0);
+  const [taskInProgressPoints, setTaskInProgressPoints] = useState(0);
 
   useEffect(() => {
-    const fetchTargets = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/api/targets");
-        setTargets(response.data);
-      } catch (error) {
-        console.error("Error fetching targets:", error);
-      } finally {
-        setLoadingTargets(false);
-      }
-    };
-
-    fetchTargets();
-  }, []); // Run only once to avoid loops
-
-  useEffect(() => {
-    const fetchSalesAndAggregate = async () => {
-      if (!employeeName) return;
+    const fetchSalesData = async () => {
       setLoadingChart(true);
       try {
-        const response = await axios.get(
-          `http://localhost:3000/api/salestask/marketed-from/${employeeName}`
-        );
+        const response = await axios.get("http://localhost:3000/api/salestask");
         const allTasks = response.data || [];
 
-        // Calculate taskCompletedPoints based on program_type
-        const completedPoints = allTasks.reduce((sum, task) => {
-          const type = task.program_type;
-          return sum + (programPointsMap[type] || 0);
-        }, 0);
-        setTaskCompletedPoints(completedPoints);
-
-        const sortedTasks = [...allTasks].sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        const doneTasks = allTasks.filter((task) => task.status === "done");
+        const pendingTasks = allTasks.filter(
+          (task) => task.status === "pending"
         );
 
-        const currentMonth = new Date().toISOString().slice(0, 7);
-        const monthlyTasks = sortedTasks.filter(
-          (task) =>
-            new Date(task.createdAt).toISOString().slice(0, 7) === currentMonth
-        );
-
-        const total = monthlyTasks.reduce(
-          (sum, t) => sum + (t.ticket_size || 0),
-          0
-        );
-        setTotalTicketSize(total);
+        setTaskCompletedPoints(doneTasks.length);
+        setTaskInProgressPoints(pendingTasks.length);
 
         const weekDates = getWeekDates();
-        const grouped = weekDates.map((dateObj) => {
-          const dateStr = dateObj.toLocaleDateString("en-CA");
-          const day = dateObj.toLocaleDateString("en-US", {
-            weekday: "long",
-          });
 
-          const tasksForDay = monthlyTasks.filter((task) => {
-            const taskDate = new Date(task.createdAt).toLocaleDateString(
+        const grouped = weekDates.map((dateObj) => {
+          const dateStr = dateObj.toLocaleDateString("en-CA"); // local format YYYY-MM-DD
+          const day = dateObj.toLocaleDateString("en-US", { weekday: "long" });
+
+          const countForDay = doneTasks.filter((task) => {
+            const taskDate = new Date(task.updatedAt).toLocaleDateString(
               "en-CA"
             );
             return taskDate === dateStr;
-          });
-
-          const totalTicketSize = tasksForDay.reduce(
-            (sum, task) => sum + (task.ticket_size || 0),
-            0
-          );
+          }).length;
 
           return {
             day,
-            taskCount: tasksForDay.length,
-            totalTicketSize,
-            color: dayColors[day],
+            taskCount: countForDay,
+            color: dayColors[day] || "#ccc",
           };
         });
 
@@ -166,33 +118,15 @@ const OpTargetList = ({ employeeName }) => {
       }
     };
 
-    fetchSalesAndAggregate();
-
-    const interval = setInterval(() => {
-      fetchSalesAndAggregate();
-    }, 2 * 60 * 1000);
-
+    fetchSalesData();
+    const interval = setInterval(fetchSalesData, 2 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [employeeName]);
+  }, []);
 
-  if (loadingTargets) return <div className="p-4">Loading targets...</div>;
-
-  // Calculate total points from targets for the current month and employee
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  const monthlyTargets = targets.filter(
-    (t) =>
-      t.createdAt.slice(0, 7) === currentMonth &&
-      t.employeeName === employeeName
-  );
-
-  const totalPoints = monthlyTargets.reduce(
-    (sum, t) => sum + Number(t.total_points || 0),
-    0
-  );
-
-  // Calculate progress percent for the gauge (taskCompletedPoints / totalPoints * 100)
-  const progressPercent =
-    totalPoints > 0 ? (taskCompletedPoints / totalPoints) * 100 : 0;
+  const totalPoints = taskCompletedPoints + taskInProgressPoints;
+  const progressPercent = totalPoints
+    ? (taskCompletedPoints / totalPoints) * 100
+    : 0;
 
   return (
     <div
@@ -201,7 +135,7 @@ const OpTargetList = ({ employeeName }) => {
     >
       <div className="flex flex-col md:flex-row justify-between items-start gap-6 w-full min-w-0">
         {/* Bar Chart */}
-        <div className="w-full md:w-1/3" style={{ height: 220, minWidth: 0 }}>
+        <div className="w-full md:w-1/3" style={{ height: 150, minWidth: 0 }}>
           <div className="flex flex-wrap justify-start gap-2 mb-2">
             {Object.entries(dayColors).map(([day, color]) => (
               <div key={day} className="flex items-center space-x-1">
@@ -221,7 +155,7 @@ const OpTargetList = ({ employeeName }) => {
           {loadingChart ? (
             <div>Loading chart...</div>
           ) : (
-            <div style={{ width: "100%", height: "calc(100% - 30px)" }}>
+            <div style={{ width: "100%", height: "100%" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={barData}
@@ -239,12 +173,11 @@ const OpTargetList = ({ employeeName }) => {
                       if (active && payload?.length) {
                         const data = payload[0].payload;
                         return (
-                          <div className=" border p-2 text-xs shadow-sm">
+                          <div className="border p-2 text-xs shadow-sm bg-white">
                             <p>
                               <strong>{data.day}</strong>
                             </p>
-                            <p>Tasks: {data.taskCount}</p>
-                            <p>Total Ticket Size: ₹{data.totalTicketSize}</p>
+                            <p>Tasks Completed: {data.taskCount}</p>
                           </div>
                         );
                       }
@@ -256,6 +189,7 @@ const OpTargetList = ({ employeeName }) => {
                     dataKey="taskCount"
                     radius={[10, 10, 0, 0]}
                     isAnimationActive={false}
+                    label={false} // ✅ disables any label
                   >
                     {barData.map((entry, idx) => (
                       <Cell key={idx} fill={entry.color} />
@@ -268,10 +202,7 @@ const OpTargetList = ({ employeeName }) => {
         </div>
 
         {/* Gauge Chart */}
-        <div
-          className="w-full md:w-1/3 flex justify-center items-center pt-6"
-          style={{ minWidth: 0 }}
-        >
+        <div className="w-full md:w-1/3 flex justify-center items-center pt-6">
           <div className="flex flex-col items-center">
             <CustomGauge value={progressPercent} />
             <h1 className="mt-2 text-sm font-medium text-gray-700">
@@ -280,41 +211,21 @@ const OpTargetList = ({ employeeName }) => {
           </div>
         </div>
 
-        {/* Right Panel */}
-        <div
-          className="w-full md:w-1/3 flex flex-col items-end space-y-4 mt-12"
-          style={{ minWidth: 0 }}
-        >
+        {/* Summary */}
+        <div className="w-full md:w-1/3 flex flex-col items-end space-y-4 mt-12">
           <div className="w-full flex flex-col items-end text-right gap-4">
-            {targets.length === 0 ? (
-              <div>No targets found.</div>
-            ) : (
-              (() => (
-                <div className="flex flex-row gap-12 justify-end w-full">
-                  <div>
-                    <p className="text-lg font-bold">
-                      {Math.max(totalPoints - taskCompletedPoints, 0)}
-                    </p>
-                    <br />
-                    <p className="text-sm text-gray-500">Task In Progress</p>
-                  </div>
-
-                  <div>
-                    <p className="text-lg font-bold">{taskCompletedPoints}</p>
-                    <br />
-                    <p className="text-sm text-gray-500">Task Completed</p>
-                  </div>
-
-                  <div>
-                    <p className="text-lg font-bold">{totalTicketSize || 0}</p>
-                    <br />
-                    <p className="text-sm text-gray-500">
-                      PrePayment from Customers
-                    </p>
-                  </div>
-                </div>
-              ))()
-            )}
+            <div className="flex flex-row gap-12 justify-end w-full">
+              <div>
+                <p className="text-lg font-bold">{taskInProgressPoints}</p>
+                <br />
+                <p className="text-sm text-gray-500">Task In Progress</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold">{taskCompletedPoints}</p>
+                <br />
+                <p className="text-sm text-gray-500">Task Completed</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

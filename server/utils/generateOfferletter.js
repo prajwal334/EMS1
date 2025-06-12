@@ -1,3 +1,4 @@
+// generateOfferletter.js
 import fs from "fs";
 import path from "path";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
@@ -6,11 +7,22 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const generateOfferLetter = async (name, domain, startDate, endDate) => {
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([842, 595]); // A4 Landscape
+// 🔹 Helper to generate random code here
+const generateRandomCode = (length = 10) => {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
 
-  // Optional: load template image if available
+const generateOfferLetter = async (name, domain, startDate, endDate) => {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([842, 595]);
+
+  // Embed template
   const templatePath = path.resolve(
     __dirname,
     "../templates/offer_letter_template.jpg"
@@ -34,7 +46,6 @@ export const generateOfferLetter = async (name, domain, startDate, endDate) => {
     day: "2-digit",
     year: "numeric",
   });
-
   const formattedEnd = new Date(endDate).toLocaleDateString("en-US", {
     month: "long",
     day: "2-digit",
@@ -51,7 +62,13 @@ export const generateOfferLetter = async (name, domain, startDate, endDate) => {
     font: fontBold,
     color: rgb(0, 0, 0),
   });
-
+  page.drawText(` ${name}`, {
+    x: 40,
+    y: 98,
+    size: 12,
+    font: fontBold,
+    color: rgb(0, 0, 0),
+  });
   page.drawText(` ${domain}`, {
     x: 400,
     y: 455,
@@ -59,31 +76,40 @@ export const generateOfferLetter = async (name, domain, startDate, endDate) => {
     font: fontBold,
     color: rgb(0, 0, 0),
   });
-
+  page.drawText(` ${domain} Intern`, {
+    x: 165,
+    y: 400,
+    size: 12,
+    font: fontBold,
+    color: rgb(0, 0, 0),
+  });
   page.drawText(` ${formattedStart}`, {
-    x: 380,
-    y: 420,
+    x: 150,
+    y: 377,
     size: 12,
     font: fontRegular,
     color: rgb(0.1, 0.1, 0.1),
   });
-
   page.drawText(` ${formattedEnd}`, {
-    x: 380,
-    y: 390,
+    x: 150,
+    y: 365,
     size: 12,
     font: fontRegular,
     color: rgb(0.1, 0.1, 0.1),
   });
-
   page.drawText(`${durationDays} day${durationDays > 1 ? "s" : ""}`, {
-    x: 380,
-    y: 360,
+    x: 150,
+    y: 355,
     size: 12,
     font: fontRegular,
     color: rgb(0.1, 0.1, 0.1),
   });
 
   const pdfBytes = await pdfDoc.save();
-  return pdfBytes;
+
+  const offerLetterId = generateRandomCode();
+
+  return { pdfBytes, offerLetterId };
 };
+
+export default generateOfferLetter;

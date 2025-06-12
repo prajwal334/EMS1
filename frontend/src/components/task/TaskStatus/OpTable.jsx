@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { PiCertificateBold } from "react-icons/pi";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { LiaCertificateSolid } from "react-icons/lia";
+import { HiOutlineDocumentDownload } from "react-icons/hi";
+import { FaCheckCircle } from "react-icons/fa";
 
 const OpTable = () => {
   const [salesData, setSalesData] = useState([]);
@@ -11,9 +13,18 @@ const OpTable = () => {
   const fileInputRef = useRef({});
   const itemsPerPage = 10;
 
+  const [clicked, setClicked] = useState(() => {
+    const saved = localStorage.getItem("clickedButtons");
+    return saved ? JSON.parse(saved) : {};
+  });
+
   useEffect(() => {
     fetchSalesData();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("clickedButtons", JSON.stringify(clicked));
+  }, [clicked]);
 
   const fetchSalesData = () => {
     fetch("http://localhost:3000/api/salestask")
@@ -24,22 +35,9 @@ const OpTable = () => {
       .then((data) => {
         const enrichedData = data.map((item) => ({
           ...item,
-          image_url: item.upload_image
-            ? `http://localhost:3000/uploads/image/${item.upload_image}`
-            : null,
+          image_url: item.upload_image || null,
         }));
-
-        const isDifferent =
-          salesData.length !== enrichedData.length ||
-          salesData.some(
-            (item, i) =>
-              item._id !== enrichedData[i]._id ||
-              item.image_url !== enrichedData[i].image_url
-          );
-
-        if (isDifferent) {
-          setSalesData(enrichedData);
-        }
+        setSalesData(enrichedData);
       })
       .catch((err) => console.error("Fetch failed:", err));
   };
@@ -69,23 +67,52 @@ const OpTable = () => {
 
       if (!res.ok) throw new Error("Upload failed");
 
-      const result = await res.json(); // Expected to return { image_url: "filename.jpg" }
-
+      const result = await res.json();
       const updatedData = salesData.map((item) =>
         item._id === id
-          ? {
-              ...item,
-              image_url: `http://localhost:3000/uploads/image/${result.image_url}`,
-            }
+          ? { ...item, image_url: result.upload_image || null }
           : item
       );
-      setSalesData(updatedData);
 
+      setSalesData(updatedData);
       alert("Image uploaded successfully");
     } catch (err) {
       console.error("Upload error:", err);
       alert("Upload failed");
     }
+  };
+
+  const handleDeleteImage = async (id) => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/salestask/delete-image/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!res.ok) throw new Error("Delete failed");
+
+      const updatedData = salesData.map((item) =>
+        item._id === id ? { ...item, image_url: null } : item
+      );
+      setSalesData(updatedData);
+      alert("Image deleted successfully");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Failed to delete image");
+    }
+  };
+
+  const markClicked = (id, key) => {
+    const updated = {
+      ...clicked,
+      [id]: {
+        ...(clicked[id] || {}),
+        [key]: true,
+      },
+    };
+    setClicked(updated);
+    localStorage.setItem("clickedButtons", JSON.stringify(updated));
   };
 
   const handleDownloadCertificate = async (id, name) => {
@@ -104,13 +131,13 @@ const OpTable = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      markClicked(id, "certificate");
     } catch (error) {
       console.error("Download error:", error);
       alert("Error downloading certificate");
     }
   };
 
-  // New handler for internship certificate download
   const handleDownloadInternshipCertificate = async (id, name) => {
     try {
       const response = await fetch(
@@ -128,9 +155,61 @@ const OpTable = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      markClicked(id, "internship");
     } catch (error) {
       console.error("Download error:", error);
       alert("Error downloading internship certificate");
+    }
+  };
+
+  const handleDownloadOfferLetter = async (id, name) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/offer-letter/generate/${id}`
+      );
+      if (!response.ok) throw new Error("Failed to generate offer letter");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${name}_offer_letter.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      markClicked(id, "offer");
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Error downloading offer letter");
+    }
+  };
+
+  const handleMarkAsDone = async (id) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/salestask/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "done" }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update status");
+
+      const updatedItem = await response.json();
+      const updatedData = salesData.map((item) =>
+        item._id === id ? { ...item, status: updatedItem.status } : item
+      );
+      setSalesData(updatedData);
+      markClicked(id, "done");
+      alert("Status updated to done");
+    } catch (error) {
+      console.error("Status update error:", error);
+      alert("Failed to mark as done");
     }
   };
 
@@ -164,14 +243,13 @@ const OpTable = () => {
       key: "internship_start_date",
     },
     { label: "INTERNSHIP END DATE", width: 180, key: "internship_end_date" },
-    { label: "", width: 140, key: "actions", sticky: true }, // widened to fit 3 buttons nicely
+    { label: "", width: 200, key: "actions", sticky: true },
   ];
 
   return (
     <div className="p-4 bg-white min-h-screen flex flex-col items-center">
       <div className="w-full max-w-[1200px] bg-white rounded-lg">
-        {/* Filters */}
-        <div className="border-b border-gray-300 px-4 py-3 flex flex-col sm:flex-row gap-3">
+        <div className="border-b px-4 py-3 flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             placeholder="Search by Customer Name"
@@ -193,7 +271,6 @@ const OpTable = () => {
           />
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto max-h-[480px] relative">
           <table className="w-full min-w-[1200px]">
             <thead>
@@ -256,10 +333,8 @@ const OpTable = () => {
                         </td>
                       );
                     })}
-
-                    {/* Action Buttons */}
                     <td className="sticky right-0 bg-gray-100 p-2 z-10">
-                      <div className="flex gap-2 justify-center">
+                      <div className="flex items-center gap-2">
                         <input
                           type="file"
                           accept="image/*"
@@ -267,21 +342,34 @@ const OpTable = () => {
                           style={{ display: "none" }}
                           onChange={(e) => handleFileChange(e, item._id)}
                         />
-                        <button
-                          onClick={() => handleUploadClick(item._id)}
-                          className="w-10 h-10 flex items-center justify-center bg-gray-600 text-white rounded-full hover:bg-blue-800 overflow-hidden"
-                          title="Upload Image"
-                        >
-                          {item.image_url ? (
-                            <img
-                              src={item.image_url}
-                              alt="uploaded"
-                              className="w-full h-full object-cover rounded-full"
-                            />
-                          ) : (
-                            <FaCloudUploadAlt size={18} />
+
+                        <div className="relative">
+                          <button
+                            onClick={() => handleUploadClick(item._id)}
+                            className="w-10 h-10 flex items-center justify-center bg-gray-600 text-white rounded-full hover:bg-gray-800 overflow-hidden"
+                            title="Upload Image"
+                          >
+                            {item.image_url ? (
+                              <img
+                                src={item.image_url}
+                                alt="uploaded"
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            ) : (
+                              <FaCloudUploadAlt size={18} />
+                            )}
+                          </button>
+                          {item.image_url && (
+                            <button
+                              onClick={() => handleDeleteImage(item._id)}
+                              className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-800"
+                              title="Remove Image"
+                            >
+                              ×
+                            </button>
                           )}
-                        </button>
+                        </div>
+
                         <button
                           onClick={() =>
                             handleDownloadCertificate(
@@ -289,13 +377,17 @@ const OpTable = () => {
                               item.customer_name
                             )
                           }
-                          className="w-10 h-10 flex items-center justify-center bg-gray-600 text-white rounded-full hover:bg-gray-800"
+                          className={`w-10 h-10 flex items-center justify-center rounded-full ${
+                            clicked[item._id]?.certificate
+                              ? "bg-green-300 cursor-not-allowed"
+                              : "bg-gray-600 hover:bg-gray-800 text-white"
+                          }`}
                           title="Download Certificate"
+                          disabled={clicked[item._id]?.certificate}
                         >
                           <PiCertificateBold size={18} />
                         </button>
 
-                        {/* Internship Certificate Button */}
                         <button
                           onClick={() =>
                             handleDownloadInternshipCertificate(
@@ -303,10 +395,46 @@ const OpTable = () => {
                               item.customer_name
                             )
                           }
-                          className="w-10 h-10 flex items-center justify-center bg-gray-600 text-white rounded-full hover:bg-green-800"
+                          className={`w-10 h-10 flex items-center justify-center rounded-full ${
+                            clicked[item._id]?.internship
+                              ? "bg-green-300 cursor-not-allowed"
+                              : "bg-gray-600 hover:bg-gray-800 text-white"
+                          }`}
                           title="Download Internship Certificate"
+                          disabled={clicked[item._id]?.internship}
                         >
                           <LiaCertificateSolid size={18} />
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            handleDownloadOfferLetter(
+                              item._id,
+                              item.customer_name
+                            )
+                          }
+                          className={`w-10 h-10 flex items-center justify-center rounded-full ${
+                            clicked[item._id]?.offer
+                              ? "bg-green-300 cursor-not-allowed"
+                              : "bg-gray-600 hover:bg-gray-800 text-white"
+                          }`}
+                          title="Download Offer Letter"
+                          disabled={clicked[item._id]?.offer}
+                        >
+                          <HiOutlineDocumentDownload size={18} />
+                        </button>
+
+                        <button
+                          onClick={() => handleMarkAsDone(item._id)}
+                          className={`w-10 h-10 flex items-center justify-center rounded-full ${
+                            clicked[item._id]?.done
+                              ? "bg-green-300 cursor-not-allowed"
+                              : "bg-gray-600 hover:bg-gray-800 text-white"
+                          }`}
+                          title="Mark as Done"
+                          disabled={clicked[item._id]?.done}
+                        >
+                          <FaCheckCircle size={18} />
                         </button>
                       </div>
                     </td>

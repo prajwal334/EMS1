@@ -60,7 +60,12 @@ const uploadSaleImage = async (req, res) => {
 // Create a new sales entry
 const createSale = async (req, res) => {
   try {
-    const newSale = new Sales(req.body);
+    const saleData = {
+      ...req.body,
+      status: req.body.status || "pending", // fallback if not provided
+    };
+
+    const newSale = new Sales(saleData);
     const savedSale = await newSale.save();
     res.status(201).json(savedSale);
   } catch (error) {
@@ -161,6 +166,57 @@ const getSalesByMarketedFrom = async (req, res) => {
   }
 };
 
+// DeleteImage
+const deleteImage = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const task = await Sales.findById(id);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+
+    if (task.upload_image) {
+      const filePath = path.join("public", task.upload_image);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    task.upload_image = null;
+    await task.save();
+
+    res.status(200).json({ message: "Image deleted" });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// DOwnload Icons update
+const updateDownloadStatus = async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.body; // "certificate", "internship", "offer", "done"
+
+  if (!["certificate", "internship", "offer", "done"].includes(type)) {
+    return res.status(400).json({ error: "Invalid download type" });
+  }
+
+  try {
+    const sale = await Sales.findById(id);
+    if (!sale) {
+      return res.status(404).json({ error: "Sales record not found" });
+    }
+
+    // Set the specific download flag to true
+    sale.downloads[type] = true;
+    sale.updatedAt = new Date();
+    await sale.save();
+
+    return res.status(200).json({ message: `${type} download marked`, sale });
+  } catch (error) {
+    console.error("Download status update error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export {
   createSale,
   deleteSale,
@@ -170,5 +226,7 @@ export {
   getSalesByName,
   getSalesByMarketedFrom,
   uploadSaleImage,
+  deleteImage,
   upload,
+  updateDownloadStatus,
 };

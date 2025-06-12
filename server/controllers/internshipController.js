@@ -42,6 +42,7 @@ const getInternshipCertificate = async (req, res) => {
 
     const dateRange = `${startMonth} - ${endMonth}`;
 
+    // 🔹 Generate certificate PDF and certification ID
     const { pdfBytes, certificationId } = await generateInternship(
       name,
       dateRange,
@@ -49,12 +50,21 @@ const getInternshipCertificate = async (req, res) => {
       imageUrl
     );
 
+    // 🔹 Save certification ID to the database
+    await fetch(`http://localhost:3000/api/salestask/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ internship_certificate_id: certificationId }),
+    });
+
+    // 🔹 Send the certificate PDF
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename=${name}_internship_certificate.pdf`
     );
-
     res.send(Buffer.from(pdfBytes));
   } catch (error) {
     console.error("❌ Internship certificate generation error:", error);

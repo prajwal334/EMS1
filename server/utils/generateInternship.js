@@ -3,7 +3,8 @@ import path from "path";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { fileURLToPath } from "url";
 import QRCode from "qrcode";
-import fetch from "node-fetch"; // Required for fetching image URL
+import fetch from "node-fetch";
+import sharp from "sharp";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +23,7 @@ const generateInternship = async (name, dateRange, domain, imageUrl) => {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([842, 595]); // A4 Landscape
 
-  // ✅ Embed background template (optional)
+  // ✅ Background template
   const imagePath = path.resolve(
     __dirname,
     "../templates/internship_template.jpg"
@@ -38,23 +39,32 @@ const generateInternship = async (name, dateRange, domain, imageUrl) => {
     });
   }
 
-  // ✅ Embed uploaded image if provided
+  // ✅ Profile image
   if (imageUrl) {
     try {
       const res = await fetch(imageUrl);
-      const buffer = await res.arrayBuffer();
-      const img = imageUrl.endsWith(".png")
-        ? await pdfDoc.embedPng(buffer)
-        : await pdfDoc.embedJpg(buffer);
+      const inputBuffer = Buffer.from(await res.arrayBuffer());
 
-      page.drawImage(img, {
+      // Process to circular PNG using sharp + SVG mask
+      const size = 120;
+      const circleSvg = `<svg><circle cx="${size / 2}" cy="${size / 2}" r="${
+        size / 2
+      }" /></svg>`;
+      const roundedImageBuffer = await sharp(inputBuffer)
+        .resize(size, size)
+        .composite([{ input: Buffer.from(circleSvg), blend: "dest-in" }])
+        .png()
+        .toBuffer();
+
+      const roundedImage = await pdfDoc.embedPng(roundedImageBuffer);
+      page.drawImage(roundedImage, {
         x: 685,
-        y: 340,
+        y: 311,
         width: 111,
         height: 115,
       });
     } catch (err) {
-      console.warn("⚠️ Failed to load image from URL:", imageUrl);
+      console.warn("⚠️ Failed to load or process image:", err.message);
     }
   }
 
@@ -80,7 +90,7 @@ const generateInternship = async (name, dateRange, domain, imageUrl) => {
     color: rgb(0, 0, 1),
   });
 
-  // Date Range (e.g., "July - August")
+  // Date Range
   page.drawText(dateRange, {
     x: 210,
     y: 195,
@@ -107,15 +117,31 @@ const generateInternship = async (name, dateRange, domain, imageUrl) => {
     color: rgb(0.4, 0.8, 1),
   });
 
-  // QR Code
+  // ✅ QR Code with 10% border radius
   const qrDataUrl = await QRCode.toDataURL(verifyUrl);
   const qrImageBytes = Buffer.from(qrDataUrl.split(",")[1], "base64");
-  const qrImage = await pdfDoc.embedPng(qrImageBytes);
-  page.drawImage(qrImage, {
+
+  const qrSize = 70;
+  const radius = qrSize * 0.1; // 10% radius = 7px
+
+  const roundedSvg = `
+    <svg width="${qrSize}" height="${qrSize}">
+      <rect x="0" y="0" width="${qrSize}" height="${qrSize}" rx="${radius}" ry="${radius}" />
+    </svg>
+  `;
+
+  const roundedQrBuffer = await sharp(qrImageBytes)
+    .resize(qrSize, qrSize)
+    .composite([{ input: Buffer.from(roundedSvg), blend: "dest-in" }])
+    .png()
+    .toBuffer();
+
+  const roundedQrImage = await pdfDoc.embedPng(roundedQrBuffer);
+  page.drawImage(roundedQrImage, {
     x: 750,
     y: 8,
-    width: 70,
-    height: 68,
+    width: qrSize,
+    height: qrSize,
   });
 
   const pdfBytes = await pdfDoc.save();

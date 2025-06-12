@@ -5,12 +5,12 @@ const getCertificate = async (req, res) => {
   try {
     const userId = req.params.id;
 
-    // Set CORS headers
+    // Set CORS headers (for frontend communication)
     res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
     res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    // Fetch sales tasks
+    // Fetch all sales tasks
     const response = await fetch("http://localhost:3000/api/salestask");
     const data = await response.json();
 
@@ -25,21 +25,29 @@ const getCertificate = async (req, res) => {
     const domain = user.domain_interested;
     const completionDate = new Date().toISOString().split("T")[0];
 
-    // ✅ Generate certificate PDF and ID
+    // ✅ Generate PDF and certification ID
     const { pdfBytes, certificationId } = await generateTraining(
       name,
       completionDate,
       domain
     );
 
-    // Set headers for PDF download
+    // ✅ Store certification ID in database
+    await fetch(`http://localhost:3000/api/salestask/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ training_certificate_id: certificationId }),
+    });
+
+    // Send certificate as downloadable PDF
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename=${name}_certificate.pdf`
     );
 
-    // Send PDF as response
     res.send(Buffer.from(pdfBytes));
   } catch (error) {
     console.error("❌ Certificate generation error:", error);

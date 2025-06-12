@@ -99,8 +99,7 @@ const EmTasklist = () => {
           : "px-4 py-8"
       }`}
     >
-
-      <div className="max-w-7xl mx-auto">
+      <div className="w-[1000px] mx-auto">
 
         {loading && (
           <p className="text-center">Loading department details...</p>

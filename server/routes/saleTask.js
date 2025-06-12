@@ -10,6 +10,8 @@ import {
   getSalesByMarketedFrom,
   upload,
   uploadSaleImage,
+  deleteImage,
+  updateDownloadStatus,
 } from "../controllers/salesTaskController.js";
 
 const router = express.Router();
@@ -24,5 +26,7 @@ router.get("/:id", getSaleById);
 router.put("/:id", updateSale);
 router.delete("/:id", deleteSale);
 router.post("/upload-image", upload.single("image"), uploadSaleImage);
+router.delete("/delete-image/:id", deleteImage);
+router.patch("/salestask/:id/download", updateDownloadStatus);
 
 export default router;
