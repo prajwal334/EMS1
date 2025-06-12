@@ -204,7 +204,8 @@ function App() {
           <Route path="tasks/hr/task" element={<HrTask />} />
           <Route path="tasks/hr/task/Onboarding" element={<Onboarding1 />} />
 
-           <Route path="task/employees" element={<List />} />
+           <Route path="task/employees" element={<List />}/>
+           <Route path="task/hr/add" element={<Add />} />
 
 
           <Route path="groups" element={<ChatLayout />}>

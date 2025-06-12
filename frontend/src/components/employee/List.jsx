@@ -12,6 +12,7 @@ const List = () => {
   const [loading, setLoading] = useState(false);
   const [activeDepartment, setActiveDepartment] = useState("ALL");
   const [showFilters, setShowFilters] = useState(false);
+  const [showPathOptions, setShowPathOptions] = useState(false);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -79,12 +80,31 @@ const List = () => {
         >
           ←
         </button>
-        <Link
-          to="/admin-dashboard/add-employee"
-          className="absolute font-bold top-3 right-3 px-8 py-1 bg-white rounded-3xl text-black hover:bg-gray-200 shadow"
-        >
-          + Add Employee
-        </Link>
+        <div className="absolute top-3 right-3">
+  <button
+    onClick={() => setShowPathOptions(!showPathOptions)}
+    className="px-8 py-1 bg-white rounded-3xl font-bold text-black hover:bg-gray-200 shadow"
+  >
+    + Add Employee
+  </button>
+
+  {showPathOptions && (
+    <div className="mt-2 absolute right-0 bg-white shadow-lg rounded-md z-50">
+      <Link
+        to="/admin-dashboard/add-employee"
+        className="block px-4 py-2 hover:bg-gray-100"
+      >
+        Admin
+      </Link>
+      <Link
+        to="/employee-dashboard/task/hr/add"
+        className="block px-4 py-2 hover:bg-gray-100"
+      >
+        HR
+      </Link>
+    </div>
+  )}
+</div>
       </div>
 
       {/* 🧰 Filter Button */}
