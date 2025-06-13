@@ -81,6 +81,8 @@ import TaskList from "./components/task/Tasklist";
 import EmDepartmentView from "./components/task/EmDepartmentView";
 import EmTasklist from "./components/task/EmTaskList";
 import VerifyCertificate from "./pages/verify/Verify";
+import HrTask from "./components/task/TaskStatus/HrTasklist";
+import Onboarding1 from "./components/task/TaskStatus/hrTaks/Onboarding";
 
 function App() {
   return (
@@ -190,7 +192,6 @@ function App() {
         >
           <Route index element={<EmployeeSummary />} />
           <Route path="profile/:id" element={<View />} />
-          <Route path="leaves/:id" element={<LeaveList />} />
           <Route path="add-leave/:id" element={<LeaveAdd />} />
           <Route path="salary/:id" element={<ViewSalaryEmp />} />
           <Route path="pf/:employeeId" element={<PfView1 />} />
@@ -200,6 +201,18 @@ function App() {
 
           <Route path="task/user/:userId" element={<EmDepartmentView />} />
           <Route path="tasks/department/:id" element={<EmTasklist />} />
+          <Route path="tasks/hr/task" element={<HrTask />} />
+          <Route path="tasks/hr/task/Onboarding" element={<Onboarding1 />} />
+
+           <Route path="task/employees" element={<List />}/>
+           <Route path="task/hr/add" element={<Add />} />
+            <Route path="attendance" element={<AdminView />} />
+          <Route
+            path="attendance/view/:userId"
+            element={<AttendanceEditView />}
+          />
+          <Route path="leaves" element={<Leavetable />} />
+          <Route path="leaves/:id" element={<LeaveDetail />} />
 
           <Route path="groups" element={<ChatLayout />}>
             <Route index element={<HomePlaceholder />} />

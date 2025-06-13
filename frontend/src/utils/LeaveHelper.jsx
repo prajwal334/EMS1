@@ -1,21 +1,7 @@
 import {useNavigate} from "react-router-dom";
+import { FaEye } from "react-icons/fa";
 
 export const getLeaveColumns = () => [
-    {
-        name: "S.No",
-        selector: (row) => row.sno,
-        "inline-size": "70px",
-    },
-    {
-        name: "Emp ID",
-        selector: (row) => row.employeeId,
-        "inline-size": "120px",
-    },
-    {
-        name: "User ID",
-        selector: (row) => row.userId,
-        "inline-size": "120px",
-    },
     {
         name: "Name",
         selector: (row) => row.name,
@@ -50,18 +36,25 @@ export const getLeaveColumns = () => [
 ];
 
 export const LeaveButtons = ({ Id }) => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const handleView = (id) => {
-        navigate(`/admin-dashboard/leaves/${id}`);
-    };
+  const handleView = (id) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const role = user?.role || "employee";
 
+    if (role === "admin" || role === "manager" ) {
+      navigate(`/admin-dashboard/leaves/${id}`);
+    } else {
+      navigate(`/employee-dashboard/leaves/${id}`);
+    }
+  };
     return (
         <button
-            className="bg-blue-500 text-white px-2 py-1 rounded"
-            onClick={() => handleView(Id)}
-        >
-            View 
-        </button>
+      title="View"
+      className="text-black p-1 hover:scale-110 transition-transform"
+      onClick={() => handleView(Id)}
+    >
+      <FaEye size={18} />
+    </button>
     );
 }

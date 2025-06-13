@@ -96,6 +96,22 @@ export const columns = [
     sortable: true,
   },
   {
+    name: "Status",
+    selector: (row) => (
+      <span className="text-sm font-medium text-indigo-700 uppercase tracking-wide">
+        {row.status === "active" ? (
+          <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full">
+            Active
+          </span>
+        ) : (
+          <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full">
+            Inactive
+          </span>
+        )}
+      </span>
+    ),
+  },
+  {
     name: "Action",
     cell: (row) => <EmployeeButtons Id={row._id} />,
     ignoreRowClick: true,
@@ -174,7 +190,7 @@ export const EmployeeTable = () => {
   }, [employees, filterText]);
 
   return (
-    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md border border-gray-200">
+    <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
       <h2 className="text-2xl font-semibold mb-4 text-slate-800">
         Employee Directory
       </h2>
@@ -195,7 +211,6 @@ export const EmployeeTable = () => {
         progressPending={loading}
         pagination
         highlightOnHover
-        striped
         responsive
         noDataComponent={
           <div className="py-4 text-gray-500">No employees found.</div>
@@ -204,29 +219,41 @@ export const EmployeeTable = () => {
           <div className="py-4 text-gray-500">Loading employees...</div>
         }
         customStyles={{
+          table: {
+            style: {
+              backgroundColor: "#f3f4f6", // gray-100
+            },
+          },
+          headRow: {
+            style: {
+              backgroundColor: "#f3f4f6",
+            },
+          },
           headCells: {
             style: {
-              fontWeight: "600",
+              fontWeight: "700",
               fontSize: "16px",
-              backgroundColor: "#f1f5f9",
-              color: "#1e293b",
+              backgroundColor: "#f3f4f6", // gray-100
+              color: "#1e293b", // slate-800
               paddingTop: "8px",
               paddingBottom: "8px",
             },
           },
           rows: {
             style: {
+              backgroundColor: "#f3f4f6",
               minHeight: "48px",
               paddingTop: "4px",
               paddingBottom: "4px",
-              borderBottom: "1px solid #e5e7eb", // Tailwind slate-200
-              marginBottom: "6px",
+              borderBottom: "none", // removes row borders
+              boxShadow: "none",
             },
           },
           cells: {
             style: {
               paddingTop: "6px",
               paddingBottom: "6px",
+              backgroundColor: "#f3f4f6",
             },
           },
         }}
