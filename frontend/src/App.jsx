@@ -80,7 +80,7 @@ import RoleList from "./components/task/Rolelist";
 import TaskList from "./components/task/Tasklist";
 import EmDepartmentView from "./components/task/EmDepartmentView";
 import EmTasklist from "./components/task/EmTaskList";
-import VerifyCertificate from "./pages/Verify";
+import VerifyCertificate from "./pages/verify/Verify";
 import HrTask from "./components/task/TaskStatus/HrTasklist";
 import Onboarding1 from "./components/task/TaskStatus/hrTaks/Onboarding";
 
@@ -223,7 +223,7 @@ function App() {
             <Route path="direct/:id" element={<DirectChat />} />
           </Route>
         </Route>
-        <Route path="verify" element={<VerifyCertificate />} />
+        <Route path="verify/:id" element={<VerifyCertificate />} />
       </Routes>
     </BrowserRouter>
   );

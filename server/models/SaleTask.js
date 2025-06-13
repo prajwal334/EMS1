@@ -53,6 +53,12 @@ const salesSchema = new mongoose.Schema(
       default: Date.now,
       immutable: true,
     },
+
+    certificate_issued_on: { type: String },
+    internship_issued_on: {
+      type: String,
+    },
+    internship_date_range: { type: String },
   },
   {
     timestamps: false,

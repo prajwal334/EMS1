@@ -217,6 +217,34 @@ const updateDownloadStatus = async (req, res) => {
   }
 };
 
+/// Get sales by training or internship certificate ID
+const getSalesByCertificateId = async (req, res) => {
+  try {
+    const { id, type } = req.params;
+
+    if (!["training", "internship"].includes(type)) {
+      return res.status(400).json({ message: "Invalid certificate type. Must be 'training' or 'internship'." });
+    }
+
+    const queryKey = type === "training" ? "training_certificate_id" : "internship_certificate_id";
+
+    const sales = await Sales.find({ [queryKey]: id });
+
+    if (!sales || sales.length === 0) {
+      return res.status(404).json({ message: `No sales found for this ${type} certificate ID` });
+    }
+
+    res.status(200).json(sales);
+  } catch (error) {
+    res.status(500).json({
+      message: `Error fetching sales by ${req.params.type} certificate ID`,
+      error,
+    });
+  }
+};
+
+
+
 export {
   createSale,
   deleteSale,
@@ -229,4 +257,5 @@ export {
   deleteImage,
   upload,
   updateDownloadStatus,
+  getSalesByCertificateId,
 };

@@ -25,20 +25,23 @@ const getCertificate = async (req, res) => {
     const domain = user.domain_interested;
     const completionDate = new Date().toISOString().split("T")[0];
 
-    // ✅ Generate PDF and certification ID
-    const { pdfBytes, certificationId } = await generateTraining(
+    // ✅ Generate PDF and get certification ID + issue date
+    const { pdfBytes, certificationId, issuedOn } = await generateTraining(
       name,
       completionDate,
       domain
     );
 
-    // ✅ Store certification ID in database
+    // ✅ Store both certification ID and issued date in DB
     await fetch(`http://localhost:3000/api/salestask/${userId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ training_certificate_id: certificationId }),
+      body: JSON.stringify({
+        training_certificate_id: certificationId,
+        certificate_issued_on: issuedOn, // save formatted date
+      }),
     });
 
     // Send certificate as downloadable PDF

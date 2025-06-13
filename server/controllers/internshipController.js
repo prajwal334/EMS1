@@ -1,4 +1,3 @@
-// controllers/internshipController.js
 import generateInternship from "../utils/generateInternship.js";
 import fetch from "node-fetch";
 
@@ -42,24 +41,28 @@ const getInternshipCertificate = async (req, res) => {
 
     const dateRange = `${startMonth} - ${endMonth}`;
 
-    // 🔹 Generate certificate PDF and certification ID
-    const { pdfBytes, certificationId } = await generateInternship(
+    // 🔹 Generate certificate PDF, certification ID, and issuedOn
+    const { pdfBytes, certificationId, issuedOn } = await generateInternship(
       name,
       dateRange,
       domain,
       imageUrl
     );
 
-    // 🔹 Save certification ID to the database
+    // 🔹 Save certification ID, issue date, and date range to the database
     await fetch(`http://localhost:3000/api/salestask/${userId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ internship_certificate_id: certificationId }),
+      body: JSON.stringify({
+        internship_certificate_id: certificationId,
+        internship_issued_on: issuedOn,
+        internship_date_range: dateRange, // ✅ New field added here
+      }),
     });
 
-    // 🔹 Send the certificate PDF
+    // 🔹 Send certificate PDF
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
