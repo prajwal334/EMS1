@@ -24,6 +24,27 @@ const EmTasklist = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ✅ Setup audio permission on first interaction
+  useEffect(() => {
+    const allowAudio = () => {
+      localStorage.setItem("audioAllowed", "true");
+      window.removeEventListener("click", allowAudio);
+      window.removeEventListener("keydown", allowAudio);
+      window.removeEventListener("touchstart", allowAudio);
+    };
+
+    window.addEventListener("click", allowAudio);
+    window.addEventListener("keydown", allowAudio);
+    window.addEventListener("touchstart", allowAudio);
+
+    return () => {
+      window.removeEventListener("click", allowAudio);
+      window.removeEventListener("keydown", allowAudio);
+      window.removeEventListener("touchstart", allowAudio);
+    };
+  }, []);
+
+  // ✅ Fetch department & user data
   useEffect(() => {
     const fetchDetails = async () => {
       try {
@@ -31,7 +52,7 @@ const EmTasklist = () => {
         setError(null);
 
         const token = localStorage.getItem("token");
-        // Fetch department data by id
+
         const depRes = await fetch(
           `http://localhost:3000/api/department/${id}`,
           {
@@ -50,7 +71,6 @@ const EmTasklist = () => {
         if (depData.department) {
           setDepartment(depData.department);
 
-          // Map sub_departments (strings) into objects with id & name
           const rawSubs = depData.department.sub_departments || [];
           const mappedSubs = rawSubs.map((subName) => ({
             _id: subName,
@@ -61,7 +81,6 @@ const EmTasklist = () => {
           setError("Department data not found.");
         }
 
-        // Fetch logged-in user's designation
         if (user?._id) {
           const empRes = await fetch(
             `http://localhost:3000/api/employee/user/${user._id}`,
@@ -110,7 +129,6 @@ const EmTasklist = () => {
 
         {!loading && !error && department && (
           <>
-            {/* Show department and sub-department cards only if department is NOT Sales and NOT Marketing */}
             {department.dep_name !== "Sales" &&
               department.dep_name !== "Marketing" &&
               department.dep_name !== "Operations" &&
@@ -150,7 +168,7 @@ const EmTasklist = () => {
 
             <br />
 
-            {/* Department Specific Sections */}
+            {/* ✅ Department specific components */}
             {department.dep_name === "IT" && (
               <ItTasksSection
                 departmentId={id}
@@ -158,14 +176,12 @@ const EmTasklist = () => {
                 userId={user?._id}
               />
             )}
-
             {department.dep_name === "Sales" && (
               <>
                 <TargetList employeeName={user?.name} />
                 <SalesTable />
               </>
             )}
-
             {department.dep_name === "Marketing" && (
               <>
                 <MarketTargetList employeeName={user?.name} />
