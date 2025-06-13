@@ -80,7 +80,7 @@ app.use("/api/targets", targetRoutes);
 
 app.use("/api/admin", adminRouter);
 app.use("/api/group", groupRouter);
-app.use("/api/messages", groupMessageRouter); // ✅ Mount route
+app.use("/api/messages", groupMessageRouter); 
 app.use("/uploads/image", express.static("public/uploads/image"));
 app.use("/uploads", express.static("public/uploads"));
 

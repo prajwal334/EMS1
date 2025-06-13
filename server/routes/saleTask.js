@@ -12,6 +12,7 @@ import {
   uploadSaleImage,
   deleteImage,
   updateDownloadStatus,
+  getSalesByCertificateId,
 } from "../controllers/salesTaskController.js";
 
 const router = express.Router();
@@ -28,5 +29,6 @@ router.delete("/:id", deleteSale);
 router.post("/upload-image", upload.single("image"), uploadSaleImage);
 router.delete("/delete-image/:id", deleteImage);
 router.patch("/salestask/:id/download", updateDownloadStatus);
+router.get("/certificate/:type/:id", getSalesByCertificateId);
 
 export default router;

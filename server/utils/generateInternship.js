@@ -45,7 +45,6 @@ const generateInternship = async (name, dateRange, domain, imageUrl) => {
       const res = await fetch(imageUrl);
       const inputBuffer = Buffer.from(await res.arrayBuffer());
 
-      // Process to circular PNG using sharp + SVG mask
       const size = 120;
       const circleSvg = `<svg><circle cx="${size / 2}" cy="${size / 2}" r="${
         size / 2
@@ -71,6 +70,7 @@ const generateInternship = async (name, dateRange, domain, imageUrl) => {
   const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const certificationId = generateRandomCode();
   const verifyUrl = `https://navikshaa.com/verify/${certificationId}`;
+  const issuedOn = new Date().toISOString().split("T")[0]; // Only for DB
 
   // Name
   page.drawText(name, {
@@ -90,7 +90,7 @@ const generateInternship = async (name, dateRange, domain, imageUrl) => {
     color: rgb(0, 0, 1),
   });
 
-  // Date Range
+  // Date Range only
   page.drawText(dateRange, {
     x: 210,
     y: 195,
@@ -122,7 +122,7 @@ const generateInternship = async (name, dateRange, domain, imageUrl) => {
   const qrImageBytes = Buffer.from(qrDataUrl.split(",")[1], "base64");
 
   const qrSize = 70;
-  const radius = qrSize * 0.1; // 10% radius = 7px
+  const radius = qrSize * 0.1;
 
   const roundedSvg = `
     <svg width="${qrSize}" height="${qrSize}">
@@ -145,7 +145,7 @@ const generateInternship = async (name, dateRange, domain, imageUrl) => {
   });
 
   const pdfBytes = await pdfDoc.save();
-  return { pdfBytes, certificationId };
+  return { pdfBytes, certificationId, issuedOn }; 
 };
 
 export default generateInternship;

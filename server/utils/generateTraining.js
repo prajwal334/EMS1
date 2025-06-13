@@ -46,7 +46,7 @@ const generateTraining = async (name, date, domain) => {
   const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
   // Format date as "June 06, 2025"
-  const formattedDate = new Date(date).toLocaleDateString("en-US", {
+  const issuedOn = new Date(date).toLocaleDateString("en-US", {
     month: "long",
     day: "2-digit",
     year: "numeric",
@@ -54,7 +54,7 @@ const generateTraining = async (name, date, domain) => {
 
   // 🔹 Generate random Certification ID
   const certificationId = generateRandomCode();
-  const verifyUrl = `https://navikshaa.com/verify/${certificationId}`;
+  const verifyUrl = `https://localhost:5173/verify/${certificationId}`;
 
   // Draw name
   page.drawText(name, {
@@ -74,13 +74,22 @@ const generateTraining = async (name, date, domain) => {
     color: rgb(0, 0, 1),
   });
 
-  // Draw date
-  page.drawText(formattedDate, {
-    x: 210,
+  // Draw issued label
+  page.drawText("Certificate Issued on:", {
+    x: 27,
     y: 195,
-    size: 18,
+    size: 16,
     font,
-    color: rgb(0.5, 0.5, 0.5),
+    color: rgb(0.3, 0.3, 0.3),
+  });
+
+  // Draw actual date
+  page.drawText(issuedOn, {
+    x: 220,
+    y: 195,
+    size: 16,
+    font,
+    color: rgb(0.1, 0.1, 0.1),
   });
 
   // Draw Certification ID
@@ -115,7 +124,7 @@ const generateTraining = async (name, date, domain) => {
   });
 
   const pdfBytes = await pdfDoc.save();
-  return { pdfBytes, certificationId };
+  return { pdfBytes, certificationId, issuedOn };
 };
 
 export default generateTraining;
