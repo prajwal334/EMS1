@@ -17,7 +17,7 @@ const DoneModal = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-lg w-96 p-6 relative"
+        className="bg-white rounded-lg shadow-lg w-100 p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -28,11 +28,11 @@ const DoneModal = ({
           ✖️
         </button>
 
-        <h3 className="text-lg font-semibold mb-4">Mark Task as Done</h3>
+        <h3 className="text-lg font-bold mb-4">Done</h3>
 
         <textarea
           className="w-full border border-gray-300 rounded p-2 mb-2 resize-none"
-          rows={4}
+          rows={7}
           value={doneMessage}
           onChange={(e) => setDoneMessage(e.target.value)}
           placeholder="Completion message..."
@@ -42,7 +42,7 @@ const DoneModal = ({
           type="file"
           accept="image/*"
           onChange={handleDoneImageChange}
-          className="mb-2"
+          className="mb-3 mt-3"
         />
         {doneImagePreview && (
           <img
@@ -53,10 +53,10 @@ const DoneModal = ({
         )}
 
         <button
-          className="bg-green-600 text-white px-4 py-2 rounded mt-3 hover:bg-green-700"
+          className="absolute bottom-2 right-5 bg-gray-500  text-white px-6 py-2 rounded mb-2 mt-4 hover:bg-gray-700"
           onClick={onSubmit}
         >
-          Submit
+          Task Done
         </button>
       </div>
     </div>

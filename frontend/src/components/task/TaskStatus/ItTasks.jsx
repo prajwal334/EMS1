@@ -1,317 +1,298 @@
-// src/components/tasks/TasksSection.jsx
-
 import React, { useEffect, useState } from "react";
-import QueryModal from "../modal/QueryModal";
-import TimeModal from "../modal/TimeModal";
-import DoneModal from "../modal/DoneModal";
-import ViewModal from "../modal/ViewModal";
+import { useParams, useLocation } from "react-router-dom";
+import {
+  FiEye,
+  FiMessageSquare,
+  FiClock,
+  FiCheckCircle,
+} from "react-icons/fi";
 
-const ItTasksSection = ({ userDesignation, userId }) => {
-  
+import { useAuth } from "../../../context/authContext";
+import QueryModal from "../../task/modal/QueryModal";
+import TimeModal from "../../task/modal/TimeModal";
+import DoneModal from "../../task/modal/DoneModal";
+import ViewModal from "../../task/modal/ViewModal";
+
+// 🚫 Temporarily commented if causing Vite 500 error
+// import ItTasks from "./TaskStatus/ItTasks";
+
+const EmTasklist = () => {
+  const { id } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const role = queryParams.get("role");
+
+  const { user } = useAuth();
+
+  const [department, setDepartment] = useState(null);
+  const [subDepartments, setSubDepartments] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedSubDep, setSelectedSubDep] = useState("");
+  const [userDesignation, setUserDesignation] = useState("");
   const [tasks, setTasks] = useState([]);
 
-  // Query modal states
   const [isQueryModalOpen, setIsQueryModalOpen] = useState(false);
   const [currentQueryTaskId, setCurrentQueryTaskId] = useState(null);
   const [queryText, setQueryText] = useState("");
 
-  // Time modal states
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const [currentTimeTaskId, setCurrentTimeTaskId] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [timeReason, setTimeReason] = useState("");
 
-  // Done modal states
   const [isDoneModalOpen, setIsDoneModalOpen] = useState(false);
   const [currentDoneTaskId, setCurrentDoneTaskId] = useState(null);
   const [doneMessage, setDoneMessage] = useState("");
   const [doneImage, setDoneImage] = useState(null);
   const [doneImagePreview, setDoneImagePreview] = useState(null);
 
-  // View modal state
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [currentViewTaskId, setCurrentViewTaskId] = useState(null);
 
-  // Fetch tasks for user
   useEffect(() => {
-    const fetchTasksForUser = async () => {
-      if (!userId) return;
+    const fetchDetails = async () => {
       try {
         const token = localStorage.getItem("token");
-        // Fetch employee info by userId
-        const empRes = await fetch(
-          `http://localhost:3000/api/employee/user/${userId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (!empRes.ok) throw new Error("Failed to fetch employee data");
-        const empData = await empRes.json();
-        const userEmp = empData.employees?.[0];
-        if (!userEmp?.name) return;
 
-        // Fetch tasks by employee name
-        const taskRes = await fetch(
-          `http://localhost:3000/api/task/employee/${userEmp.name}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+        const [depRes, subDepRes] = await Promise.all([
+          fetch(`http://localhost:3000/api/department/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`http://localhost:3000/api/department/${id}/subdepartments`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        const depData = await depRes.json();
+        const subDepData = await subDepRes.json();
+
+        setDepartment(depData.department);
+        const rawSubDeps = subDepData.subDepartments || [];
+
+        // ✅ Normalize sub-departments to always be objects
+        const normalized = rawSubDeps.map((s) =>
+          typeof s === "string" ? { _id: s, name: s } : s
         );
-        if (!taskRes.ok) throw new Error("Failed to fetch tasks");
-        const taskData = await taskRes.json();
-        setTasks(taskData.tasks || []);
-      } catch (err) {
-        console.error("Failed to fetch tasks:", err);
+        setSubDepartments(normalized);
+
+        console.log("Normalized SubDepartments:", normalized);
+
+        if (user?._id) {
+          const empRes = await fetch(
+            `http://localhost:3000/api/employee/user/${user._id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          const empData = await empRes.json();
+          const userEmp = empData.employees?.[0];
+          setUserDesignation(userEmp?.designation || "");
+
+          if (userEmp?.name) {
+            const taskRes = await fetch(
+              `http://localhost:3000/api/task/employee/${userEmp.name}`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            const taskData = await taskRes.json();
+            setTasks(taskData.tasks || []);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch details:", error);
+        setError("Failed to load department details.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchTasksForUser();
-  }, [userId]);
+    fetchDetails();
+  }, [id, user]);
 
-  // Handlers for Done modal image preview and submission
+  useEffect(() => {
+    const fetchTeamUsersByDesignation = async () => {
+      if (!selectedSubDep || !role) return;
+
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `http://localhost:3000/api/team/by-designation/${selectedSubDep}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const data = await res.json();
+
+        let users = [];
+        if (role === "leader") {
+          users = data.teams.map((team) => team.leaderUserId).filter(Boolean);
+        } else if (role === "member") {
+          users = data.teams.flatMap((team) => team.memberUserIds || []);
+        }
+
+        setEmployees(users);
+      } catch (err) {
+        console.error("Failed to fetch team users", err);
+      }
+    };
+
+    fetchTeamUsersByDesignation();
+  }, [selectedSubDep, role]);
+
+  const handleTimeUpdate = () => {
+    alert(
+      `Time update for task ${currentTimeTaskId} on ${selectedDate.toLocaleDateString()}:\n${timeReason}`
+    );
+    setIsTimeModalOpen(false);
+    setTimeReason("");
+    setSelectedDate(new Date());
+  };
+
   const handleDoneImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setDoneImage(file);
 
     const reader = new FileReader();
-    reader.onloadend = () => setDoneImagePreview(reader.result);
+    reader.onloadend = () => {
+      setDoneImagePreview(reader.result);
+    };
     reader.readAsDataURL(file);
   };
 
-  const handleDoneUpdate = async () => {
-    if (!currentDoneTaskId) return;
-    try {
-      const token = localStorage.getItem("token");
-      const formData = new FormData();
-      formData.append("update", doneMessage);
-      if (doneImage) formData.append("update_image", doneImage);
-
-      const response = await fetch(
-        `http://localhost:3000/api/task/${currentDoneTaskId}`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert("Failed to update task: " + (errorData.message || ""));
-        return;
-      }
-      const data = await response.json();
-      alert("Task updated successfully.");
-      setIsDoneModalOpen(false);
-      setDoneMessage("");
-      setDoneImage(null);
-      setDoneImagePreview(null);
-
-      setTasks((prev) =>
-        prev.map((t) =>
-          t._id === currentDoneTaskId
-            ? {
-                ...t,
-                update: doneMessage,
-                update_image: data.update_image || t.update_image,
-              }
-            : t
-        )
-      );
-    } catch (err) {
-      console.error("Update error:", err);
-      alert("An error occurred while updating the task.");
-    }
+  const handleDoneUpdate = () => {
+    alert(
+      `Done update for task ${currentDoneTaskId}:\nMessage: ${doneMessage}\nImage: ${
+        doneImage ? doneImage.name : "No image"
+      }`
+    );
+    setIsDoneModalOpen(false);
+    setDoneMessage("");
+    setDoneImage(null);
+    setDoneImagePreview(null);
   };
 
-  // Handler for Time extension modal submission
-  const handleTimeUpdate = async (taskId, selectedDate, reason) => {
-    if (!taskId || !reason.trim()) {
-      alert("Please provide a reason.");
-      return;
-    }
-    try {
-      let startDate, endDate;
-      if (Array.isArray(selectedDate)) {
-        startDate = selectedDate[0]?.toISOString() || null;
-        endDate = selectedDate[1]?.toISOString() || null;
-      } else {
-        startDate = selectedDate?.toISOString() || null;
-        endDate = selectedDate?.toISOString() || null;
-      }
-
-      const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/api/task/${taskId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reason, startDate, endDate }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert("Failed to request time extension: " + (errorData.message || ""));
-        return;
-      }
-
-      alert("Time extension request submitted.");
-      setIsTimeModalOpen(false);
-      setTimeReason("");
-    } catch (err) {
-      console.error("Time extension error:", err);
-      alert("An error occurred while submitting the request.");
-    }
-  };
+  const isAnyModalOpen =
+    isQueryModalOpen || isTimeModalOpen || isDoneModalOpen || isViewModalOpen;
 
   return (
-    <div>
-      {/* Removed sub-department select control */}
+    <div className="w-full px-4 md:px-10 py-10 relative">
 
-      {/* Removed employees list */}
+      {/* Team Members */}
+      {employees.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {employees.map((emp) => (
+            <div
+              key={emp._id || emp}
+              className="bg-white p-3 rounded-lg shadow hover:shadow-lg text-center"
+            >
+              <p>{emp.name || emp.userName || "Unnamed User"}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* Show Tasks as cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {tasks.map((task, idx) => (
-          <li
-            key={task._id || idx}
-            className="bg-gray-200 p-4 rounded-lg shadow-md w-60 flex flex-col"
-            style={{ height: "220px" }}
+      {/* Task Cards */}
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-all duration-300 ${
+          isAnyModalOpen ? "blur-sm pointer-events-none select-none" : ""
+        }`}
+      >
+        {tasks.map((task, index) => (
+          <div
+            key={task._id || index}
+            className="bg-white rounded-2xl p-6 shadow-2xl w-80 h-[320px] flex flex-col justify-between transition hover:shadow-3xl"
           >
-            {/* First row: title + end date */}
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="text-md font-bold text-gray-800 truncate max-w-[70%]">
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="font-semibold text-lg text-gray-800 truncate">
                 {task.task_title || "Untitled Task"}
               </h4>
-              <span className="text-sm text-gray-500 whitespace-nowrap ml-2">
-                End Date:{" "}
+              <span className="text-xs text-gray-500">
                 {task.endDate
                   ? new Date(task.endDate).toLocaleDateString()
-                  : "N/A"}
+                  : "No Date"}
               </span>
             </div>
 
-            {/* Second row: message */}
-            <p className="text-sm text-gray-700 mb-4 text-center overflow-y-auto h-24 bg-gray-50 p-2 rounded flex-grow">
-              {task.message || "No description provided."}
+            <p className="text-sm text-gray-700 mb-4 flex-grow bg-gray-50 p-2 rounded overflow-y-auto">
+              {task.message || "No description"}
             </p>
 
-            {/* Third row: action icons */}
-            <div className="flex justify-between items-center mt-auto">
-              {/* View button */}
+            <div className="flex justify-between items-center mt-2">
               <button
-                type="button"
                 title="View"
                 onClick={() => {
                   setCurrentViewTaskId(task._id);
                   setIsViewModalOpen(true);
                 }}
-                className="text-gray-600 hover:text-blue-500 transition"
+                className="text-black hover:text-gray-700"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
+                <FiEye size={20} />
               </button>
 
-              <div className="flex space-x-3">
-                {/* Query icon */}
+              <div className="flex gap-4">
                 <button
-                  type="button"
                   title="Query"
                   onClick={() => {
                     setCurrentQueryTaskId(task._id);
+                    setQueryText("");
                     setIsQueryModalOpen(true);
                   }}
-                  className="text-gray-600 hover:text-yellow-500 transition"
+                  className="text-black hover:text-gray-700"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
+                  <FiMessageSquare size={20} />
                 </button>
 
-                {/* Time icon */}
                 <button
-                  type="button"
-                  title="Request Time Extension"
+                  title="Extend Time"
                   onClick={() => {
                     setCurrentTimeTaskId(task._id);
+                    setSelectedDate(new Date());
+                    setTimeReason("");
                     setIsTimeModalOpen(true);
                   }}
-                  className="text-gray-600 hover:text-green-500 transition"
+                  className="text-black hover:text-gray-700"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                  <FiClock size={20} />
                 </button>
 
-                {/* Done icon */}
                 <button
                   title="Mark Done"
                   onClick={() => {
                     setCurrentDoneTaskId(task._id);
-                    setDoneMessage(task.update || "");
-                    setDoneImagePreview(task.update_image || null);
+                    setDoneMessage("");
                     setDoneImage(null);
+                    setDoneImagePreview(null);
                     setIsDoneModalOpen(true);
                   }}
-                  className="text-gray-600 hover:text-green-500 transition"
+                  className="text-black hover:text-gray-700"
                 >
-                  ✔️
+                  <FiCheckCircle size={20} />
                 </button>
               </div>
             </div>
-          </li>
+          </div>
         ))}
       </div>
 
-      {/* QUERY MODAL */}
+      {/* Modals */}
+      <ViewModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        task={tasks.find((task) => task._id === currentViewTaskId)}
+      />
+
       <QueryModal
         isOpen={isQueryModalOpen}
         onClose={() => setIsQueryModalOpen(false)}
         queryText={queryText}
         setQueryText={setQueryText}
         onSend={async () => {
-          if (!currentQueryTaskId) return;
+          const token = localStorage.getItem("token");
           try {
-            const token = localStorage.getItem("token");
             const response = await fetch(
               `http://localhost:3000/api/task/${currentQueryTaskId}`,
               {
@@ -323,38 +304,28 @@ const ItTasksSection = ({ userDesignation, userId }) => {
                 body: JSON.stringify({ query: queryText }),
               }
             );
-            if (!response.ok) {
-              const errorData = await response.json();
-              alert("Failed to send query: " + (errorData.message || ""));
-              return;
-            }
-            await response.json();
+
+            if (!response.ok) throw new Error("Failed to send query");
+
             alert("Query sent successfully.");
             setIsQueryModalOpen(false);
             setQueryText("");
           } catch (err) {
-            console.error("Fetch error:", err);
-            alert("An error occurred while sending the query.");
+            alert("Error sending query");
           }
         }}
       />
 
-      {/* TIME EXTENSION MODAL */}
       <TimeModal
         isOpen={isTimeModalOpen}
-        onClose={() => {
-          setIsTimeModalOpen(false);
-          setTimeReason("");
-        }}
-        task={tasks.find((t) => t._id === currentTimeTaskId)}
+        onClose={() => setIsTimeModalOpen(false)}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
         timeReason={timeReason}
         setTimeReason={setTimeReason}
-        onSubmit={(selectedDate) => {
-          handleTimeUpdate(currentTimeTaskId, selectedDate, timeReason);
-        }}
+        onSubmit={handleTimeUpdate}
       />
 
-      {/* DONE MODAL */}
       <DoneModal
         isOpen={isDoneModalOpen}
         onClose={() => setIsDoneModalOpen(false)}
@@ -364,15 +335,8 @@ const ItTasksSection = ({ userDesignation, userId }) => {
         handleDoneImageChange={handleDoneImageChange}
         onSubmit={handleDoneUpdate}
       />
-
-      {/* VIEW MODAL */}
-      <ViewModal
-        isOpen={isViewModalOpen}
-        onClose={() => setIsViewModalOpen(false)}
-        task={tasks.find((task) => task._id === currentViewTaskId)}
-      />
     </div>
   );
 };
 
-export default ItTasksSection;
+export default EmTasklist;

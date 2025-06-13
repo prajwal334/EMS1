@@ -311,7 +311,7 @@ const ChatRoom = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
+    <div className="h-screen flex flex-col bg-blue-100">
       {/* Header */}
       <div className="bg-white flex items-center justify-between px-4 py-2 shadow-md">
         <div className="flex items-center gap-3">

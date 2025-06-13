@@ -45,9 +45,25 @@ const employeeSchema = new Schema({
     required: true,
     unique: true,
   },
-  address: {
+  permanentaddress: {
     type: String,
     required: true,
+  },
+  address1: {
+    type: String,
+  },
+  address2: {
+    type: String,
+  },
+  correspondenceAddress: {
+    type: String,
+    required: true,
+  },
+  correspondenceAddress1: {
+    type: String,
+  },
+  correspondenceAddress2: {
+    type: String,
   },
   bankac: {
     type: Number,
@@ -76,6 +92,14 @@ const employeeSchema = new Schema({
   },
   doj: {
     type: Date,
+  },
+  dob: {
+    type: Date,
+  },
+  status: {
+    type: String,
+    enum: ["active", "inactive", "terminated"],
+    default: "active",
   },
   gender: {
     type: String,

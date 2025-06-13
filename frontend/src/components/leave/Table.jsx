@@ -1,12 +1,15 @@
 // Table.jsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { getLeaveColumns, LeaveButtons } from "../../utils/LeaveHelper";
 import axios from "axios";
+import HeaderImg from "../../assets/images/Salary.jpg"; // Update path as needed
 
 const Table = () => {
-  const [leaves, setLeaves] = React.useState(null);
-  const [filteredLeaves, setFilteredLeaves] = React.useState(null);
+  const [leaves, setLeaves] = useState(null);
+  const [filteredLeaves, setFilteredLeaves] = useState(null);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDept, setSelectedDept] = useState("");
 
   const fetchLeaves = async () => {
     try {
@@ -15,6 +18,7 @@ const Table = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
+
       if (response.data.success) {
         let sno = 1;
         const data = response.data.leaves.map((leave) => ({
@@ -31,18 +35,35 @@ const Table = () => {
           status: leave.status,
           action: <LeaveButtons Id={leave._id} />,
         }));
+
         setLeaves(data);
         setFilteredLeaves(data);
       }
-      console.log(response.data.leaves);
     } catch (error) {
       if (error.response && !error.response.data.success) {
         alert(error.response.data.error);
       }
     }
   };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/api/department", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      if (response.data.success) {
+        setDepartments(response.data.departments);
+      }
+    } catch (error) {
+      console.error("Error fetching departments", error);
+    }
+  };
+
   useEffect(() => {
     fetchLeaves();
+    fetchDepartments();
   }, []);
 
   const filterByInput = (e) => {
@@ -59,51 +80,97 @@ const Table = () => {
     setFilteredLeaves(data);
   };
 
+  const filterByDepartment = (dept) => {
+    setSelectedDept(dept);
+    if (dept === "") {
+      setFilteredLeaves(leaves);
+    } else {
+      const filtered = leaves.filter((leave) =>
+        leave.department.toLowerCase().includes(dept.toLowerCase())
+      );
+      setFilteredLeaves(filtered);
+    }
+  };
+
   return (
     <>
       {filteredLeaves ? (
-        <div className="p-6">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold mb-4">Leave List</h3>
+        <div className="">
+          {/* 🔷 Header Image */}
+          <div className="w-full h-60 mb-6 rounded-3xl overflow-hidden shadow-md">
+            <img
+              src={HeaderImg}
+              alt="Header"
+              className="w-full h-full object-cover"
+            />
           </div>
-          <div className="flex justify-between items-center">
+
+          <div className="text-center p-3">
+          {/* 🔍 Filters */}
+          <div className="flex  flex-col sm:flex-row justify-between items-center mb-6 gap-4">
             <input
               type="text"
-              placeholder="Search..."
-              className="border border-gray-300 rounded px-0.4 py-0.5 mb-4"
+              placeholder="Search by name..."
+              className="border border-gray-300 rounded px-4 py-2 shadow-lg w-full sm:w-72"
               onChange={filterByInput}
             />
-            <div className="space-x-3">
+
+            {/* 🔘 Department Filter */}
+            <select
+              value={selectedDept}
+              onChange={(e) => filterByDepartment(e.target.value)}
+              className="border border-gray-300 rounded px-4 py-2 shadow-lg w-full sm:w-72"
+            >
+              <option value="">All Departments</option>
+              {departments.map((dept) => (
+                <option key={dept._id} value={dept.dep_name}>
+                  {dept.dep_name}
+                </option>
+              ))}
+            </select>
+
+            {/* 🔘 Status Filters */}
+            <div className="space-x-2">
               <button
-                className="bg-blue-500 text-white px-2 py-1 rounded"
+                className="bg-blue-500 shadow-lg text-white px-3 py-2 rounded"
                 onClick={() => filterByButton("Pending")}
               >
                 Pending
               </button>
               <button
-                className="bg-green-500 text-white px-2 py-1 rounded"
+                className="bg-green-500 shadow-lg text-white px-3 py-2 rounded"
                 onClick={() => filterByButton("Approved")}
               >
                 Approved
               </button>
               <button
-                className="bg-red-500 text-white px-2 py-1 rounded"
+                className="bg-red-500 shadow-lg text-white px-3 py-2 rounded"
                 onClick={() => filterByButton("Rejected")}
               >
                 Rejected
               </button>
             </div>
           </div>
+          
+          {/* 📋 Leave Table */}
           <DataTable
             columns={getLeaveColumns()}
             data={filteredLeaves}
             pagination
+            striped
+            highlightOnHover
+            responsive
+            noDataComponent={
+              <div className="py-4 text-gray-500">No leaves found.</div>
+            }
           />
         </div>
+        </div>
       ) : (
-        <div>Loading...</div>
+        <div className="p-6 text-center text-gray-500">Loading...</div>
       )}
     </>
   );
 };
+
 export default Table;
