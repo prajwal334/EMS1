@@ -42,7 +42,12 @@ const AttendanceCalendar = () => {
   const fetchAttendance = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:3000/api/login-history/${userId}`
+        `http://localhost:3000/api/login-history/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       const formatted = res.data.data.map((entry) => {
         return {
@@ -116,6 +121,11 @@ const AttendanceCalendar = () => {
           loginTime: new Date(editModalData.loginTime),
           logoutTime: new Date(editModalData.logoutTime),
           date: formattedDate,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
       setEditModalData(null);

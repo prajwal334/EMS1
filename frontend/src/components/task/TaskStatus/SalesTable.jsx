@@ -48,9 +48,17 @@ const SalesTable = () => {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:3000/api/salestask/${id}`, {
-        method: "DELETE",
-      });
+      await fetch(
+        `http://localhost:3000/api/salestask/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+        {
+          method: "DELETE",
+        }
+      );
       fetchSalesData();
     } catch (err) {
       console.error("Delete failed", err);
@@ -59,11 +67,19 @@ const SalesTable = () => {
 
   const handleUpdate = async () => {
     try {
-      await fetch(`http://localhost:3000/api/salestask/${selectedItem._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(selectedItem),
-      });
+      await fetch(
+        `http://localhost:3000/api/salestask/${selectedItem._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(selectedItem),
+        }
+      );
       fetchSalesData();
       setShowModal(false);
     } catch (err) {

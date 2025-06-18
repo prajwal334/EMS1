@@ -95,7 +95,12 @@ const TargetList = ({ employeeName }) => {
       setLoadingChart(true);
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/salestask/name/${employeeName}`
+          `http://localhost:3000/api/salestask/name/${employeeName}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
         const allTasks = response.data || [];
 

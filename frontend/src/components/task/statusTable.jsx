@@ -12,7 +12,11 @@ const StatusTable = () => {
 
   const fetchTasks = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/task");
+      const res = await axios.get("http://localhost:3000/api/task", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       const tasks = res.data.tasks || [];
 
       const today = new Date();

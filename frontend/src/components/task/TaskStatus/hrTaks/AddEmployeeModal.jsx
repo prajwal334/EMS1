@@ -33,7 +33,12 @@ const AddEmployeeModal = ({ isOpen, onClose }) => {
       if (name === "department") {
         try {
           const response = await axios.get(
-            `http://localhost:3000/api/department/${value}`
+            `http://localhost:3000/api/department/${value}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
           );
           const subDeps = response.data.department.sub_departments || [];
           setSubDepartments(subDeps);

@@ -31,7 +31,11 @@ const AddSalesForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/api/candidates", formData);
+      await axios.post("http://localhost:3000/api/candidates", formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setMessage("✅ Candidate added successfully!");
       setFormData({
         candidate_name: "",
@@ -49,6 +53,7 @@ const AddSalesForm = () => {
       setMessage("❌ Failed to add candidate.");
     }
   };
+  
 
   return (
     <div className="p-2">

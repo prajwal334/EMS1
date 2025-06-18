@@ -13,7 +13,12 @@ const EmDepartmentView = () => {
         console.log("User from context:", user);
         try {
           const response = await axios.get(
-            `http://localhost:3000/api/employee/get-department/${user._id}`
+            `http://localhost:3000/api/employee/get-department/${user._id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
           );
           console.log("Department API response:", response.data);
           setDepartment(response.data.department);

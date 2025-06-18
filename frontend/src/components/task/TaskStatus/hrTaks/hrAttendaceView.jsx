@@ -15,7 +15,11 @@ const AttendanceUserList = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/department");
+        const res = await fetch("http://localhost:3000/api/department", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         const data = await res.json();
         setDepartments(data.departments || []);
       } catch (err) {
@@ -30,7 +34,11 @@ const AttendanceUserList = () => {
     const fetchEmployees = async () => {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:3000/api/employee");
+        const res = await fetch("http://localhost:3000/api/employee", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         const data = await res.json();
         setEmployees(data.employees || []);
       } catch (err) {

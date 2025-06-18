@@ -85,7 +85,15 @@ const AddSalesForm = () => {
     e.preventDefault();
     try {
       const payload = { ...formData, name: employeeName };
-      await axios.post("http://localhost:3000/api/salestask/add", payload);
+      await axios.post(
+        "http://localhost:3000/api/salestask/add",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+        payload
+      );
       setMessage("✅ Customer details added successfully!");
       setFormData({
         customer_name: "",

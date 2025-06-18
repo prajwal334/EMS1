@@ -14,10 +14,17 @@ const MarketTable = () => {
     const employeeName = encodeURIComponent(user.name);
 
     const fetchData = () => {
-      fetch(`http://localhost:3000/api/salestask/marketed-from/${employeeName}`)
-        .then((res) => res.json())
-        .then(setSalesData)
-        .catch((err) => console.error("Fetch failed:", err));
+      fetch(
+        `http://localhost:3000/api/salestask/marketed-from/${employeeName}`
+      ),
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+          .then((res) => res.json())
+          .then(setSalesData)
+          .catch((err) => console.error("Fetch failed:", err));
     };
 
     fetchData(); // initial fetch

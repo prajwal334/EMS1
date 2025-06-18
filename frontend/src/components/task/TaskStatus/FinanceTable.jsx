@@ -112,6 +112,11 @@ const FinanceTable = () => {
         `http://localhost:3000/api/salestask/done/${id}`,
         {
           method: "PUT",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
       const updatedItem = await response.json();
@@ -135,6 +140,11 @@ const FinanceTable = () => {
         `http://localhost:3000/api/salestask/default/${id}`,
         {
           method: "PUT",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
       const updatedItem = await response.json();
@@ -169,6 +179,11 @@ const FinanceTable = () => {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pending_date: pendingDate }),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
       const updatedItem = await response.json();

@@ -40,7 +40,11 @@ const AddCandidate = () => {
   const fetchCandidates = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:3000/api/candidates");
+      const res = await axios.get("http://localhost:3000/api/candidates", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       setCandidates(res.data);
     } catch (err) {
       console.error("Error fetching candidates", err);
@@ -67,10 +71,18 @@ const AddCandidate = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post("http://localhost:3000/api/candidates/add", {
-        ...formData,
-        status: "pending",
-      });
+      await axios.post(
+        "http://localhost:3000/api/candidates/add",
+        {
+          ...formData,
+          status: "pending",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       setMessage("✅ Candidate added successfully!");
       setFormData({
         candidate_name: "",
@@ -92,9 +104,15 @@ const AddCandidate = () => {
 
   const handleStatusUpdate = async (id, status) => {
     try {
-      await axios.patch(`http://localhost:3000/api/candidates/${id}`, {
-        status,
-      });
+      await axios.patch(
+        `http://localhost:3000/api/candidates/${id}`,
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       fetchCandidates();
     } catch (err) {
       console.error("Error updating candidate status", err);

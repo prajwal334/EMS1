@@ -9,7 +9,12 @@ const UserLeaves = ({ userId }) => {
   const fetchLeaves = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:3000/api/leave/user/${userId}`
+        `http://localhost:3000/api/leave/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       if (res.data.success) {
         setLeaves(res.data.leaves);
