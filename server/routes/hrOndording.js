@@ -4,13 +4,14 @@ import {
   addCandidate,
   updateCandidateStatus,
 } from "../controllers/hrOnboarding.js";
-import Candidate from "../models/HrOnboarding.js"; // ✅ ADD THIS LINE
+import Candidate from "../models/HrOnboarding.js";
+import authMiddleware from "../middleware/authMiddlware.js";
 
 const router = express.Router();
 
-router.get("/", getAllCandidates);
-router.post("/add", addCandidate);
-router.patch("/:id", updateCandidateStatus);
+router.get("/", authMiddleware, getAllCandidates);
+router.post("/add", authMiddleware, addCandidate);
+router.patch("/:id", authMiddleware, updateCandidateStatus);
 
 // ✅ UPDATED /import ROUTE:
 router.post("/import", async (req, res) => {
@@ -34,6 +35,5 @@ router.post("/import", async (req, res) => {
     res.status(500).json({ message: "Error importing candidates" });
   }
 });
-
 
 export default router;

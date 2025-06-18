@@ -21,8 +21,8 @@ router.get("/", verifyUser, getAllTasks);
 router.put("/:id", upload.single("update_image"), updateTask);
 
 // Delete a task
-router.delete("/:id", deleteTask);
+router.delete("/:id", verifyUser, deleteTask);
 
-router.get("/employee/:employeeName", getTaskByEmployeeName);
+router.get("/employee/:employeeName", verifyUser, getTaskByEmployeeName);
 
 export default router;
