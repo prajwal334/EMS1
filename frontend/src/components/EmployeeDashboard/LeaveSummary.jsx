@@ -28,7 +28,12 @@ const LeaveSummary = ({ userId }) => {
     const fetchLeaves = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:3000/api/leave/user/${userId}`
+          `http://localhost:3000/api/leave/user/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
         const leaves = res.data.leaves || [];
 

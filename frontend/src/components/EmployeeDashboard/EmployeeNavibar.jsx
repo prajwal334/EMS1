@@ -27,7 +27,12 @@ const EmployeeNavbar = () => {
     const fetchLoginHistory = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:3000/api/login-history/${user._id}`
+          `http://localhost:3000/api/login-history/${user._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
 
         const history = res.data.data;
@@ -89,7 +94,7 @@ const EmployeeNavbar = () => {
 
         <h3 className="text-lg font-bold text-gray-800">{user?.name}</h3>
         <a
-          href={`/profile/${user?._id}`}
+          href={`employee-dashboard/profile/${user?._id}`}
           className="text-sm text-blue-600 hover:underline"
         >
           View Profile
