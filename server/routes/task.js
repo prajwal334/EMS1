@@ -15,7 +15,7 @@ const router = express.Router();
 router.post("/assign", verifyUser, upload.single("initial_image"), createTask);
 
 // Get all tasks
-router.get("/", getAllTasks);
+router.get("/", verifyUser, getAllTasks);
 
 // Update a task
 router.put("/:id", upload.single("update_image"), updateTask);

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import TrainingCertificate from "./VerifyTraining";
 import InternshipCertificate from "./VerifyInternship";
+import logo from "./logo.png";
 
 export default function VerifyCertificate() {
   const { id } = useParams();
@@ -68,7 +69,7 @@ export default function VerifyCertificate() {
 
       {/* White Navbar */}
       <div className="flex justify-between items-center py-4 px-5 border-b border-gray-300">
-        <div className="text-xl font-bold">🎓 NLEARN</div>
+        <img src={logo} alt="NLEARN Logo" className="h-10 w-auto" />
         <div className="flex gap-2">
           <button className="bg-gray-100 px-3 py-1 rounded">Explore</button>
           <input
