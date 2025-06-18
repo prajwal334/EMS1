@@ -122,7 +122,11 @@ function App() {
 
           <Route path="teams" element={<TeamList />} />
           <Route path="add-team" element={<AddTeam />} />
+<<<<<<< Updated upstream
           <Route path="teams/team/:id" element={<ViewTeam />} />
+=======
+          {/* <Route path="team/:id" element={<AddTeam />} /> */}
+>>>>>>> Stashed changes
 
           <Route path="salary/add" element={<AddSalary />} />
 
@@ -197,7 +201,14 @@ function App() {
         >
           <Route index element={<EmployeeSummary />} />
           <Route path="profile/:id" element={<View />} />
+<<<<<<< Updated upstream
           <Route path="add-leave/:id" element={<LeaveAdd />} />
+=======
+          <Route path="leaves" element={<LeaveList />} />
+
+          <Route path="leaves/:id" element={<LeaveList />} />
+          <Route path="add-leave" element={<LeaveAdd />} />
+>>>>>>> Stashed changes
           <Route path="salary/:id" element={<ViewSalaryEmp />} />
           <Route path="pf/:employeeId" element={<PfView1 />} />
           <Route path="login-history/:id" element={<View5 />} />

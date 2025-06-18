@@ -107,6 +107,7 @@ const AttendanceCalendar = () => {
   };
 
   return (
+<<<<<<< Updated upstream
     <div className="relative px-4 py-6 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-bold border-l-4 border-green-600 pl-2 uppercase">
@@ -141,6 +142,38 @@ const AttendanceCalendar = () => {
             </button>
             <Calendar onChange={handleDateSelect} />
           </div>
+=======
+    <div className="p-4 attendance-wrapper">
+      <h2 className="text-2xl font-bold mb-4 text-center">
+        Attendance Calendar
+      </h2>
+
+      <div className="calendar-container">
+        <Calendar
+          onClickDay={handleDateClick}
+          tileClassName={getTileClassName}
+        />
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-4 justify-center">
+        <Legend color="bg-green-300" label="On Time" />
+        <Legend color="bg-orange-300" label="Late" />
+        <Legend color="bg-pink-300" label="Half Day" />
+        <Legend color="bg-gray-300" label="Holiday" />
+        <Legend color="bg-blue-300" label="Sunday" />
+        <Legend color="border-2 border-gray-300" label="No Login" />
+        <Legend color="border-2 border-red-500" label="No Login (Today)" />
+      </div>
+
+      {selectedDateData ? (
+        <div className="mt-4 p-4 border rounded shadow bg-white max-w-md mx-auto">
+          <h3 className="text-lg font-semibold">
+            Details for {selectedDateData.date}
+          </h3>
+          <p>Login: {selectedDateData.loginTimeAMPM || "—"}</p>
+          <p>Logout: {selectedDateData.logoutTimeAMPM || "—"}</p>
+          <p>Status: {getStatusForDate(new Date(selectedDateData.date))}</p>
+>>>>>>> Stashed changes
         </div>
       )}
 

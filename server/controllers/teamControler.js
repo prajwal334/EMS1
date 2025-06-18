@@ -19,6 +19,7 @@ const upload = multer({
 // Create a new team
 const createTeam = async (req, res) => {
   try {
+<<<<<<< Updated upstream
     const {
       team_name,
       departmentId,
@@ -26,6 +27,9 @@ const createTeam = async (req, res) => {
       leaderUserId,
       memberUserIds,
     } = req.body;
+=======
+    const { team_name, departmentId, leaderUserId, memberUserIds } = req.body;
+>>>>>>> Stashed changes
 
     const team_dp = req.file?.path || null;
 
@@ -33,7 +37,10 @@ const createTeam = async (req, res) => {
       team_name,
       team_dp,
       departmentId,
+<<<<<<< Updated upstream
       designation,
+=======
+>>>>>>> Stashed changes
       leaderUserId,
       memberUserIds,
     });
@@ -61,7 +68,10 @@ const getAllTeams = async (req, res) => {
       team_name: team.team_name,
       team_dp: team.team_dp,
       department: team.departmentId,
+<<<<<<< Updated upstream
       designation: team.designation,
+=======
+>>>>>>> Stashed changes
       leaderUserId: team.leaderUserId,
       memberUserIds: team.memberUserIds,
     }));
@@ -95,7 +105,10 @@ const getTeamById = async (req, res) => {
         team_name: team.team_name,
         team_dp: team.team_dp,
         department: team.departmentId,
+<<<<<<< Updated upstream
         designation: team.designation,
+=======
+>>>>>>> Stashed changes
         leaderUserId: team.leaderUserId,
         memberUserIds: team.memberUserIds,
       },
@@ -128,6 +141,7 @@ const deleteTeam = async (req, res) => {
   }
 };
 
+<<<<<<< Updated upstream
 // Get teams by user ID
 const getTeamsByUserId = async (req, res) => {
   const { userId } = req.params;
@@ -181,3 +195,6 @@ export {
   getTeamsByUserId,
   getTeamsByDesignation,
 };
+=======
+export { upload, createTeam, getAllTeams, deleteTeam, getTeamById };
+>>>>>>> Stashed changes

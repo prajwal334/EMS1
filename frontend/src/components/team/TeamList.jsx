@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+<<<<<<< Updated upstream
 import "./team.css";
+=======
+>>>>>>> Stashed changes
 
 const TeamList = () => {
   const [groupedTeams, setGroupedTeams] = useState({});
@@ -17,6 +20,7 @@ const TeamList = () => {
       if (response.data.success) {
         const teams = response.data.teams;
 
+<<<<<<< Updated upstream
         // Normalize teams and group by department
         const grouped = teams.reduce((acc, team) => {
           const departmentName = team.department?.dep_name || "Unassigned";
@@ -27,6 +31,12 @@ const TeamList = () => {
 
           if (!acc[departmentName]) acc[departmentName] = [];
           acc[departmentName].push(normalizedTeam);
+=======
+        const grouped = teams.reduce((acc, team) => {
+          const depName = team.department?.dep_name || "Unassigned";
+          if (!acc[depName]) acc[depName] = [];
+          acc[depName].push(team);
+>>>>>>> Stashed changes
           return acc;
         }, {});
         setGroupedTeams(grouped);
@@ -40,6 +50,24 @@ const TeamList = () => {
     fetchTeams();
   }, []);
 
+<<<<<<< Updated upstream
+=======
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this team?")) return;
+
+    try {
+      await axios.delete(`http://localhost:3000/api/team/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      fetchTeams();
+    } catch (err) {
+      alert("Failed to delete team.");
+    }
+  };
+
+>>>>>>> Stashed changes
   const getCleanImageUrl = (team_dp) => {
     if (!team_dp) return "https://via.placeholder.com/100";
     const cleanedPath = team_dp.replace("public\\", "").replace(/\\/g, "/");
@@ -66,6 +94,7 @@ const TeamList = () => {
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
               {teams.map((team) => (
+<<<<<<< Updated upstream
                 <div key={team._id} className="flip-card w-full h-48 relative">
                   <div className="flip-card-inner w-full h-full">
                     {/* Front Side */}
@@ -97,6 +126,32 @@ const TeamList = () => {
                         View
                       </Link>
                     </div>
+=======
+                <div
+                  key={team._id}
+                  className="relative bg-white p-4 rounded-xl shadow hover:shadow-lg text-center"
+                >
+                  <button
+                    onClick={() => handleDelete(team._id)}
+                    className="absolute top-2 right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md hover:bg-red-700 z-10"
+                    title="Delete Team"
+                  >
+                    ×
+                  </button>
+
+                  <Link to={`/team/${team._id}`}>
+                    <div className="w-24 h-24 mx-auto mb-2">
+                      <img
+                        src={getCleanImageUrl(team.team_dp)}
+                        alt={team.team_name}
+                        className="w-24 h-24 rounded-full object-cover border border-gray-300 hover:opacity-80 transition"
+                      />
+                    </div>
+                  </Link>
+
+                  <div className="text-sm font-medium text-gray-800">
+                    {team.team_name}
+>>>>>>> Stashed changes
                   </div>
                 </div>
               ))}

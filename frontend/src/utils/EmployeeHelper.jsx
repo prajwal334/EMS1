@@ -190,7 +190,11 @@ export const EmployeeTable = () => {
   }, [employees, filterText]);
 
   return (
+<<<<<<< Updated upstream
     <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
+=======
+    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md border border-gray-200">
+>>>>>>> Stashed changes
       <h2 className="text-2xl font-semibold mb-4 text-slate-800">
         Employee Directory
       </h2>

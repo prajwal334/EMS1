@@ -7,7 +7,10 @@ import { useAuth } from "../../context/authContext";
 
 const HrSummary = () => {
   const { user } = useAuth();
+<<<<<<< Updated upstream
   console.log("user details ", user);
+=======
+>>>>>>> Stashed changes
   const [summary, setSummary] = useState({
     totalEmployees: 0,
     totalDepartments: 0,
