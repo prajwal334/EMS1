@@ -5,7 +5,6 @@ import {
   deleteTeam,
   getAllTeams,
   getTeamById,
-<<<<<<< Updated upstream
   getTeamsByUserId,
   getTeamsByDesignation,
 } from "../controllers/teamControler.js";
@@ -23,15 +22,5 @@ router.get(
   authMiddleware,
   getTeamsByDesignation
 );
-=======
-} from "../controllers/teamControler.js";
-
-const router = express.Router();
-
-router.post("/add", upload.single("team_dp"), createTeam);
-router.get("/", getAllTeams);
-router.delete("/:id", deleteTeam);
-router.get("/:id", getTeamById);
->>>>>>> Stashed changes
 
 export default router;

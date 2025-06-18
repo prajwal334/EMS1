@@ -121,7 +121,7 @@ export const columns = [
   },
 ];
 
-// Fetch Departments
+// ✅ Department API
 export const fetchDepartments = async () => {
   try {
     const response = await axios.get("http://localhost:3000/api/department", {
@@ -136,7 +136,7 @@ export const fetchDepartments = async () => {
   }
 };
 
-// Fetch Employees by Department
+// ✅ Employees by Department
 export const getEmployees = async (id) => {
   try {
     const response = await axios.get(
@@ -154,7 +154,7 @@ export const getEmployees = async (id) => {
   }
 };
 
-// 🚀 Main Component
+// 🚀 Main Table Component
 export const EmployeeTable = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -190,11 +190,7 @@ export const EmployeeTable = () => {
   }, [employees, filterText]);
 
   return (
-<<<<<<< Updated upstream
     <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
-=======
-    <div className="p-4 sm:p-6 bg-white rounded-lg shadow-md border border-gray-200">
->>>>>>> Stashed changes
       <h2 className="text-2xl font-semibold mb-4 text-slate-800">
         Employee Directory
       </h2>
@@ -237,7 +233,7 @@ export const EmployeeTable = () => {
             style: {
               fontWeight: "700",
               fontSize: "16px",
-              backgroundColor: "#f3f4f6", // gray-100
+              backgroundColor: "#f3f4f6",
               color: "#1e293b", // slate-800
               paddingTop: "8px",
               paddingBottom: "8px",
@@ -249,7 +245,7 @@ export const EmployeeTable = () => {
               minHeight: "48px",
               paddingTop: "4px",
               paddingBottom: "4px",
-              borderBottom: "none", // removes row borders
+              borderBottom: "none",
               boxShadow: "none",
             },
           },

@@ -6,32 +6,23 @@ const AddTeam = () => {
   const [team, setTeam] = useState({
     team_name: "",
     departmentId: "",
-<<<<<<< Updated upstream
     designation: "",
-=======
->>>>>>> Stashed changes
     leaderUserId: "",
     memberUserIds: [],
     team_dp: null,
   });
 
   const [departments, setDepartments] = useState([]);
-<<<<<<< Updated upstream
   const [subdepartments, setSubdepartments] = useState([]);
   const [leaders, setLeaders] = useState([]);
   const [members, setMembers] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
-=======
-  const [employees, setEmployees] = useState([]);
-  const [filteredEmployees, setFilteredEmployees] = useState([]);
->>>>>>> Stashed changes
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const navigate = useNavigate();
 
   useEffect(() => {
-<<<<<<< Updated upstream
     const fetchDepartments = async () => {
       try {
         const res = await axios.get("http://localhost:3000/api/department", {
@@ -117,71 +108,9 @@ const AddTeam = () => {
         ...prev,
         memberUserIds: [...prev.memberUserIds, selected],
       }));
-=======
-    const fetchData = async () => {
-      try {
-        const [deptRes, empRes] = await Promise.all([
-          axios.get("http://localhost:3000/api/department", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
-          axios.get("http://localhost:3000/api/employee", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }),
-        ]);
-
-        setDepartments(deptRes.data.departments || []);
-        setEmployees(empRes.data.employees || []);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (team.departmentId) {
-      const filtered = employees
-        .filter(
-          (emp) => String(emp.department?._id) === String(team.departmentId)
-        )
-        .sort((a, b) => a.userId.name.localeCompare(b.userId.name));
-
-      setFilteredEmployees(filtered);
-    } else {
-      setFilteredEmployees([]);
->>>>>>> Stashed changes
     }
   };
 
-<<<<<<< Updated upstream
-=======
-    setTeam((prev) => ({ ...prev, leaderUserId: "", memberUserIds: [] }));
-  }, [team.departmentId, employees]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setTeam({ ...team, [name]: value });
-  };
-
-  const handleFileChange = (e) => {
-    setTeam({ ...team, team_dp: e.target.files[0] });
-  };
-
-  const handleMemberSelect = (e) => {
-    const selected = e.target.value;
-    if (selected && !team.memberUserIds.includes(selected)) {
-      setTeam((prev) => ({
-        ...prev,
-        memberUserIds: [...prev.memberUserIds, selected],
-      }));
-    }
-  };
-
->>>>>>> Stashed changes
   const handleRemoveMember = (id) => {
     setTeam((prev) => ({
       ...prev,
@@ -198,9 +127,7 @@ const AddTeam = () => {
       const formData = new FormData();
       formData.append("team_name", team.team_name);
       formData.append("departmentId", team.departmentId);
-<<<<<<< Updated upstream
 
-      // Convert designation ID to name
       const selectedDesignation = subdepartments.find(
         (sub) => sub._id === team.designation
       );
@@ -212,13 +139,6 @@ const AddTeam = () => {
       formData.append("leaderUserId", team.leaderUserId);
       team.memberUserIds.forEach((id) => formData.append("memberUserIds", id));
       if (team.team_dp) formData.append("team_dp", team.team_dp);
-=======
-      formData.append("leaderUserId", team.leaderUserId);
-      team.memberUserIds.forEach((id) => formData.append("memberUserIds", id));
-      if (team.team_dp) {
-        formData.append("team_dp", team.team_dp);
-      }
->>>>>>> Stashed changes
 
       const res = await axios.post(
         "http://localhost:3000/api/team/add",
@@ -252,39 +172,25 @@ const AddTeam = () => {
       <h2 className="text-2xl font-bold mb-6">Add Team</h2>
 
       {errorMessage && (
-<<<<<<< Updated upstream
         <div className="mb-4 text-red-700 bg-red-100 border border-red-300 p-3 rounded">
-=======
-        <div className="mb-4 text-red-600 bg-red-100 border border-red-300 p-3 rounded">
->>>>>>> Stashed changes
           {errorMessage}
         </div>
       )}
 
       {successMessage && (
-<<<<<<< Updated upstream
         <div className="mb-4 text-green-700 bg-green-100 border border-green-300 p-3 rounded">
-=======
-        <div className="mb-4 text-green-600 bg-green-100 border border-green-300 p-3 rounded">
->>>>>>> Stashed changes
           {successMessage}
         </div>
       )}
 
       <form onSubmit={handleSubmit}>
-<<<<<<< Updated upstream
         {/* Team Name */}
-=======
->>>>>>> Stashed changes
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">Team Name</label>
           <input
             type="text"
             name="team_name"
-<<<<<<< Updated upstream
             value={team.team_name}
-=======
->>>>>>> Stashed changes
             onChange={handleChange}
             placeholder="Enter Team Name"
             className="mt-1 w-full p-2 border border-gray-300 rounded-md"
@@ -292,10 +198,7 @@ const AddTeam = () => {
           />
         </div>
 
-<<<<<<< Updated upstream
         {/* Team Image */}
-=======
->>>>>>> Stashed changes
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">
             Team Image
@@ -306,7 +209,6 @@ const AddTeam = () => {
             onChange={handleFileChange}
             className="mt-1 w-full p-2 border border-gray-300 rounded-md"
           />
-<<<<<<< Updated upstream
           {previewImage && (
             <img
               src={previewImage}
@@ -317,10 +219,6 @@ const AddTeam = () => {
         </div>
 
         {/* Department */}
-=======
-        </div>
-
->>>>>>> Stashed changes
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">
             Department
@@ -341,8 +239,7 @@ const AddTeam = () => {
           </select>
         </div>
 
-<<<<<<< Updated upstream
-        {/* Subdepartment/Designation */}
+        {/* Sub-department / Designation */}
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">
             Sub-department (Designation)
@@ -363,9 +260,7 @@ const AddTeam = () => {
           </select>
         </div>
 
-        {/* Team Leader */}
-=======
->>>>>>> Stashed changes
+        {/* Leader */}
         <div className="mb-4">
           <label className="text-sm font-medium text-gray-700">
             Team Leader
@@ -378,33 +273,20 @@ const AddTeam = () => {
             required
           >
             <option value="">Select Leader</option>
-<<<<<<< Updated upstream
             {leaders.map((emp) => (
               <option key={emp._id} value={emp._id}>
                 {emp.name}
-=======
-            {filteredEmployees.map((emp) => (
-              <option key={emp.userId._id} value={emp.userId._id}>
-                {emp.userId.name}
->>>>>>> Stashed changes
               </option>
             ))}
           </select>
         </div>
 
-<<<<<<< Updated upstream
         {/* Members */}
-=======
->>>>>>> Stashed changes
         <div className="mb-6">
           <label className="text-sm font-medium text-gray-700">
             Team Members
           </label>
           <select
-<<<<<<< Updated upstream
-=======
-            name="memberUserIds"
->>>>>>> Stashed changes
             onChange={handleMemberSelect}
             value=""
             className="mt-1 w-full p-2 border border-gray-300 rounded-md"
@@ -412,50 +294,28 @@ const AddTeam = () => {
             <option value="" disabled>
               Select a member to add
             </option>
-<<<<<<< Updated upstream
             {members
               .filter((emp) => !team.memberUserIds.includes(emp._id))
               .map((emp) => (
                 <option key={emp._id} value={emp._id}>
                   {emp.name}
-=======
-            {filteredEmployees
-              .filter((emp) => !team.memberUserIds.includes(emp.userId._id))
-              .map((emp) => (
-                <option key={emp.userId._id} value={emp.userId._id}>
-                  {emp.userId.name}
->>>>>>> Stashed changes
                 </option>
               ))}
           </select>
 
           <div className="flex flex-wrap gap-2 mt-2">
             {team.memberUserIds.map((id) => {
-<<<<<<< Updated upstream
               const member = members.find((emp) => emp._id === id);
-=======
-              const member = filteredEmployees.find(
-                (emp) => emp.userId._id === id
-              );
->>>>>>> Stashed changes
               return (
                 <span
                   key={id}
                   className="flex items-center bg-teal-100 text-teal-800 text-sm px-2 py-1 rounded-full"
                 >
-<<<<<<< Updated upstream
                   ✔ {member?.name}
                   <button
                     type="button"
                     onClick={() => handleRemoveMember(id)}
                     className="ml-2 text-red-500 hover:text-red-700 font-bold"
-=======
-                  ✔ {member?.userId.name}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveMember(id)}
-                    className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold"
->>>>>>> Stashed changes
                     title="Remove Member"
                   >
                     ×

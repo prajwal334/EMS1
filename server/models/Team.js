@@ -9,12 +9,11 @@ const teamSchema = new mongoose.Schema(
       ref: "Department",
       required: true,
     },
-<<<<<<< Updated upstream
+
     designation: {
       type: String,
     },
-=======
->>>>>>> Stashed changes
+
     leaderUserId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

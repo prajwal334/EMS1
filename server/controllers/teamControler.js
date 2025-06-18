@@ -2,7 +2,7 @@ import Team from "../models/Team.js";
 import multer from "multer";
 import path from "path";
 
-// Multer storage setup
+// 🔧 Multer storage setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "public/uploads");
@@ -12,14 +12,11 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({
-  storage: storage,
-});
+const upload = multer({ storage });
 
-// Create a new team
+// ➕ Create a new team
 const createTeam = async (req, res) => {
   try {
-<<<<<<< Updated upstream
     const {
       team_name,
       departmentId,
@@ -27,9 +24,6 @@ const createTeam = async (req, res) => {
       leaderUserId,
       memberUserIds,
     } = req.body;
-=======
-    const { team_name, departmentId, leaderUserId, memberUserIds } = req.body;
->>>>>>> Stashed changes
 
     const team_dp = req.file?.path || null;
 
@@ -37,10 +31,7 @@ const createTeam = async (req, res) => {
       team_name,
       team_dp,
       departmentId,
-<<<<<<< Updated upstream
       designation,
-=======
->>>>>>> Stashed changes
       leaderUserId,
       memberUserIds,
     });
@@ -49,13 +40,14 @@ const createTeam = async (req, res) => {
     res.status(201).json(savedTeam);
   } catch (error) {
     console.error("❌ Error creating team:", error);
-    res
-      .status(500)
-      .json({ error: "Failed to create team", details: error.message });
+    res.status(500).json({
+      error: "Failed to create team",
+      details: error.message,
+    });
   }
 };
 
-// Get all teams
+// 📥 Get all teams
 const getAllTeams = async (req, res) => {
   try {
     const teams = await Team.find()
@@ -68,10 +60,7 @@ const getAllTeams = async (req, res) => {
       team_name: team.team_name,
       team_dp: team.team_dp,
       department: team.departmentId,
-<<<<<<< Updated upstream
       designation: team.designation,
-=======
->>>>>>> Stashed changes
       leaderUserId: team.leaderUserId,
       memberUserIds: team.memberUserIds,
     }));
@@ -86,7 +75,7 @@ const getAllTeams = async (req, res) => {
   }
 };
 
-// Get a team by ID
+// 📥 Get a team by ID
 const getTeamById = async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
@@ -105,10 +94,7 @@ const getTeamById = async (req, res) => {
         team_name: team.team_name,
         team_dp: team.team_dp,
         department: team.departmentId,
-<<<<<<< Updated upstream
         designation: team.designation,
-=======
->>>>>>> Stashed changes
         leaderUserId: team.leaderUserId,
         memberUserIds: team.memberUserIds,
       },
@@ -122,11 +108,10 @@ const getTeamById = async (req, res) => {
   }
 };
 
-// Delete a team by ID
+// ❌ Delete team by ID
 const deleteTeam = async (req, res) => {
   try {
     const { id } = req.params;
-
     const deletedTeam = await Team.findByIdAndDelete(id);
 
     if (!deletedTeam) {
@@ -135,14 +120,14 @@ const deleteTeam = async (req, res) => {
 
     res.status(200).json({ message: "Team deleted successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Failed to delete team", details: error.message });
+    res.status(500).json({
+      error: "Failed to delete team",
+      details: error.message,
+    });
   }
 };
 
-<<<<<<< Updated upstream
-// Get teams by user ID
+// 🔍 Get teams by user ID (member)
 const getTeamsByUserId = async (req, res) => {
   const { userId } = req.params;
 
@@ -171,11 +156,11 @@ const getTeamsByUserId = async (req, res) => {
   }
 };
 
-//getTeamsByDesignation
+// 🔍 Get teams by designation
 const getTeamsByDesignation = async (req, res) => {
   const { designation } = req.params;
   try {
-    const teams = await Team.find({ designation: designation })
+    const teams = await Team.find({ designation })
       .populate("leaderUserId", "name")
       .populate("memberUserIds", "name");
 
@@ -186,6 +171,7 @@ const getTeamsByDesignation = async (req, res) => {
   }
 };
 
+// ✅ Export all handlers
 export {
   upload,
   createTeam,
@@ -195,6 +181,3 @@ export {
   getTeamsByUserId,
   getTeamsByDesignation,
 };
-=======
-export { upload, createTeam, getAllTeams, deleteTeam, getTeamById };
->>>>>>> Stashed changes
